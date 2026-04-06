@@ -4,6 +4,16 @@ body {
     background-color: #fff8e7;
 }
 
+body.theme-light {
+    background-color: #fff8e7;
+    color: #100C08;
+}
+
+body.theme-dark {
+    background-color: #1a1714;
+    color: #f7e6d6;
+}
+
 .navbar {
     display: flex;
     justify-content: space-between;
@@ -54,6 +64,7 @@ body {
 
 .utility-group {
     position: relative;
+    min-width: 150px;
 }
 
 .utility-trigger {
@@ -88,6 +99,49 @@ body {
     gap: 8px;
     font-size: 15px;
     cursor: pointer;
+}
+
+body.theme-dark .navbar {
+    background-color: #100C08;
+}
+
+body.theme-dark .logo a,
+body.theme-dark .utility-trigger,
+body.theme-dark .auth-form h2,
+body.theme-dark .form-group label,
+body.theme-dark .form-footer {
+    color: #f7e6d6;
+}
+
+body.theme-dark .utility-bar {
+    background-color: #1a1714;
+    border-top-color: rgba(247, 230, 214, 0.22);
+    border-bottom-color: rgba(247, 230, 214, 0.22);
+}
+
+body.theme-dark .utility-menu {
+    background-color: #3b342d;
+    border-color: #f7e6d6;
+    color: #f7e6d6;
+}
+
+body.theme-dark .auth-container {
+    background-color: #1a1714;
+}
+
+body.theme-dark .auth-form {
+    background-color: #2a2520;
+}
+
+body.theme-dark .form-group input {
+    background-color: #1a1714;
+    color: #f7e6d6;
+    border-color: #cc5500;
+}
+
+body.theme-dark .footer {
+    background-color: #100C08;
+    color: #f7e6d6;
 }
 
 .auth-container {

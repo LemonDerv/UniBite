@@ -17,8 +17,24 @@
         </div>
     </nav>
 
-    <section class="utility-bar" aria-label="Language controls">
+        <section class="utility-bar" aria-label="Theme and language controls">
         <div class="utility-group">
+                <button class="utility-trigger" type="button" data-menu-target="theme-menu" aria-expanded="false" aria-controls="theme-menu">
+                    <span data-i18n="chooseTheme">Choose Theme</span> ◐
+                </button>
+                <div class="utility-menu" id="theme-menu" hidden>
+                    <label>
+                        <input type="radio" name="theme" value="dark">
+                        <span data-i18n="dark">Dark</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="theme" value="light" checked>
+                        <span data-i18n="light">Light</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="utility-group">
             <button class="utility-trigger" type="button" data-menu-target="language-menu" aria-expanded="false" aria-controls="language-menu">
                 <span id="language-label">ENG</span> ▾
             </button>
