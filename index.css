@@ -70,6 +70,8 @@ body.theme-dark {
 
 .utility-group {
     position: relative;
+    min-width: 150px;
+    min-height: 28px;
 }
 
 .utility-trigger {
@@ -81,6 +83,10 @@ body.theme-dark {
     cursor: pointer;
     padding: 0;
     font-family: "Trebuchet MS", Helvetica, sans-serif;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    transition: color 0.2s ease;
 }
 
 .utility-menu {
@@ -89,13 +95,25 @@ body.theme-dark {
     border: 1px solid var(--text-dark);
     min-width: 120px;
     padding: 8px;
-    display: flex;
+    display: none;
     flex-direction: column;
     gap: 8px;
     color: var(--text-dark);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
     position: absolute;
     z-index: 10;
+    opacity: 0;
+    transform: translateY(-6px);
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.utility-group:hover .utility-menu,
+.utility-group:focus-within .utility-menu {
+    display: flex;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
 }
 
 .utility-menu label {

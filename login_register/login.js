@@ -1,6 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-	const languageTrigger = document.querySelector('.utility-trigger');
-	const languageMenu = document.getElementById('language-menu');
 	const languageInputs = document.querySelectorAll('input[name="language"]');
 	const languageLabel = document.getElementById('language-label');
 
@@ -33,15 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	};
 
-	const closeLanguageMenu = () => {
-		if (languageTrigger) {
-			languageTrigger.setAttribute('aria-expanded', 'false');
-		}
-		if (languageMenu) {
-			languageMenu.hidden = true;
-		}
-	};
-
 	const setLanguage = (lang) => {
 		const selected = dictionary[lang] || dictionary.en;
 
@@ -61,30 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
 		localStorage.setItem('unibites-language', lang);
 	};
 
-	if (languageTrigger && languageMenu) {
-		languageTrigger.addEventListener('click', (event) => {
-			event.stopPropagation();
-			const isOpen = languageTrigger.getAttribute('aria-expanded') === 'true';
-
-			closeLanguageMenu();
-
-			if (!isOpen) {
-				languageTrigger.setAttribute('aria-expanded', 'true');
-				languageMenu.hidden = false;
-			}
-		});
-	}
-
-	document.addEventListener('click', (event) => {
-		if (!event.target.closest('.utility-group')) {
-			closeLanguageMenu();
-		}
-	});
-
 	languageInputs.forEach((input) => {
 		input.addEventListener('change', () => {
 			setLanguage(input.value);
-			closeLanguageMenu();
 		});
 	});
 

@@ -1,6 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const triggerButtons = document.querySelectorAll('.utility-trigger');
-    const menus = document.querySelectorAll('.utility-menu');
     const themeInputs = document.querySelectorAll('input[name="theme"]');
     const languageInputs = document.querySelectorAll('input[name="language"]');
     const languageLabel = document.getElementById('language-label');
@@ -122,46 +120,15 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('unibites-language', lang);
     };
 
-    const closeAllMenus = () => {
-        triggerButtons.forEach((button) => button.setAttribute('aria-expanded', 'false'));
-        menus.forEach((menu) => {
-            menu.hidden = true;
-        });
-    };
-
-    triggerButtons.forEach((button) => {
-        button.addEventListener('click', (event) => {
-            event.stopPropagation();
-            const menuId = button.getAttribute('data-menu-target');
-            const currentMenu = document.getElementById(menuId);
-            const isOpen = button.getAttribute('aria-expanded') === 'true';
-
-            closeAllMenus();
-
-            if (currentMenu && !isOpen) {
-                button.setAttribute('aria-expanded', 'true');
-                currentMenu.hidden = false;
-            }
-        });
-    });
-
-    document.addEventListener('click', (event) => {
-        if (!event.target.closest('.utility-group')) {
-            closeAllMenus();
-        }
-    });
-
     themeInputs.forEach((input) => {
         input.addEventListener('change', () => {
             setTheme(input.value);
-            closeAllMenus();
         });
     });
 
     languageInputs.forEach((input) => {
         input.addEventListener('change', () => {
             setLanguage(input.value);
-            closeAllMenus();
         });
     });
 
