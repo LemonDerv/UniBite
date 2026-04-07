@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UniBites | Home</title>
+    <link rel="stylesheet" href="homepage.css">
+</head>
+
+<body class="theme-light">
+
+    <!-- TOP NAV -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <a class="logo" href="#">UniBites</a>
+        </div>
+
+        <!-- ADDRESS BOX -->
+        <div class="address-box">
+            <button class="address-btn" aria-label="Select address" aria-expanded="false">
+                Aratou 60, Patras ▼
+            </button>
+
+            <ul class="address-dropdown">
+                <li>Aratou 60, Patras</li>
+                <li>Miaouli 13, Patras</li>
+                <li class="add-new">+ Add New Address</li>
+            </ul>
+        </div>
+
+        <div class="topbar-right">
+            <button class="icon-btn" aria-label="Create meal post">＋</button>
+
+            <!-- ACCOUNT MENU -->
+            <div class="avatar-container">
+                <div class="avatar" id="avatar" aria-label="Account settings">U</div>
+
+                <nav class="dropdown-menu" id="dropdownMenu">
+    
+                    <!-- ACCOUNT INFO -->
+                    <section class="menu-section">
+                        <div class="account-info">
+                            <p class="username">User 1</p>
+                            <p class="credits">Credits: 120</p>
+                            <a href="/edit-account" class="menu-btn edit-btn">Edit Account</a>
+                        </div>
+                    </section>
+
+                    <!-- NAVIGATION -->
+                    <section class="menu-section">
+                        <a href="/deliveries" class="menu-btn">Deliveries</a>
+                        <a href="/meal-posts" class="menu-btn">Your Meal Posts</a>
+                        <a href="/pending-requests" class="menu-btn">Pending Requests</a>
+                    </section>
+
+                    <!-- LOGOUT -->
+                    <section class="menu-section">
+                        <a href="/logout" class="menu-btn logout">Log Out</a>
+                    </section>
+
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- UTILITY BAR -->
+    <section class="utility-bar" aria-label="Theme and language controls">
+
+        <div class="utility-group">
+            <button class="utility-trigger" type="button">
+                <span data-i18n="chooseTheme">Choose Theme</span> ◐
+            </button>
+
+            <div class="utility-menu">
+                <label>
+                    <input type="radio" name="theme" value="dark">
+                    <span data-i18n="dark">Dark</span>
+                </label>
+                <label>
+                    <input type="radio" name="theme" value="light" checked>
+                    <span data-i18n="light">Light</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="utility-group">
+            <button class="utility-trigger" type="button">
+                <span id="language-label">ENG</span> ▾
+            </button>
+
+            <div class="utility-menu">
+                <label>
+                    <input type="radio" name="language" value="en" checked>
+                    English (EN)
+                </label>
+                <label>
+                    <input type="radio" name="language" value="gr">
+                    Ελληνικά (GR)
+                </label>
+            </div>
+        </div>
+    </section>
+
+    <div class="layout">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+
+            <section class="sidebar-section">
+                <h2 class="sidebar-title">Food Categories</h2>
+
+                <ul class="category-list">
+                    <li><button class="category active">Popular</button></li>
+                    <li><button class="category">Beef</button></li>
+                    <li><button class="category">Dairy</button></li>
+                    <li><button class="category">Eggs</button></li>
+                    <li><button class="category">Fish</button></li>
+                    <li><button class="category">Pasta</button></li>
+                    <li><button class="category">Pork</button></li>
+                    <li><button class="category">Poultry</button></li>
+                    <li><button class="category">Rice</button></li>
+                    <li><button class="category">Vegan</button></li>
+                    <li><button class="category">Vegetables</button></li>
+                </ul>
+            </section>
+
+            <section class="sidebar-section">
+                <form>
+                    <label class="allergy-filter">
+                        <input type="checkbox" id="filter-allergies">
+                        Filter out meals with my allergies
+                    </label>
+                </form>
+            </section>
+
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main id="main-content" class="main">
+
+            <section class="page-heading">
+                <h1>Welcome back, Student</h1>
+                <p>Fresh meal offerings near you.</p>
+            </section>
+
+            <section class="feed-grid">
+
+                <!-- CARD EXAMPLE -->
+                <article class="post-card">
+                    <div class="post-thumb">
+                        <!-- future image -->
+                        <!-- <img src="meal.jpg" alt="Homemade Pasta Plate"> -->
+                        <span class="post-badge">Beef</span>
+                    </div>
+
+                    <div class="post-body">
+                        <h2 class="post-title">Homemade Pasta Plate</h2>
+
+                        <div class="post-meta">
+                            <span>By Maria • 1.2 km away</span>
+                            <span>24h remaining</span>
+                        </div>
+
+                        <p class="post-description">
+                            Fresh pasta with tomato sauce, basil, and parmesan cheese.
+                        </p>
+
+                        <div class="post-actions">
+                            <button class="btn primary">View Offer</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- 2 -->
+                <article class="post-card">
+                    <div class="post-thumb"><span class="post-badge">Vegan</span></div>
+                    <div class="post-body">
+                        <h2 class="post-title">Falafel Bowl</h2>
+                        <div class="post-meta"><span>By Alex • Library</span><span>36h</span></div>
+                        <p class="post-description">Falafel, rice, hummus, cucumber, and fresh salad with tahini dressing.</p>
+                        <div class="post-actions"><button class="btn primary">View Offer</button></div>
+                    </div>
+                </article>
+
+                <!-- 3 -->
+                <article class="post-card">
+                    <div class="post-thumb"><span class="post-badge">Poultry</span></div>
+                    <div class="post-body">
+                        <h2 class="post-title">Chicken Wrap</h2>
+                        <div class="post-meta"><span>By John • Dorms</span><span>12h</span></div>
+                        <p class="post-description">Grilled chicken wrap with lettuce, tomato, and garlic sauce.</p>
+                        <div class="post-actions"><button class="btn primary">View Offer</button></div>
+                    </div>
+                </article>
+
+                <!-- 4 -->
+                <article class="post-card">
+                    <div class="post-thumb"><span class="post-badge">Dessert</span></div>
+                    <div class="post-body">
+                        <h2 class="post-title">Chocolate Cake</h2>
+                        <div class="post-meta"><span>By Elena</span><span>48h</span></div>
+                        <p class="post-description">Rich chocolate cake with layers of cream and chocolate glaze topping.</p>
+                        <div class="post-actions"><button class="btn primary">View Offer</button></div>
+                    </div>
+                </article>
+
+                <!-- 5 -->
+                <article class="post-card">
+                    <div class="post-thumb"><span class="post-badge">Rice</span></div>
+                    <div class="post-body">
+                        <h2 class="post-title">Rice & Beef Box</h2>
+                        <div class="post-meta"><span>By George</span><span>18h</span></div>
+                        <p class="post-description">Warm rice bowl with seasoned beef and vegetables.</p>
+                        <div class="post-actions"><button class="btn primary">View Offer</button></div>
+                    </div>
+                </article>
+
+                <!-- 6 -->
+                <article class="post-card">
+                    <div class="post-thumb"><span class="post-badge">Vegetarian</span></div>
+                    <div class="post-body">
+                        <h2 class="post-title">Veggie Sandwich</h2>
+                        <div class="post-meta"><span>By Sofia</span><span>20h</span></div>
+                        <p class="post-description">Healthy sandwich packed with fresh vegetables and homemade spread.</p>
+                        <div class="post-actions"><button class="btn primary">View Offer</button></div>
+                    </div>
+                </article>
+
+                <!-- 7 -->
+                <article class="post-card">
+                    <div class="post-thumb"><span class="post-badge">Pasta</span></div>
+                    <div class="post-body">
+                        <h2 class="post-title">Carbonara</h2>
+                        <div class="post-meta"><span>By Nikos</span><span>10h</span></div>
+                        <p class="post-description">Classic carbonara with creamy sauce and crispy bacon bits.</p>
+                        <div class="post-actions"><button class="btn primary">View Offer</button></div>
+                    </div>
+                </article>
+
+                <!-- 8 -->
+                <article class="post-card">
+                    <div class="post-thumb"><span class="post-badge">Eggs</span></div>
+                    <div class="post-body">
+                        <h2 class="post-title">Omelette Plate</h2>
+                        <div class="post-meta"><span>By Anna</span><span>8h</span></div>
+                        <p class="post-description">Fluffy omelette with cheese, ham, and herbs served hot.</p>
+                        <div class="post-actions"><button class="btn primary">View Offer</button></div>
+                    </div>
+                </article>
+
+                <!-- 9 -->
+                <article class="post-card">
+                    <div class="post-thumb"><span class="post-badge">Fish</span></div>
+                    <div class="post-body">
+                        <h2 class="post-title">Grilled Salmon</h2>
+                        <div class="post-meta"><span>By Chris</span><span>30h</span></div>
+                        <p class="post-description">Fresh grilled salmon served with lemon and steamed vegetables.</p>
+                        <div class="post-actions"><button class="btn primary">View Offer</button></div>
+                    </div>
+                </article>
+
+                <!-- 10 -->
+                <article class="post-card">
+                    <div class="post-thumb"><span class="post-badge">Dairy</span></div>
+                    <div class="post-body">
+                        <h2 class="post-title">Cheese Pie</h2>
+                        <div class="post-meta"><span>By Maria</span><span>15h</span></div>
+                        <p class="post-description">Traditional cheese pie with crispy crust and soft filling.</p>
+                        <div class="post-actions"><button class="btn primary">View Offer</button></div>
+                    </div>
+                </article>
+
+                <!-- 11 -->
+                <article class="post-card">
+                    <div class="post-thumb"><span class="post-badge">Pork</span></div>
+                    <div class="post-body">
+                        <h2 class="post-title">Pork Gyros</h2>
+                        <div class="post-meta"><span>By Dimitris</span><span>22h</span></div>
+                        <p class="post-description">Delicious pork gyros wrapped with pita, tomato, and tzatziki.</p>
+                        <div class="post-actions"><button class="btn primary">View Offer</button></div>
+                    </div>
+                </article>
+
+                <!-- 12 -->
+                <article class="post-card">
+                    <div class="post-thumb"><span class="post-badge">Vegetables</span></div>
+                    <div class="post-body">
+                        <h2 class="post-title">Stuffed Peppers</h2>
+                        <div class="post-meta"><span>By Elena</span><span>40h</span></div>
+                        <p class="post-description">Peppers stuffed with rice, herbs, and vegetables baked to perfection.</p>
+                        <div class="post-actions"><button class="btn primary">View Offer</button></div>
+                    </div>
+                </article>
+
+                <!-- 13–18 -->
+                <article class="post-card"><div class="post-thumb"><span class="post-badge">Beef</span></div><div class="post-body"><h2 class="post-title">Burger Meal</h2><div class="post-meta"><span>By Alex</span><span>12h</span></div><p class="post-description">Juicy burger with fries and sauce.</p><div class="post-actions"><button class="btn primary">View Offer</button></div></div></article>
+
+                <article class="post-card"><div class="post-thumb"><span class="post-badge">Vegan</span></div><div class="post-body"><h2 class="post-title">Tofu Bowl</h2><div class="post-meta"><span>By Sofia</span><span>16h</span></div><p class="post-description">Tofu with rice and vegetables in soy sauce.</p><div class="post-actions"><button class="btn primary">View Offer</button></div></div></article>
+
+                <article class="post-card"><div class="post-thumb"><span class="post-badge">Rice</span></div><div class="post-body"><h2 class="post-title">Fried Rice</h2><div class="post-meta"><span>By John</span><span>9h</span></div><p class="post-description">Fried rice with eggs and vegetables.</p><div class="post-actions"><button class="btn primary">View Offer</button></div></div></article>
+
+                <article class="post-card"><div class="post-thumb"><span class="post-badge">Dessert</span></div><div class="post-body"><h2 class="post-title">Ice Cream</h2><div class="post-meta"><span>By Anna</span><span>6h</span></div><p class="post-description">Vanilla ice cream with chocolate syrup.</p><div class="post-actions"><button class="btn primary">View Offer</button></div></div></article>
+
+                <article class="post-card"><div class="post-thumb"><span class="post-badge">Fish</span></div><div class="post-body"><h2 class="post-title">Fish & Chips</h2><div class="post-meta"><span>By Chris</span><span>14h</span></div><p class="post-description">Crispy fried fish served with fries.</p><div class="post-actions"><button class="btn primary">View Offer</button></div></div></article>
+
+                <article class="post-card"><div class="post-thumb"><span class="post-badge">Pasta</span></div><div class="post-body"><h2 class="post-title">Mac & Cheese</h2><div class="post-meta"><span>By Maria</span><span>11h</span></div><p class="post-description">Creamy macaroni with melted cheese.</p><div class="post-actions"><button class="btn primary">View Offer</button></div></div></article>
+
+            </section>
+
+            <!-- PAGINATION -->
+            <div class="pagination">
+                <button class="page-btn prev">❮ Previous</button>
+                <button class="page-btn next">Next ❯</button>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="homepage.js"></script>
+</body>
+</html>
