@@ -93,6 +93,7 @@ body.theme-dark {
     margin-top: 6px;
     background-color: var(--menu-bg-light);
     border: 1px solid var(--text-dark);
+    border-radius: 14px;
     min-width: 120px;
     padding: 8px;
     display: none;

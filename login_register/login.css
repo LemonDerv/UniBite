@@ -88,6 +88,7 @@ body.theme-dark {
     margin-top: 0;
     background-color: #e8ddd0;
     border: 1px solid #100C08;
+    border-radius: 14px;
     min-width: 120px;
     padding: 8px;
     display: none;
