@@ -237,6 +237,49 @@ body.theme-dark .auth-close:hover {
     box-shadow: 0 0 5px rgba(204, 85, 0, 0.3);
 }
 
+.form-group details {
+    border: 2px solid #cc5500;
+    border-radius: 5px;
+    padding: 10px 12px;
+}
+
+.form-group summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #100C08;
+}
+
+.allergy-list {
+    margin-top: 10px;
+    display: grid;
+    gap: 8px;
+}
+
+.allergy-list label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-weight: 500;
+}
+
+.allergy-list input[type="checkbox"] {
+    width: auto;
+    padding: 0;
+    margin: 0;
+    accent-color: #cc5500;
+    box-shadow: none;
+    flex: 0 0 auto;
+}
+
+body.theme-dark .form-group details {
+    border-color: #cc5500;
+}
+
+body.theme-dark .form-group summary {
+    color: #f7e6d6;
+}
+
 .auth-button {
     width: 100%;
     padding: 12px;
