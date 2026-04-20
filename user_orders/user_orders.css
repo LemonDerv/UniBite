@@ -1,0 +1,401 @@
+:root {
+    --primary: #cc5500;
+    --bg-light: #fff8e7;
+    --bg-dark: #1a1714;
+    --text-dark: #100C08;
+    --text-light: #f7e6d6;
+    --menu-bg-light: #e8ddd0;
+    --menu-bg-dark: #26211d;
+}
+
+/* ------------------------------
+   BODY
+------------------------------ */
+body {
+    margin: 0;
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+}
+
+body.theme-dark {
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+}
+
+/* ------------------------------
+   TOPBAR
+------------------------------ */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    height: 64px;
+    background-color: var(--bg-light);
+    border-bottom: 1px solid rgba(16,12,8,0.18);
+}
+
+body.theme-dark .topbar {
+    background-color: var(--bg-dark);
+    border-bottom-color: rgba(247, 230, 214, 0.18);
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--primary);
+    text-decoration: none;
+}
+
+/* ------------------------------
+   UTILITY BAR
+------------------------------ */
+.utility-bar {
+    display: flex;
+    align-items: flex-start;
+    gap: 26px;
+    padding: 10px 30px 14px;
+    background-color: var(--bg-light);
+    border-top: 1px solid rgba(16, 12, 8, 0.18);
+    border-bottom: 4px solid rgba(16, 12, 8, 0.18);
+}
+
+.utility-group {
+    position: relative;
+}
+
+.utility-trigger {
+    background: none;
+    border: none;
+    color: var(--text-dark);
+    font-size: 16px;
+    cursor: pointer;
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+}
+
+.utility-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 0;
+    background-color: var(--menu-bg-light);
+    border: 1px solid var(--text-dark);
+    border-radius: 14px;
+    padding: 8px;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 10;
+}
+
+.utility-group:hover .utility-menu {
+    display: flex;
+}
+
+body.theme-dark .utility-bar {
+    background-color: var(--bg-dark);
+}
+
+body.theme-dark .utility-trigger {
+    color: var(--text-light);
+}
+
+body.theme-dark .utility-menu {
+    background-color: var(--menu-bg-dark);
+    color: var(--text-light);
+    border-color: var(--text-light);
+}
+
+/* ------------------------------
+   BUTTONS
+------------------------------ */
+.btn {
+    border: none;
+    border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn:hover {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}   
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn.primary {
+    background-color: var(--primary);
+    color: var(--text-light);
+}
+
+.btn.secondary {
+    background-color: var(--text-light);
+    border: 1px solid var(--primary);
+    color: var(--primary);
+}
+
+
+/* ------------------------------
+   PAGE HEADING
+------------------------------ */
+.page-heading {
+    margin-bottom: 20px;
+}
+
+.page-heading h1 {
+    margin-bottom: 5px;
+}
+
+/* ------------------------------
+   LAYOUT
+------------------------------ */
+.orders-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: calc(100vh - 120px);
+}
+
+/* ------------------------------
+   ORDER SECTIONS
+------------------------------ */
+.orders-section {
+    margin-bottom: 30px;
+    padding: 0 15px;
+}
+
+.section-title {
+    display: block;
+
+    background-color: var(--text-dark);
+    color: var(--bg-light);
+
+    padding: 12px 16px;
+    border-radius: 5px;
+
+    font-weight: bold;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+
+    margin-bottom: 14px;
+    text-transform: uppercase;
+
+    flex: 1;
+}
+
+.section-title.toggle-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.section-title.toggle-header:hover {
+    opacity: 0.9;
+}
+
+/* ARROW */
+.toggle-icon {
+    font-size: 14px;
+    color: inherit;
+    transition: transform 0.25s ease-in-out;
+}
+
+.section-title.collapsed .toggle-icon {
+    transform: rotate(180deg);
+}
+
+/* ------------------------------
+   ORDER CARDS
+------------------------------ */
+.orders-main {
+    padding: 20px 30px;
+}
+
+.order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+
+    max-height: 1000px;
+    transition: max-height 0.35s ease, opacity 0.25s ease;
+    opacity: 1;
+
+}
+
+.order-list.hidden {
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.order-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid rgba(16,12,8,0.2);
+    background-color: var(--bg-light);
+}
+
+.order-card:hover {
+    border-color: var(--primary);
+}
+
+.post-title {
+    margin: 0 0 4px;
+}
+
+.order-meta {
+    font-size: 13px;
+    color: #666;
+}
+
+.order-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* ------------------------------
+   ACCOUNT SIDEBAR
+------------------------------ */
+.account-sidebar {
+    padding: 20px 16px;
+    background-color: var(--bg-light);
+
+    border-right: 1px solid rgba(16,12,8,0.2);
+
+    display: flex;
+    flex-direction: column;
+}
+
+.account-box {
+    margin-bottom: 20px;
+}
+
+.account-box .username {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.account-box .credits {
+    font-size: 14px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--text-dark);
+    
+}
+
+.account-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.menu-link {
+    text-decoration: none;
+    padding: 10px 12px;
+    border-radius: 6px;
+    color: var(--text-dark);
+    display: block;
+    transition: background 0.15s ease;
+}
+
+.menu-link:hover {
+    background-color: var(--menu-bg-light);
+}
+
+.menu-link.active {
+    font-weight: bold;
+    background-color: rgba(204, 85, 0, 0.1);
+    color: var(--primary);
+}
+
+.menu-link.logout {
+    margin-top: 12px;
+    opacity: 0.7;
+}
+
+/* ------------------------------
+   DARK MODE
+------------------------------ */
+body.theme-dark .topbar,
+body.theme-dark .account-sidebar{
+    background-color: var(--bg-dark);
+}
+
+body.theme-dark .order-card {
+    background-color: var(--bg-dark);
+    border: 1px solid rgba(247, 230, 214, 0.15);
+}
+
+body.theme-dark .order-card:hover {
+    border-color: var(--primary);
+}
+
+body.theme-dark .account-sidebar {
+    background-color: var(--bg-dark);
+    border-right-color: rgba(247,230,214,0.2);
+}
+
+body.theme-dark .account-box {
+    border-bottom-color: rgba(247,230,214,0.1);
+}
+
+body.theme-dark .menu-link {
+    color: var(--text-light);
+}
+
+body.theme-dark .menu-link:hover {
+    background-color: var(--menu-bg-dark);
+}
+
+body.theme-dark .menu-link.active {
+    background-color: rgba(204, 85, 0, 0.2);
+}
+
+body.theme-dark .order-meta {
+    color: var(--text-light);
+}
+
+body.theme-dark .account-box .credits {
+    border-bottom: 2px solid var(--text-light);
+    
+}
+
+body.theme-dark .section-title {
+    background-color: var(--text-light);
+    color: var(--bg-dark);
+}
+
+body.theme-dark .btn.primary {
+    color: var(--text-dark);
+}
+
+body.theme-dark .btn.secondary {
+    background-color: var(--text-dark);
+}
+
+body.theme-dark .btn:hover {
+    box-shadow: 0 4px 12px rgba(247, 230, 214, 0.12);
+}
+
+/* ------------------------------
+   RESPONSIVE (in progress)
+------------------------------ */
+@media (max-width: 900px) {
+    .orders-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .account-sidebar {
+        border-right: none;
+        border-bottom: 1px solid rgba(16,12,8,0.2);
+    }
+}

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UniBites | Your Orders</title>
+    <link rel="stylesheet" href="user_orders.css">
+</head>
+
+<body class="theme-light">
+
+    <!-- TOP NAV -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <a class="logo" href="/">UniBites</a>
+        </div>
+    </header>
+
+    <!-- UTILITY BAR -->
+    <section class="utility-bar" aria-label="Theme and language controls">
+
+        <div class="utility-group">
+            <button class="utility-trigger" type="button">
+                <span data-i18n="chooseTheme">Choose Theme</span> ◐
+            </button>
+
+            <div class="utility-menu">
+                <label>
+                    <input type="radio" name="theme" value="dark">
+                    <span data-i18n="dark">Dark</span>
+                </label>
+                <label>
+                    <input type="radio" name="theme" value="light" checked>
+                    <span data-i18n="light">Light</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="utility-group">
+            <button class="utility-trigger" type="button">
+                <span id="language-label">ENG</span> ▾
+            </button>
+
+            <div class="utility-menu">
+                <label>
+                    <input type="radio" name="language" value="en" checked>
+                    English (EN)
+                </label>
+                <label>
+                    <input type="radio" name="language" value="gr">
+                    Ελληνικά (GR)
+                </label>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN LAYOUT -->
+    <div class="layout orders-layout">
+
+        <!-- RIGHT SIDEBAR (ACCOUNT MENU) -->
+        <aside class="account-sidebar">
+
+            <!-- ACCOUNT INFO -->
+            <section class="account-box">
+                <h3 class="username">User 1</h3>
+                <p class="credits">Credits: 120</p>
+                <a href="/edit-account" class="menu-link">Edit Account</a>
+            </section>
+
+            <!-- MENU -->
+            <nav class="account-menu">
+                <a href="/orders" class="menu-link active">Your Orders</a>
+                <a href="/meal-posts" class="menu-link">Your Meal Posts</a>
+                <a href="/pending-requests" class="menu-link">Pending Requests</a>
+                <a href="/logout" class="menu-link logout">Log Out</a>
+            </nav>
+
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main orders-main">
+
+            <!-- PAGE TITLE -->
+            <header  class="page-heading">
+                <h1>Your Orders</h1>
+                <p>Rate and view your past orders</p>
+            </header>
+
+            <!-- RECENT ORDERS (24h) -->
+            <section class="orders-section">
+                <div class="section-title toggle-header">
+                    <span>Recent Orders (Rate Now)</span>
+                    <span class="toggle-icon">▲</span>
+                </div>
+
+                <div class="order-list">
+
+                    <!-- ORDER CARD -->
+                    <article class="order-card highlight">
+                        <div class="order-info">
+                            <h3 class="post-title">Homemade Pizza</h3>
+                            <p class="order-meta">Delivery Confirmed • 11/04 @ 20:15</p>
+                        </div>
+
+                        <div class="order-actions">
+                            <button class="btn primary">Rate Order</button>
+                            <button class="btn secondary">View Details</button>
+                        </div>
+                    </article>
+
+                    <article class="order-card highlight">
+                        <div class="order-info">
+                            <h3 class="post-title">Spaghetti and meatballs</h3>
+                            <p class="order-meta">Delivery Confirmed • 12/04 @ 08:37</p>
+                        </div>
+
+                        <div class="order-actions">
+                            <button class="btn primary">Rate Order</button>
+                            <button class="btn secondary">View Details</button>
+                        </div>
+                    </article>
+
+                </div>
+            </section>
+
+            <!-- PAST ORDERS -->
+            <section class="orders-section">
+                <div class="section-title toggle-header collapsed">
+                    <span>Past Orders</span>
+                    <span class="toggle-icon">▲</span>
+                </div>
+
+                <div class="order-list hidden">
+
+                    <article class="order-card">
+                        <div class="order-info">
+                            <h3 class="post-title">Spaghetti Bolonese</h3>
+                            <p class="order-meta">Delivery Confirmed • 03/04 @ 18:30</p>
+                        </div>
+
+                        <div class="order-actions">
+                            <button class="btn secondary">View Details</button>
+                        </div>
+                    </article>
+
+                    <article class="order-card">
+                        <div class="order-info">
+                            <h3 class="post-title">Rizotto</h3>
+                            <p class="order-meta">Delivery Confirmed • 23/03 @ 15:12</p>
+                        </div>
+
+                        <div class="order-actions">
+                            <button class="btn secondary">View Details</button>
+                        </div>
+                    </article>
+
+                </div>
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="user_orders.js"></script>
+
+</body>
+</html>
