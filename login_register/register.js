@@ -123,4 +123,19 @@ document.addEventListener('DOMContentLoaded', () => {
 			setLanguage(input.value);
 		});
 	});
+
+	/* ── REGISTER FORM SUBMIT → redirect to account setup ── */
+	const registerForm = document.querySelector('.auth-form form');
+	if (registerForm) {
+		registerForm.addEventListener('submit', (e) => {
+			e.preventDefault();
+			const password = document.getElementById('password').value;
+			const confirmPassword = document.getElementById('confirm-password').value;
+			if (password !== confirmPassword) {
+				alert('Passwords do not match.');
+				return;
+			}
+			window.location.href = '../account_setup/setup.html';
+		});
+	}
 });

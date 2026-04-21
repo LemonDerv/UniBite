@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UniBites | Account Setup</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="setup.css" />
+</head>
+<body class="theme-light">
+
+    <nav class="navbar">
+        <div class="logo"><a href="../index.html">UniBites</a></div>
+        <div class="nav-buttons">
+            <button class="login"><a href="../login_register/login.html">Login</a></button>
+            <button class="signup">Sign Up</button>
+        </div>
+    </nav>
+
+    <main class="setup-container">
+        <div class="wizard-card">
+
+            <!-- STEP INDICATOR -->
+            <div class="step-indicator">
+                <div class="step-pip active" id="pip-1"></div>
+                <div class="step-line"></div>
+                <div class="step-pip" id="pip-2"></div>
+                <span class="step-label" id="step-label">Step 1 of 2</span>
+            </div>
+
+            <!-- ── STEP 1 : ALLERGIES ── -->
+            <div class="step-panel active" id="step-allergies">
+                <h2 class="wizard-title" data-i18n="setupAllergyTitle">Select your allergies</h2>
+                <p class="wizard-sub" data-i18n="setupAllergySubtitle">Select all that apply, or skip if you have none.</p>
+
+                <div class="allergy-grid">
+                    <label class="allergy-chip">
+                        <input type="checkbox" name="allergy" value="gluten" />
+                        <span data-i18n="allergyGluten">Gluten</span>
+                    </label>
+                    <label class="allergy-chip">
+                        <input type="checkbox" name="allergy" value="crustaceans" />
+                        <span data-i18n="allergyCrustaceans">Crustaceans</span>
+                    </label>
+                    <label class="allergy-chip">
+                        <input type="checkbox" name="allergy" value="eggs" />
+                        <span data-i18n="allergyEggs">Eggs</span>
+                    </label>
+                    <label class="allergy-chip">
+                        <input type="checkbox" name="allergy" value="fish" />
+                        <span data-i18n="allergyFish">Fish</span>
+                    </label>
+                    <label class="allergy-chip">
+                        <input type="checkbox" name="allergy" value="peanuts" />
+                        <span data-i18n="allergyPeanuts">Peanuts</span>
+                    </label>
+                    <label class="allergy-chip">
+                        <input type="checkbox" name="allergy" value="soybeans" />
+                        <span data-i18n="allergySoybeans">Soybeans</span>
+                    </label>
+                    <label class="allergy-chip">
+                        <input type="checkbox" name="allergy" value="milk" />
+                        <span data-i18n="allergyMilk">Milk</span>
+                    </label>
+                    <label class="allergy-chip">
+                        <input type="checkbox" name="allergy" value="nuts" />
+                        <span data-i18n="allergyNuts">Nuts</span>
+                    </label>
+                    <label class="allergy-chip">
+                        <input type="checkbox" name="allergy" value="celery" />
+                        <span data-i18n="allergyCelery">Celery</span>
+                    </label>
+                    <label class="allergy-chip">
+                        <input type="checkbox" name="allergy" value="mustard" />
+                        <span data-i18n="allergyMustard">Mustard</span>
+                    </label>
+                    <label class="allergy-chip">
+                        <input type="checkbox" name="allergy" value="sesame" />
+                        <span data-i18n="allergySesame">Sesame</span>
+                    </label>
+                    <label class="allergy-chip">
+                        <input type="checkbox" name="allergy" value="sulphites" />
+                        <span data-i18n="allergySulphites">Sulphites</span>
+                    </label>
+                    <label class="allergy-chip">
+                        <input type="checkbox" name="allergy" value="lupin" />
+                        <span data-i18n="allergyLupin">Lupin</span>
+                    </label>
+                    <label class="allergy-chip">
+                        <input type="checkbox" name="allergy" value="molluscs" />
+                        <span data-i18n="allergyMolluscs">Molluscs</span>
+                    </label>
+                </div>
+
+                <div class="btn-row">
+                    <span></span>
+                    <button class="auth-button step-btn" id="btn-next" data-i18n="next">Next →</button>
+                </div>
+            </div>
+
+            <!-- ── STEP 2 : ADDRESS ── -->
+            <div class="step-panel" id="step-address">
+                <h2 class="wizard-title" data-i18n="setupAddressTitle">Add your delivery address</h2>
+                <p class="wizard-sub" data-i18n="setupAddressSubtitle">Type an address or click on the map to pin your location.</p>
+
+                <div class="address-search-row">
+                    <input
+                        type="text"
+                        id="address-input"
+                        class="address-input"
+                        placeholder="e.g. Aratou 60, Patras"
+                        data-i18n-placeholder="addressPlaceholder"
+                        autocomplete="off"
+                    />
+                    <button class="search-btn" id="btn-search" type="button" data-i18n="search">Search</button>
+                </div>
+                <p class="geo-error" id="geo-error" hidden></p>
+
+                <div id="map"></div>
+
+                <button class="add-address-btn" id="btn-add-address" type="button" data-i18n="addAddress">＋ Add this address</button>
+
+                <!-- SAVED ADDRESSES LIST -->
+                <div class="address-list" id="address-list" aria-label="Saved addresses"></div>
+                <p class="address-hint" id="address-hint" data-i18n="addressHint">Add at least one address to continue.</p>
+
+                <div class="btn-row">
+                    <button class="back-btn" id="btn-back" type="button" data-i18n="back">← Back</button>
+                    <button class="auth-button step-btn" id="btn-finish" disabled data-i18n="finish">Finish</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="setup.js"></script>
+</body>
+</html>
