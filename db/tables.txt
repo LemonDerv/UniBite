@@ -2,13 +2,17 @@ CREATE DATABASE IF NOT EXISTS UNIBITES_DB;
 USE UNIBITES_DB;
 
 CREATE TABLE IF NOT EXISTS user(
+    usr_id INT PRIMARY KEY AUTO_INCREMENT,
     usr_id INT(11) PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(30) UNIQUE NOT NULL ,
     password VARCHAR(100) NOT NULL,
-    role ENUM('STUDENT','ADMIN') NOT NULL
+    usr_rating SMALLINT NOT NULL,
+    usr_rating SMALLINT,
+    CHECK (usr_rating >= 1 AND usr_rating <= 5)
 );
 
 CREATE TABLE IF NOT EXISTS student(
+    std_id INT PRIMARY KEY,
     std_id INT(11) PRIMARY KEY,
     std_username VARCHAR(30) UNIQUE NOT NULL,
     credits INT UNSIGNED NOT NULL DEFAULT 5,
@@ -17,26 +21,54 @@ CREATE TABLE IF NOT EXISTS student(
 );
 
 CREATE TABLE IF NOT EXISTS admin(
+    adm_id INT PRIMARY KEY AUTO_INCREMENT,
+    adm_username VARCHAR(30) UNIQUE NOT NULL,
+    adm_password VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS usr_address(
+    addr_id INT ,
+    std_id ,
+    FOREIGN KEY(std_id) REFERENCES student(std_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS usr_address(
+    addr_id INT PRIMARY KEY, 
+    addr VARCHAR(100) UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS usr_has_addr(
+    std_id INT NOT NULL,
+    addr VARCHAR(100) UNIQUE,
+    PRIMARY KEY(std_id,addr),
+    FOREIGN KEY(std_id) REFERENCES student(std_id) ON DELETE CASCADE,
+    FOREIGN KEY(addr) REFERENCES usr_address(addr) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS admin(
     adm_id INT(11) PRIMARY KEY AUTO_INCREMENT,
     adm_username VARCHAR(30) UNIQUE NOT NULL,
-    adm_password VARCHAR(100) NOT NULL,
-    FOREIGN KEY (adm_username) REFERENCES user(username),
-    FOREIGN KEY(adm_id) REFERENCES user(usr_id)
+    adm_password VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS listings(
+    lst_id INT PRIMARY KEY AUTO_INCREMENT,
     lst_id INT(11) PRIMARY KEY AUTO_INCREMENT,
     cooker VARCHAR(30) NOT NULL,
     title VARCHAR(100) NOT NULL,
     description TEXT,
-    location VARCHAR(100) NOT NULL,
-    pickup_time DATETIME NOT NULL,
     portions SMALLINT NOT NULL,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    lst_rating SMALLINT ,
+    CHECK (lst_rating >= 1 AND lst_rating <= 5),
+    CHECK (lst_rating >= 1 AND lst_rating <= 5)
     FOREIGN KEY(cooker) REFERENCES student(std_username) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS requests(
+    rq_id INT PRIMARY KEY AUTO_INCREMENT,
+    lst_id INT NOT NULL,
+    std_id INT NOT NULL,
     rq_id INT(11) PRIMARY KEY AUTO_INCREMENT,
     lst_id INT(11) NOT NULL,
     std_id INT(11) NOT NULL,
@@ -46,12 +78,13 @@ CREATE TABLE IF NOT EXISTS requests(
     FOREIGN KEY(lst_id) REFERENCES listings(lst_id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS rating(
-    rt_id INT(11) AUTO_INCREMENT PRIMARY KEY,
-    rq_id INT(11) UNIQUE NOT NULL,
-    score SMALLINT NOT NULL,
-    CHECK (score >= 1 AND score <= 5),
-    FOREIGN KEY(rq_id) REFERENCES requests(rq_id) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS deliveries(
+    del_time TIMESTAMP,
+    del_rating SMALLINT,
+    req_id INT NOT NULL,
+    std_id INT NOT NULL,
+    FOREIGN KEY(std_id) REFERENCES student(std_id) ON DELETE CASCADE,
+    FOREIGN KEY(req_id) REFERENCES requests(rq_id) ON DELETE CASCADE
+    del_rating ,
+    id_req
 );
-
-

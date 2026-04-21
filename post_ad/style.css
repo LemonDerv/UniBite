@@ -1,3 +1,14 @@
+:root {
+    /* COLORS */
+    --primary: #cc5500;
+    --bg-light: #fff8e7;
+    --bg-dark: #1a1714;
+    --text-dark: #100C08;
+    --text-light: #f7e6d6;
+    --menu-bg-light: #e8ddd0;
+    --menu-bg-dark: #26211d;
+}
+
 *{
     box-sizing: border-box;
 }
@@ -7,8 +18,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: "Trebuchet MS", Helvetica, sans-serif;
-    background-color: #fff8e7;
-
+    background-color: var(--bg-light);
 }
 
 a{
@@ -25,7 +35,7 @@ a{
     border-bottom: 0.1rem solid rgb(156, 134, 134);
     height: 4rem;
     z-index: 10;
-    background-color: #fff8e7;
+    background-color: var(--bg-light);
 }
 
 .logo,.curr-location{
@@ -35,7 +45,7 @@ a{
 
 .logo{
     font-size: 0.7rem;
-    color: #cc5500;
+    color: var(--primary);
 }
 
 .curr-location {
@@ -46,7 +56,6 @@ a{
     border: 0.1rem solid black;
     border-radius: 1.7rem 1.7rem;
     height :25%;
-    
     margin: 0.5rem;
 }
 
@@ -60,7 +69,7 @@ a{
 }
 
 .curr-location:hover{
-    background-color: grey;
+    background-color: rgb(220, 216, 216);
 }
 
 .control {
@@ -75,7 +84,7 @@ a{
     padding: 1rem;
     border-style: none;
     border-radius: 5rem 5rem;
-    background-color: #cc5500;
+    background-color: var(--primary);
     color: black;
 }
 
@@ -84,15 +93,14 @@ a{
     padding: 1rem;
     border-style: none;
     border-radius: 5rem 5rem;
-    background-color: #cc5500;
+    background-color: var(--primary);
     color: black;
     & .list > span {
       margin: 0.4rem;  
     }
 }
-.usr-menu i:hover{
-        cursor: pointer;
-}
+
+.usr-menu i:hover{cursor: pointer;}
 
 .list{
     position: absolute;
@@ -100,7 +108,6 @@ a{
     flex-direction: column;
     top: 4rem;
     right: 1rem;
-    background-color: bisque;
     border-radius: 0.5rem ;
     box-shadow: 0.1rem 0.3rem 0.8rem 0.2rem;
     & span{
@@ -122,15 +129,13 @@ a{
         background-color: transparent;
         border-radius: 0.5rem;
     }
-    & a:hover{background-color: grey;}
+    & a:hover{background-color: rgb(220, 216, 216);}
 }
 
-.control i{
-    font-size: 1rem;
-}
+.control i{font-size: 1rem;}
 
 .control button:hover{
-    background-color: grey;
+    background-color: rgb(220, 216, 216);
     cursor:pointer;
 }
 
@@ -161,17 +166,18 @@ h1{
 }
 
 .prev-btn , .next-btn {
-    border: #cc5500;
+    border: var(--primary);
     border-radius: 4.5rem 4.5rem;
     margin: 1rem;
     padding: 1rem;
-    background-color: chocolate;
+    background-color: var(--primary);
     font-size: medium;
-    color: #fff8e7;
+    color: var(--text-light);
 
 }
+
 .prev-btn:hover , .next-btn:hover{
-    background-color: rgb(120, 84, 37);
+    background-color: rgb(182, 132, 67);
 }
 
 .container label{
@@ -193,6 +199,7 @@ h1{
     border-radius: 0.5rem 0.5rem;
     width: 60%;
 }
+
 .portions input{
     border-radius: 0.5rem;
     margin: 0.3rem;
@@ -251,8 +258,7 @@ h1{
 }
 
 .items ul li label i{
-    padding: 1rem;
-    
+    padding: 1rem; 
 }
 
 .items ul {
@@ -300,8 +306,6 @@ h1{
     padding: 1rem;
 }
 
-
-
 .timeslot{
     padding: 0.7rem;
     border: 0.1rem solid black;
@@ -318,8 +322,8 @@ h1{
 }
 
 .pickup-point .items .add-address{
-    background-color: #fff8e7;
-    color: #cc5500;
+    background-color: var(--bg-light);
+    color: var(--primary);
     font-size: 2rem;
     border-style: none;
     border-top: 0.2rem solid black;
@@ -407,7 +411,7 @@ h1{
 .confirm button{
     width: 20%;
     height: 2rem;
-    color: #cc5500;
+    color: var(--primary);
     font-size: large;
     background-color: black;
     border-style: none;
