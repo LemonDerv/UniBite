@@ -1,0 +1,409 @@
+/* ============================================================
+   SETUP WIZARD — setup.css
+   Matches the UniBites design language from register.css
+============================================================ */
+
+/* ── BASE ─────────────────────────────────────────────────── */
+body {
+    margin: 0;
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    background-color: #fff8e7;
+    color: #100C08;
+}
+
+body.theme-light {
+    background-color: #fff8e7;
+    color: #100C08;
+}
+
+body.theme-dark {
+    background-color: #1a1714;
+    color: #f7e6d6;
+}
+
+/* ── NAVBAR ───────────────────────────────────────────────── */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #100C08;
+    color: #cc5500;
+    padding: 15px 30px;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.logo a {
+    color: #cc5500;
+    text-decoration: none;
+}
+
+.nav-buttons button {
+    margin-left: 10px;
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    background-color: #cc5500;
+    color: #fff8e7;
+}
+
+.nav-buttons a {
+    color: #fff8e7;
+    text-decoration: none;
+}
+
+/* ── SETUP CONTAINER ──────────────────────────────────────── */
+.setup-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: calc(100vh - 64px);
+    background-color: #fff8e7;
+    padding: 40px 20px 60px;
+    box-sizing: border-box;
+}
+
+body.theme-dark .setup-container {
+    background-color: #1a1714;
+}
+
+/* ── WIZARD CARD ──────────────────────────────────────────── */
+.wizard-card {
+    background-color: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    padding: 44px 48px 40px;
+    width: 100%;
+    max-width: 560px;
+    box-sizing: border-box;
+}
+
+body.theme-dark .wizard-card {
+    background-color: #2a2520;
+}
+
+/* ── STEP INDICATOR ───────────────────────────────────────── */
+.step-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 32px;
+}
+
+.step-pip {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #e8ddd0;
+    border: 2px solid #cc5500;
+    flex-shrink: 0;
+    transition: background-color 0.25s;
+}
+
+.step-pip.active {
+    background-color: #cc5500;
+}
+
+.step-line {
+    flex: 1;
+    height: 2px;
+    background-color: #e8ddd0;
+}
+
+.step-label {
+    font-size: 13px;
+    color: #888;
+    white-space: nowrap;
+    margin-left: 4px;
+}
+
+body.theme-dark .step-label {
+    color: #a09080;
+}
+
+body.theme-dark .step-line {
+    background-color: #3b342d;
+}
+
+/* ── PANEL VISIBILITY ─────────────────────────────────────── */
+.step-panel {
+    display: none;
+}
+
+.step-panel.active {
+    display: block;
+}
+
+/* ── WIZARD HEADINGS ──────────────────────────────────────── */
+.wizard-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #100C08;
+    margin: 0 0 6px;
+}
+
+body.theme-dark .wizard-title {
+    color: #f7e6d6;
+}
+
+.wizard-sub {
+    font-size: 14px;
+    color: #666;
+    margin: 0 0 28px;
+}
+
+body.theme-dark .wizard-sub {
+    color: #a09080;
+}
+
+/* ── ALLERGY GRID ─────────────────────────────────────────── */
+.allergy-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 32px;
+}
+
+@media (max-width: 480px) {
+    .allergy-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.allergy-chip {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 12px;
+    border: 2px solid #e8ddd0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #100C08;
+    background-color: #fff8e7;
+    transition: border-color 0.18s, background-color 0.18s, color 0.18s;
+    user-select: none;
+}
+
+.allergy-chip input[type="checkbox"] {
+    display: none;
+}
+
+.allergy-chip:hover {
+    border-color: #cc5500;
+}
+
+.allergy-chip.selected {
+    background-color: #cc5500;
+    border-color: #cc5500;
+    color: #fff8e7;
+}
+
+body.theme-dark .allergy-chip {
+    background-color: #1a1714;
+    border-color: #3b342d;
+    color: #f7e6d6;
+}
+
+body.theme-dark .allergy-chip:hover {
+    border-color: #cc5500;
+}
+
+body.theme-dark .allergy-chip.selected {
+    background-color: #cc5500;
+    border-color: #cc5500;
+    color: #fff8e7;
+}
+
+/* ── ADDRESS SEARCH ROW ───────────────────────────────────── */
+.address-search-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.address-input {
+    flex: 1;
+    padding: 12px 14px;
+    border: 2px solid #cc5500;
+    border-radius: 7px;
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    font-size: 14px;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    color: #100C08;
+    transition: box-shadow 0.2s;
+}
+
+.address-input:focus {
+    outline: none;
+    box-shadow: 0 0 6px rgba(204, 85, 0, 0.35);
+}
+
+body.theme-dark .address-input {
+    background-color: #1a1714;
+    color: #f7e6d6;
+    border-color: #cc5500;
+}
+
+.search-btn {
+    padding: 12px 20px;
+    background-color: #cc5500;
+    color: #fff8e7;
+    border: none;
+    border-radius: 7px;
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+}
+
+.search-btn:hover {
+    background-color: #d96605;
+}
+
+/* ── GEO ERROR ────────────────────────────────────────────── */
+.geo-error {
+    font-size: 13px;
+    color: #cc3300;
+    margin: 0 0 8px;
+}
+
+/* ── MAP ──────────────────────────────────────────────────── */
+#map {
+    width: 100%;
+    height: 300px;
+    border-radius: 10px;
+    border: 2px solid #cc5500;
+    margin-bottom: 14px;
+    z-index: 0;
+}
+
+/* ── ADD ADDRESS BUTTON ───────────────────────────────────── */
+.add-address-btn {
+    display: block;
+    width: 100%;
+    padding: 11px;
+    background-color: transparent;
+    border: 2px dashed #cc5500;
+    border-radius: 7px;
+    color: #cc5500;
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 16px;
+    transition: background-color 0.18s;
+}
+
+.add-address-btn:hover {
+    background-color: rgba(204, 85, 0, 0.08);
+}
+
+/* ── ADDRESS LIST (pills) ─────────────────────────────────── */
+.address-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.address-pill {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background-color: #fff8e7;
+    border: 2px solid #cc5500;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #100C08;
+}
+
+body.theme-dark .address-pill {
+    background-color: #1a1714;
+    border-color: #cc5500;
+    color: #f7e6d6;
+}
+
+.address-pill-text {
+    flex: 1;
+    margin-right: 10px;
+    word-break: break-word;
+}
+
+.remove-pill-btn {
+    background: none;
+    border: none;
+    color: #cc5500;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 2px;
+    flex-shrink: 0;
+}
+
+.remove-pill-btn:hover {
+    color: #a04400;
+}
+
+/* ── ADDRESS HINT ─────────────────────────────────────────── */
+.address-hint {
+    font-size: 12px;
+    color: #999;
+    margin: 0 0 24px;
+}
+
+/* ── BUTTON ROW ───────────────────────────────────────────── */
+.btn-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.step-btn {
+    width: auto;
+    padding: 12px 28px;
+    background-color: #cc5500;
+    color: #fff8e7;
+    border: none;
+    border-radius: 7px;
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.step-btn:hover:not(:disabled) {
+    background-color: #d96605;
+}
+
+.step-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    color: #cc5500;
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.back-btn:hover {
+    color: #a04400;
+}

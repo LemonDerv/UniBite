@@ -136,6 +136,27 @@ document.addEventListener('DOMContentLoaded', () => {
 				return;
 			}
 			window.location.href = '../account_setup/setup.html';
+			
+			const user = {
+				username: document.getElementById('name').value,
+				email: document.getElementById('email').value,
+				password: password,
+			};
+			
+			//console.log('Registered user:', user);
+
+			//send user info
+			fetch("/api/user/register", {
+            	method: "POST",
+            	headers: {
+                	"Content-Type": "application/json"
+            	},
+            	body: JSON.stringify(user)
+        	})
+        	.then(response => response.json())
+        	.then(data => console.log("User saved:", data))
+        	.catch((error) => console.log("Error saving user:",error));
 		});
 	}
 });
+

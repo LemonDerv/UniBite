@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniBites</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+    <!-- NAVIGATION BAR -->
+    <nav class="navbar">
+        <div class="logo">UniBites</div>
+        <div class="nav-buttons">
+            <button class="login"><a href="login_register/login.html">Login</a></button>
+            <button class="signup"><a href="login_register/register.html">Sign Up</a></button>
+        </div>
+    </nav>
+
+    <section class="utility-bar" aria-label="Theme and language controls">
+        <div class="utility-group">
+            <button class="utility-trigger" type="button" data-menu-target="theme-menu" aria-expanded="false" aria-controls="theme-menu">
+                <span data-i18n="chooseTheme">Choose Theme</span> ◐
+            </button>
+            <div class="utility-menu" id="theme-menu">
+                <label>
+                    <input type="radio" name="theme" value="dark">
+                    <span data-i18n="dark">Dark</span>
+                </label>
+                <label>
+                    <input type="radio" name="theme" value="light" checked>
+                    <span data-i18n="light">Light</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="utility-group">
+            <button class="utility-trigger" type="button" data-menu-target="language-menu" aria-expanded="false" aria-controls="language-menu">
+                <span id="language-label">ENG</span> ▾
+            </button>
+            <div class="utility-menu" id="language-menu">
+                <label>
+                    <input type="radio" name="language" value="en" checked>
+                    English(EN)
+                </label>
+                <label>
+                    <input type="radio" name="language" value="gr">
+                    Ελληνικά(GR)
+                </label>
+            </div>
+        </div>
+
+        <a class="about-link" href="#about-us">
+            <span data-i18n="moreAboutUs">More About us</span> ⓘ
+        </a>
+    </section>
+
+    <!-- MAIN CONTENT -->
+    <div id="main-content">
+        <!-- HERO IMAGE -->
+    <section class="hero">
+        <img src="panoramic_food.jpg" alt="Food image">
+        <div class="hero-text">
+            <h1>Cooked Up By Students<br> For Students</h1>
+        </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="stats">
+        <div class="stat">
+            <h3>350</h3>
+            <p>Meals Shared Last Week</p>
+        </div>
+        <div class="stat">
+            <h3>1300+</h3>
+            <p>Registered Users</p>
+        </div>
+        <div class="stat">
+            <h3>2500+</h3>
+            <p>Total Meals Shared</p>
+        </div>
+    </section>
+
+    <section class="about-section" id="about-us">
+        <div class="description">
+            <h2 data-i18n="aboutTitle">About UniBites</h2>
+            <p data-i18n="aboutText">UniBite is a website that aims to blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah</p>
+        </div>
+    </section>
+    
+    <section class="carousel-section">
+    <h2>Popular Meal Offerings</h2>
+
+    <div class="carousel-container">
+        <button class="arrow left">❮</button>
+
+        <div class="carousel" id="carousel-popular">
+            <div class="card">Meal Post 1</div>
+            <div class="card">Meal Post 2</div>
+            <div class="card">Meal Post 3</div>
+            <div class="card">Meal Post 4</div>
+            <div class="card">Meal Post 5</div>
+            <div class="card">Meal Post 6</div>
+            <div class="card">Meal Post 7</div>
+            <div class="card">Meal Post 8</div>
+            <div class="card">Meal Post 9</div>
+            <div class="card">Meal Post 10</div>
+        </div>
+        <button class="arrow right">❯</button>
+    </div>
+    </section>
+
+    <section class="carousel-section">
+    <h2>Meal Offerings near you</h2>
+
+    <div class="carousel-container">
+        <button class="arrow left">❮</button>
+
+        <div class="carousel" id="carousel-near">
+            <div class="card">Meal Post 1</div>
+            <div class="card">Meal Post 2</div>
+            <div class="card">Meal Post 3</div>
+            <div class="card">Meal Post 4</div>
+            <div class="card">Meal Post 5</div>
+            <div class="card">Meal Post 6</div>
+            <div class="card">Meal Post 7</div>
+            <div class="card">Meal Post 8</div>
+            <div class="card">Meal Post 9</div>
+            <div class="card">Meal Post 10</div>
+        </div>
+
+        <button class="arrow right">❯</button>
+    </div>
+    </section>
+    </div>
+
+    <footer class="footer">
+    <div class="footer-content">
+        <div class="footer-section links">
+        <h4>Quick Links</h4>
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Contact</a></li>
+        </ul>
+        </div>
+        <div class="footer-section contact">
+        <h4>Contact</h4>
+        <p>Email: teamemail@upnet.gr</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        &copy; 2026 University of Patras. All rights reserved.
+    </div>
+    </footer>
+
+    <script src="index.js"></script>
+
+</body>
+</html>
