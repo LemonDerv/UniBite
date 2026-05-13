@@ -217,7 +217,7 @@ body.theme-dark .utility-menu {
    PAGE HEADING
 ------------------------------ */
 .page-heading {
-    margin-bottom: 20px;
+    margin-bottom: 40px;
 }
 
 .page-heading h1 {
@@ -227,83 +227,30 @@ body.theme-dark .utility-menu {
 /* ------------------------------
    LAYOUT
 ------------------------------ */
-.orders-layout {
+.requests-main {
+    padding: 20px 30px;
+}
+
+.requests-layout {
     display: grid;
     grid-template-columns: 240px 1fr;
     min-height: calc(100vh - 120px);
 }
 
-/* ------------------------------
-   ORDER SECTIONS
------------------------------- */
-.orders-section {
+.requests-section {
     margin-bottom: 30px;
-    /*padding: 0 15px;*/
-}
-
-.section-title {
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 12px;
-}
-
-.section-title-collapsible {
-    display: block;
-    background-color: var(--text-dark);
-    color: var(--bg-light);
-    padding: 12px 16px;
-    border-radius: 5px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    letter-spacing: 0.5px;
-    margin-bottom: 14px;
-    text-transform: uppercase;
-    flex: 1;
-}
-
-.section-title-collapsible.toggle-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-}
-
-.section-title-collapsible.toggle-header:hover {
-    opacity: 0.9;
-}
-
-.toggle-icon {
-    transition: transform 0.25s ease;
-}
-
-.section-title-collapsible.collapsed .toggle-icon {
-    transform: rotate(180deg);
 }
 
 /* ------------------------------
-   ORDER CARDS
+   DELIVERY LIST
 ------------------------------ */
-.orders-main {
-    padding: 20px 30px;
-}
-
-.order-list {
+.request-list {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    overflow: hidden;
-    max-height: 1000px;
-    transition: max-height 0.35s ease, opacity 0.25s ease;
-    opacity: 1;
 }
 
-.order-list.hidden {
-    max-height: 0;
-    opacity: 0;
-    pointer-events: none;
-}
-
-.order-list-item {
+.request-list-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -311,52 +258,75 @@ body.theme-dark .utility-menu {
     border-radius: 12px;
     border: 1px solid rgba(16,12,8,0.2);
     background-color: var(--bg-light);
+    transition: border-color 0.2s ease;
 }
 
-.order-list-item:hover {
+.request-list-item:hover {
     border-color: var(--primary);
 }
 
-.order-list-title {
-    margin: 0 0 4px;
-    font-size: var(--font-md);
-}
-
-.order-list-info {
+/* left side */
+.request-list-info {
     display: flex;
     flex-direction: column;
 }
 
-.order-list-meta {
-    font-size: var(--font-xs);
-    color: var(--gray-500);
-}
-
-.order-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.order-title-row {
+.request-title-row {
     display: flex;
     align-items: center;
     gap: 12px;
     margin-bottom: 4px;
 }
 
-.order-list-title {
+.request-list-title {
     margin: 0;
+    font-size: var(--font-md);
 }
 
-.order-time-inline {
+.request-user {
+    font-size: var(--font-md);
+    color: var(--gray-500);
+    font-weight: 500;
+}
+
+.request-list-meta {
+    font-size: var(--font-xs);
+    color: var(--gray-500);
+}
+
+.request-time-inline {
     font-size: var(--font-md);
     font-weight: 500;
-    color: var(--red-text);
-    background: var(--red-bg);
-    padding: 2px 8px;
-    border-radius: 999px;
+    color: var(--gray-500);
 }
-    
+
+/* right side */
+.request-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ------------------------------
+   STATUS BADGE
+------------------------------ */
+.request-status {
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: var(--font-sm);
+    font-weight: 600;
+    background: rgba(204, 85, 0, 0.1);
+    color: var(--primary);
+}
+
+.request-status.accepted {
+    background: var(--green-bg);
+    color: var(--green-text);
+}
+.request-status.denied {
+    background: var(--red-bg);
+    color: var(--red-text);
+}
 
 /*----------------------------------------------------------------------------------------------------*/
 /* ------------------------------
@@ -546,9 +516,8 @@ body.theme-dark .utility-menu {
     margin-top: 10px;
 }
 
-/* close (for both modals)*/
-.close-view-modal,
-.close-rate-modal {
+/* close */
+.close-view-modal {
     width: 36px;
     height: 36px;
     border: none;
@@ -560,162 +529,27 @@ body.theme-dark .utility-menu {
     transition: background-color 0.2s ease;
 }
 
-.close-view-modal:hover,
-.close-rate-modal:hover {
+.close-view-modal:hover {
     background: rgba(0,0,0,0.06);
 }
 
-/*----------------------------------------------------------------------------------------------------*/
-/* RATE MODAL */
-.rate-modal {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2200;
-}
-
-.rate-modal.hidden {
-    display: none;
-}
-
-.rate-modal-content {
-    width: min(500px, 92vw);
-    background: var(--bg-light);
-    border-radius: 18px;
-    padding: 28px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    position: relative;
-    z-index: 1;
-}
-
-.rate-body {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-}
-
-.rate-modal .view-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 14px;
-    margin-top: 10px;
-}
-
-.star-rating {
-    display: flex;
-    gap: 10px;
-    font-size: 42px;
-    cursor: pointer;
-}
-
-.star-rating span {
-    color: var(--gray-500);
-    transition: transform 0.15s ease;
-}
-
-.star-rating span.active {
-    color: var(--primary);
-}
-
-.star-rating span:hover {
-    transform: scale(1.1);
-}
-
-#ratingComment {
-    min-height: 120px;
-    padding: 14px;
-    border-radius: 12px;
-    border: 1px solid var(--gray-200);
-    background-color: var(--bg-light);
-    color: var(--text-dark);
-    font-family: inherit;
-    resize: none;
-    outline: none;
-    transition: border-color 0.2s ease;
-}
-
-#ratingComment:focus {
-    border-color: var(--primary);
-}
 
 /* ------------------------------
-   DARK MODE
------------------------------- */
-body.theme-dark .topbar,
-body.theme-dark .account-sidebar{
-    background-color: var(--bg-dark);
-}
-
-body.theme-dark .order-list-item {
-    background-color: var(--bg-dark);
-    border: 1px solid rgba(247, 230, 214, 0.15);
-}
-
-body.theme-dark .order-list-item:hover {
-    border-color: var(--primary);
-}
-
-body.theme-dark .account-sidebar {
-    background-color: var(--bg-dark);
-    border-right-color: rgba(247,230,214,0.2);
-}
-
-body.theme-dark .account-box {
-    border-bottom-color: rgba(247,230,214,0.1);
-}
-
-body.theme-dark .menu-link {
-    color: var(--text-light);
-}
-
-body.theme-dark .menu-link:hover {
-    background-color: var(--menu-bg-dark);
-}
-
-body.theme-dark .menu-link.active {
-    background-color: rgba(204, 85, 0, 0.2);
-}
-
-body.theme-dark .order-meta {
-    color: var(--text-light);
-}
-
-body.theme-dark .account-box .credits {
-    border-bottom: 2px solid var(--text-light);
-    
-}
-
-body.theme-dark .section-title-collapsible {
-    background-color: var(--text-light);
-    color: var(--bg-dark);
-}
-
-body.theme-dark .btn.primary {
-    color: var(--text-dark);
-}
-
-body.theme-dark .btn.secondary {
-    background-color: var(--text-dark);
-}
-
-body.theme-dark .btn:hover {
-    box-shadow: 0 4px 12px rgba(247, 230, 214, 0.12);
-}
-
-/* ------------------------------
-   RESPONSIVE (in progress)
+   RESPONSIVE
 ------------------------------ */
 @media (max-width: 900px) {
-    .orders-layout {
+    .deliveries-layout {
         grid-template-columns: 1fr;
     }
 
-    .account-sidebar {
-        border-right: none;
-        border-bottom: 1px solid rgba(16,12,8,0.2);
+    .delivery-list-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .delivery-actions {
+        width: 100%;
+        flex-wrap: wrap;
     }
 }

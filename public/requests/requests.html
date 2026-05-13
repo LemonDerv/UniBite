@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UniBites | Requests</title>
+    <link rel="stylesheet" href="requests.css">
+</head>
+
+<body class="theme-light">
+
+    <!-- TOP NAV -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <a class="logo" href="/">UniBites</a>
+        </div>
+    </header>
+
+    <!-- UTILITY BAR -->
+    <section class="utility-bar">
+        <div class="utility-group">
+            <button class="utility-trigger">Choose Theme ◐</button>
+            <div class="utility-menu">
+                <label><input type="radio" name="theme"> Dark</label>
+                <label><input type="radio" name="theme" checked> Light</label>
+            </div>
+        </div>
+        <div class="utility-group">
+            <button class="utility-trigger">ENG ▾</button>
+            <div class="utility-menu">
+                <label><input type="radio" name="language" checked> English</label>
+                <label><input type="radio" name="language"> Ελληνικά</label>
+            </div>
+        </div>
+    </section>
+
+    <!-- LAYOUT -->
+    <div class="layout requests-layout">
+        <!-- SIDEBAR -->
+        <aside class="account-sidebar">
+            <section class="account-box">
+                <h3 class="username">User 1</h3>
+                <p class="credits">Credits: 120</p>
+                <a href="#" class="menu-link">Edit Account</a>
+            </section>
+            <nav class="account-menu">
+                <a href="/orders" class="menu-link">Your Orders</a>
+                <a href="/meal-posts" class="menu-link">Your Meal Posts</a>
+                <a href="/deliveries" class="menu-link">Deliveries</a>
+                <a href="/pending-requests" class="menu-link active">Pending Requests</a>
+                <a href="/logout" class="menu-link logout">Log Out</a>
+            </nav>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main requests-main">
+            <header class="page-heading">
+                <h1>Pending Requests</h1>
+                <p>View the status of your recent meal requests</p>
+                <p>Requests remain visible for 48 hours</p>
+            </header>
+            <!-- REQUESTS -->
+            <section class="requests-section">
+                <div class="request-list">
+
+                    <!-- REQUEST PENDING CARD -->
+                    <article class="request-list-item highlight">
+                        <div class="request-list-info">
+                            <div class="request-title-row">
+                                <h3 class="request-list-title">Homemade Pizza</h3>
+                                <span class="request-time-inline active-time">18h remaining</span>
+                                <span class="request-status pending">Pending</span>
+                            </div>
+                            <p class="request-list-meta">Requested • 11/04 @ 20:15</p>
+                        </div>
+                        <div class="request-actions">
+                             <button class="btn secondary view-details-btn">View Details</button>
+                        </div>
+                    </article>
+                    <!-- REQUEST ACCEPTED CARD -->
+                    <article class="request-list-item highlight">
+                        <div class="request-list-info">
+                            <div class="request-title-row">
+                                <h3 class="request-list-title">Homemade Pizza</h3>
+                                <span class="request-time-inline active-time">18h remaining</span>
+                                <span class="request-status accepted">Accepted</span>
+                            </div>
+                            <p class="request-list-meta">Requested • 11/04 @ 20:15</p>
+                        </div>
+                        <div class="request-actions">
+                             <button class="btn secondary view-details-btn">View Details</button>
+                        </div>
+                    </article>
+                    <!-- REQUEST DENIED CARD -->
+                    <article class="request-list-item highlight">
+                        <div class="request-list-info">
+                            <div class="request-title-row">
+                                <h3 class="request-list-title">Homemade Pizza</h3>
+                                <span class="request-time-inline active-time">18h remaining</span>
+                                <span class="request-status denied">Denied</span>
+                            </div>
+                            <p class="request-list-meta">Requested • 11/04 @ 20:15</p>
+                        </div>
+                        <div class="request-actions">
+                             <button class="btn secondary view-details-btn">View Details</button>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+        <!---------------------------------------------------------------------------------- VIEW POST MODAL ------------------------------------------------------------------------------------------------------------>
+            <div class="view-modal hidden" id="viewModal">
+                <div class="modal-overlay"></div>
+                <div class="view-modal-content">
+                    <!-- HEADER -->
+                    <div class="view-modal-header">
+                        <h2>Meal Details</h2>
+                        <button class="close-view-modal">✕</button>
+                    </div>
+                    <!-- IMAGE -->
+                    <div class="view-image-wrapper">
+                        <div class="view-image" id="viewImage">No Image Set</div>
+                    </div>
+                    <!-- POST META -->
+                    <div class="view-post-meta">
+                            <span id="viewCreator">Posted by Maria</span>
+                            <span id="viewOrderDate">Ordered on • 11/04 @ 20:15</span>
+                            <span id="viewOrderStatus">Confirmed</span>
+                    </div>
+                    <!-- MEAL INFO -->
+                    <section class="view-section">
+                        <h3 class="view-section-title">Meal Information</h3>
+                        <div class="view-grid">
+                            <div class="view-field">
+                                <label>Title</label>
+                                <div class="view-value" id="viewTitle">Homemade Pasta</div>
+                            </div>
+                        </div>
+                        <div class="view-field">
+                            <label>Description</label>
+                            <div class="view-description" id="viewDescription">Fresh pasta with tomato sauce and basil.</div>
+                        </div>
+                    </section>
+                    <!-- TAGS -->
+                    <section class="view-section">
+                        <h3 class="view-section-title">Meal Tags</h3>
+                        <div class="view-chip-group" id="viewTags">
+                            <span class="view-chip">Pasta</span>
+                            <span class="view-chip">Vegetarian</span>
+                        </div>
+                    </section>
+                    <!-- ALLERGENS -->
+                    <section class="view-section">
+                        <h3 class="view-section-title">Allergens</h3>
+                        <div class="view-chip-group" id="viewAllergens">
+                            <span class="view-chip allergen-view-chip">Gluten</span>
+                        </div>
+                    </section>
+                    <!-- PICKUP -->
+                    <section class="view-section">
+                        <h3 class="view-section-title">Pickup Information</h3>
+                        <div class="view-field">
+                            <label>Address</label>
+                            <div class="view-value" id="viewAddress">Aratou 60, Patras</div>
+                        </div>
+                        <div class="view-field">
+                            <label>Pickup Times</label>
+                            <div class="view-value" id="viewPickupTimes">
+                            </div>
+                        </div>
+                    </section>
+                    <!-- FOOTER -->
+                    <div class="view-actions">
+                        <button class="btn secondary close-view-btn">Close</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+    <script src="requests.js"></script>
+
+</body>
+</html>
