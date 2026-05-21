@@ -1,0 +1,146 @@
+/* create listing */
+DROP PROCEDURE IF EXISTS sp_create_listing;
+DELIMITER $
+CREATE PROCEDURE sp_create_listing(
+	IN p_poster INT,
+	IN p_title VARCHAR(100),
+	IN p_description TEXT,
+	IN p_image VARCHAR(255),
+	IN p_portions INT,
+	IN p_location VARCHAR(255),
+	IN p_lat DECIMAL(9,6),
+	IN p_lon DECIMAL(9,6),
+	IN p_expires TIMESTAMP
+)
+BEGIN
+	INSERT INTO listing(
+		poster,title,description,image_url,
+    		    portions,pickup_location,
+   		     pickup_latitude,pickup_longitude,
+    		    expires_at
+	)
+	VALUES(
+		p_poster,p_title,p_description,p_image,
+		p_portions,p_location,
+		p_lat,p_lon,p_expires
+	);
+END$
+DELIMITER ;
+
+
+/* adding pickup windows */
+DROP PROCEDURE IF EXISTS sp_add_pickup_window;
+DELIMITER $
+CREATE PROCEDURE sp_add_pickup_window(
+	IN p_lst INT,
+	IN p_start DATETIME,
+	IN p_end DATETIME
+)
+BEGIN
+	INSERT INTO pickup_window(lst_id,pickup_start,pickup_end)
+	VALUES(p_lst,p_start,p_end);
+END$
+DELIMITER ;
+
+
+/* request portion */
+DROP PROCEDURE IF EXISTS sp_request_portion;
+DELIMITER $
+CREATE PROCEDURE sp_request_portion(
+	IN p_lst INT,
+	IN p_std INT
+)
+BEGIN
+	INSERT INTO requests(lst_id,std_id)
+	VALUES(p_lst,p_std);
+END$
+DELIMITER ;
+
+
+/* accepting request */
+DROP PROCEDURE IF EXISTS sp_accept_request;
+DELIMITER $
+CREATE PROCEDURE sp_accept_request(
+	IN p_rq INT
+)
+BEGIN
+	UPDATE requests
+	SET status='ACCEPTED'
+	WHERE rq_id=p_rq;
+END$
+DELIMITER ;
+
+
+/* rejecting request */
+DROP PROCEDURE IF EXISTS sp_reject_request;
+DELIMITER $
+CREATE PROCEDURE sp_reject_request(
+	IN p_rq INT
+)
+BEGIN
+	UPDATE requests
+	SET status='REJECTED'
+	WHERE rq_id=p_rq;
+END$
+DELIMITER ;
+
+
+/* confirm delivery */
+DROP PROCEDURE IF EXISTS sp_confirm_delivery;
+DELIMITER $
+CREATE PROCEDURE sp_confirm_delivery(
+	IN p_req INT
+)
+BEGIN
+	UPDATE deliveries
+	SET status='DELIVERED', del_time=CURRENT_TIMESTAMP
+	WHERE req_id=p_req;
+END$
+DELIMITER ;
+
+
+/* fail delivery */
+DROP PROCEDURE IF EXISTS sp_fail_delivery;
+DELIMITER $
+CREATE PROCEDURE sp_fail_delivery(
+	IN p_req INT
+)
+BEGIN
+	UPDATE deliveries
+	SET status='NO_SHOW'
+	WHERE req_id=p_req;
+END$
+DELIMITER ;
+
+
+/* submit rating */
+DROP PROCEDURE IF EXISTS sp_rate_order;
+DELIMITER $
+CREATE PROCEDURE sp_rate_order(
+	IN p_req INT,
+	IN p_rating DECIMAL(3,2)
+)
+BEGIN
+	UPDATE deliveries
+	SET rating=p_rating
+	WHERE req_id=p_req
+	AND status='DELIVERED';
+END$
+DELIMITER ;
+
+
+/* delete listing */
+DROP PROCEDURE IF EXISTS sp_cancel_listing;
+DELIMITER $
+CREATE PROCEDURE sp_cancel_listing(
+	IN p_lst INT
+)
+BEGIN
+	UPDATE listing
+	SET status='EXPIRED'
+	WHERE lst_id=p_lst;
+END$
+DELIMITER ;
+
+
+

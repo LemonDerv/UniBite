@@ -1,0 +1,168 @@
+/* update request timestamp when status changes */ 
+DROP TRIGGER IF EXISTS trg_requests_updated_at;
+DELIMITER $
+CREATE TRIGGER trg_requests_updated_at
+BEFORE UPDATE ON requests
+FOR EACH ROW
+BEGIN
+	IF OLD.status <> NEW.status THEN
+		SET NEW.updated_at = CURRENT_TIMESTAMP;
+	END IF;
+END$
+DELIMITER ;
+
+
+/* create delivery when request is accepted */
+DROP TRIGGER IF EXISTS trg_create_delivery_after_accept;
+DELIMITER $
+CREATE TRIGGER trg_create_delivery_after_accept
+AFTER UPDATE ON requests
+FOR EACH ROW
+BEGIN
+	IF OLD.status <> 'ACCEPTED'
+		AND NEW.status = 'ACCEPTED' THEN
+		INSERT INTO deliveries(req_id,status)
+		VALUES(NEW.rq_id,'PENDING');
+	END IF;
+END$
+DELIMITER ;
+
+
+/* decrease portions when request is accepted */
+DROP TRIGGER IF EXISTS trg_reduce_portions_on_accept;
+DELIMITER $
+CREATE TRIGGER trg_reduce_portions_on_accept
+AFTER UPDATE ON requests
+FOR EACH ROW
+BEGIN
+	IF OLD.status <> 'ACCEPTED'
+		AND NEW.status='ACCEPTED' THEN
+		UPDATE listing
+		SET portions = portions - 1
+		WHERE lst_id = NEW.lst_id;
+	END IF;
+END$
+DELIMITER ;
+
+
+/* when listing portions become 0, change status */
+DROP TRIGGER IF EXISTS trg_listing_full;
+DELIMITER $
+CREATE TRIGGER trg_listing_full
+AFTER UPDATE ON listing
+FOR EACH ROW
+BEGIN
+	IF NEW.portions = 0 THEN
+		UPDATE listing
+		SET status='FULL'
+		WHERE lst_id=NEW.lst_id;
+	END IF;
+END$
+DELIMITER ;
+
+
+/* when listing status becomes full, automatically reject remaining pending requests */
+DROP TRIGGER IF EXISTS trg_reject_remaining_requests;
+DELIMITER $
+CREATE TRIGGER trg_reject_remaining_requests
+AFTER UPDATE ON listing
+FOR EACH ROW
+BEGIN
+	IF OLD.status <> 'FULL'
+		AND NEW.status='FULL' THEN
+		UPDATE requests
+		SET status='REJECTED'
+		WHERE lst_id=NEW.lst_id
+		AND status='PENDING';
+	END IF;
+END$
+DELIMITER ;
+
+
+/* once rated, delivery status becomes completed */
+DROP TRIGGER IF EXISTS trg_rating_completes_delivery;
+DELIMITER $
+CREATE TRIGGER trg_rating_completes_delivery
+BEFORE UPDATE ON deliveries
+FOR EACH ROW
+BEGIN
+	IF NEW.rating IS NOT NULL AND OLD.rating IS NULL THEN
+		SET NEW.status='COMPLETED';
+		SET NEW.rating_timestamp=CURRENT_TIMESTAMP;
+	END IF;
+END$
+DELIMITER ;
+
+
+/* update listing average rating */
+DROP TRIGGER IF EXISTS trg_update_listing_rating;
+DELIMITER $
+CREATE TRIGGER trg_update_listing_rating
+AFTER UPDATE ON deliveries
+FOR EACH ROW
+BEGIN
+	IF NEW.rating IS NOT NULL THEN
+		UPDATE listing l
+		SET lst_rating =
+		(
+			SELECT AVG(d.rating)
+			FROM deliveries d
+			JOIN requests r ON d.req_id=r.rq_id
+			WHERE r.lst_id=l.lst_id
+			AND d.rating IS NOT NULL
+		)
+		WHERE l.lst_id=
+		(
+			SELECT lst_id
+			FROM requests
+			WHERE rq_id=NEW.req_id
+		);
+	END IF;
+END$
+DELIMITER ;
+
+
+/* update poster rating */
+DROP TRIGGER IF EXISTS trg_update_student_rating;
+DELIMITER $
+CREATE TRIGGER trg_update_student_rating
+AFTER UPDATE ON deliveries
+FOR EACH ROW
+BEGIN
+	IF NEW.rating IS NOT NULL THEN
+		UPDATE student s
+		SET std_rating =
+		(
+			SELECT AVG(l.lst_rating)
+			FROM listing l
+			WHERE l.poster=s.std_id
+			AND l.lst_rating IS NOT NULL
+		)
+		WHERE s.std_id=
+		(
+			SELECT l.poster
+			FROM listing l
+			JOIN requests r ON l.lst_id=r.lst_id
+			WHERE r.rq_id=NEW.req_id
+		);
+	END IF;
+END$
+DELIMITER ;
+
+
+/* change listing status to expired automatically */
+DROP TRIGGER IF EXISTS trg_expire_listing;
+DELIMITER $
+CREATE TRIGGER trg_expire_listing
+BEFORE UPDATE ON listing
+FOR EACH ROW
+BEGIN
+	IF NEW.expires_at < CURRENT_TIMESTAMP THEN
+		SET NEW.status='EXPIRED';
+	END IF;
+END$
+DELIMITER ;
+
+
+
+

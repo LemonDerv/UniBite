@@ -2,13 +2,14 @@ CREATE DATABASE IF NOT EXISTS UNIBITES_DB;
 USE UNIBITES_DB;
 
 CREATE TABLE IF NOT EXISTS user(
-    usr_id INT PRIMARY KEY AUTO_INCREMENT
+    usr_id INT PRIMARY KEY AUTO_INCREMENT,
+    usr_email VARCHAR(100) UNIQUE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS credentials(
     usr_id INT PRIMARY KEY, 
     usr_username VARCHAR(100) NOT NULL UNIQUE, 
-    usr_passw VARCHAR(100) NOT NULL ,
+    usr_passw VARCHAR(255) NOT NULL ,
     FOREIGN KEY (usr_id) REFERENCES user(usr_id)
     ON DELETE RESTRICT
 );
@@ -23,51 +24,54 @@ CREATE TABLE IF NOT EXISTS student(
 );
 
 CREATE TABLE IF NOT EXISTS admin(
-    adm_id INT ,
-    adm_stats_id INT,
+    adm_id INT PRIMARY KEY,
     FOREIGN KEY(adm_id) REFERENCES user(usr_id)
     ON DELETE CASCADE
 );
 
-
-
 CREATE TABLE IF NOT EXISTS usr_address(
     addr_id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    std_id INT NOT NULL,
-    FOREIGN KEY(std_id) REFERENCES student(std_id) ON DELETE CASCADE
+    address_text VARCHAR(255) NOT NULL,
+    latitude DECIMAL(9,6),
+    longitude DECIMAL(9,6)
 );
 
 CREATE TABLE IF NOT EXISTS usr_has_addr(
     std_id INT NOT NULL,
-    addr INT UNSIGNED, 
-    PRIMARY KEY(std_id,addr),
+    addr_id INT UNSIGNED NOT NULL,
+    is_default BOOLEAN DEFAULT FALSE,
+    PRIMARY KEY(std_id, addr_id),
     FOREIGN KEY(std_id) REFERENCES student(std_id) ON DELETE CASCADE,
-    FOREIGN KEY(addr) REFERENCES usr_address(addr_id) ON DELETE CASCADE
+    FOREIGN KEY(addr_id) REFERENCES usr_address(addr_id) ON DELETE CASCADE
 );
 
 
-CREATE TABLE IF NOT EXISTS listings(
+CREATE TABLE IF NOT EXISTS listing(
     lst_id INT PRIMARY KEY AUTO_INCREMENT,
-    cooker int NOT NULL,
+    poster int NOT NULL,
     title VARCHAR(100) NOT NULL,
     description TEXT,
+    image_url VARCHAR(255),
     portions SMALLINT NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    lst_rating SMALLINT ,
+    CHECK (portions >= 0),
+    pickup_location VARCHAR(255) NOT NULL,
+    pickup_latitude DECIMAL(9,6),
+    pickup_longitude DECIMAL(9,6),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP,
+    status ENUM('ACTIVE','FULL','EXPIRED') DEFAULT 'ACTIVE',
+    lst_rating DECIMAL(3,2),
     CHECK (lst_rating >= 1 AND lst_rating <= 5),
-    FOREIGN KEY(cooker) REFERENCES student(std_id) ON DELETE CASCADE
+    FOREIGN KEY(poster) REFERENCES student(std_id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS stats(
-    adm_stats_id INT,
-    ad_id INT,
-    avg_rating DECIMAL(3,2) NOT NULL,
-    CHECK (avg_rating >= 1 AND avg_rating <= 5),
-    PRIMARY KEY(adm_stats_id,ad_id),
-    FOREIGN KEY(adm_stats_id) REFERENCES admin(adm_id)
-    ON DELETE CASCADE,
-    FOREIGN KEY(ad_id) REFERENCES listings(lst_id)
-    ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS pickup_window(
+    pwin_id INT PRIMARY KEY AUTO_INCREMENT,
+    lst_id INT NOT NULL,
+    pickup_start DATETIME NOT NULL,
+    pickup_end DATETIME NOT NULL,
+    CHECK (pickup_end > pickup_start),
+    FOREIGN KEY(lst_id) REFERENCES listing(lst_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS allergens(
@@ -75,13 +79,36 @@ CREATE TABLE IF NOT EXISTS allergens(
     allerg_type VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS lst_has_allerg(
+CREATE TABLE IF NOT EXISTS lst_has_allergens(
     allerg_id INT NOT NULL,
     lst_id INT NOT NULL,
     PRIMARY KEY(allerg_id,lst_id),
     FOREIGN KEY(allerg_id) REFERENCES allergens(allerg_id) 
     ON DELETE CASCADE,
-    FOREIGN KEY(lst_id) REFERENCES listings(lst_id) 
+    FOREIGN KEY(lst_id) REFERENCES listing(lst_id) 
+    ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS std_allergy(
+    std_id INT NOT NULL,
+    allerg_id INT NOT NULL,
+    PRIMARY KEY(std_id, allerg_id),
+    FOREIGN KEY(std_id) REFERENCES student(std_id) ON DELETE CASCADE,
+    FOREIGN KEY(allerg_id) REFERENCES allergens(allerg_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS meal_tag(
+    mtag_id INT PRIMARY KEY AUTO_INCREMENT,
+    mtag_type VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS lst_has_meal_tag(
+    mtag_id INT NOT NULL,
+    lst_id INT NOT NULL,
+    PRIMARY KEY(mtag_id,lst_id),
+    FOREIGN KEY(mtag_id) REFERENCES meal_tag(mtag_id) 
+    ON DELETE CASCADE,
+    FOREIGN KEY(lst_id) REFERENCES listing(lst_id) 
     ON DELETE CASCADE
 );
 
@@ -89,18 +116,31 @@ CREATE TABLE IF NOT EXISTS requests(
     rq_id INT PRIMARY KEY AUTO_INCREMENT,
     lst_id INT NOT NULL,
     std_id INT NOT NULL,
-    status ENUM('PENDING','ACCEPTED','DELIVERED','NOT_RATED','COMPLETED','REJECTED') DEFAULT 'PENDING',
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('PENDING','ACCEPTED','REJECTED') DEFAULT 'PENDING',	/* rating status goes to delivery table */
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NULL,
     FOREIGN KEY(std_id) REFERENCES student(std_id) ON DELETE CASCADE,
-    FOREIGN KEY(lst_id) REFERENCES listings(lst_id) ON DELETE CASCADE
+    FOREIGN KEY(lst_id) REFERENCES listing(lst_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS deliveries(
     del_id INT PRIMARY KEY AUTO_INCREMENT,
-    del_time TIMESTAMP,
-    del_rating SMALLINT,
-    req_id INT NOT NULL,
-    std_id INT NOT NULL,
-    FOREIGN KEY(std_id) REFERENCES student(std_id) ON DELETE CASCADE,
+    del_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    rating DECIMAL(3,2),
+    rating_timestamp TIMESTAMP NULL,
+    req_id INT UNIQUE NOT NULL,
+    status ENUM('PENDING','DELIVERED','NO_SHOW','COMPLETED') DEFAULT 'PENDING',	/* DELIVERED == NOT_RATED, COMPLETED == RATED */
+    CHECK (rating >= 1 AND rating <= 5),
     FOREIGN KEY(req_id) REFERENCES requests(rq_id) ON DELETE CASCADE
 );
+
+ALTER TABLE requests
+ADD CONSTRAINT uq_request UNIQUE(lst_id,std_id);
+
+CREATE INDEX idx_listing_status ON listing(status);
+CREATE INDEX idx_listing_poster ON listing(poster);
+CREATE INDEX idx_request_student ON requests(std_id);
+CREATE INDEX idx_delivery_status ON deliveries(status);
+CREATE INDEX idx_requests_listing ON requests(lst_id);
+CREATE INDEX idx_deliveries_req ON deliveries(req_id);
+CREATE INDEX idx_pickup_listing ON pickup_window(lst_id);
