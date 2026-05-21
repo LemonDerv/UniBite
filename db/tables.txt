@@ -45,7 +45,6 @@ CREATE TABLE IF NOT EXISTS usr_has_addr(
     FOREIGN KEY(addr_id) REFERENCES usr_address(addr_id) ON DELETE CASCADE
 );
 
-
 CREATE TABLE IF NOT EXISTS listing(
     lst_id INT PRIMARY KEY AUTO_INCREMENT,
     poster int NOT NULL,
@@ -58,7 +57,7 @@ CREATE TABLE IF NOT EXISTS listing(
     pickup_latitude DECIMAL(9,6),
     pickup_longitude DECIMAL(9,6),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP,
+    expires_at TIMESTAMP DEFAULT DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 48 HOUR),
     status ENUM('ACTIVE','FULL','EXPIRED') DEFAULT 'ACTIVE',
     lst_rating DECIMAL(3,2),
     CHECK (lst_rating >= 1 AND lst_rating <= 5),
