@@ -131,21 +131,18 @@ document.addEventListener('DOMContentLoaded', () => {
 			e.preventDefault();
 			const password = document.getElementById('password').value;
 			const confirmPassword = document.getElementById('confirm-password').value;
+
 			if (password !== confirmPassword) {
 				alert('Passwords do not match.');
 				return;
 			}
-			window.location.href = '../account_setup/setup.html';
 			
 			const user = {
 				username: document.getElementById('name').value,
 				email: document.getElementById('email').value,
 				password: password,
 			};
-			
-			//console.log('Registered user:', user);
 
-			//send user info
 			fetch("/api/user/register", {
             	method: "POST",
             	headers: {
@@ -153,8 +150,18 @@ document.addEventListener('DOMContentLoaded', () => {
             	},
             	body: JSON.stringify(user)
         	})
-        	.then(response => response.json())
-        	.then(data => console.log("User saved:", data))
+        	.then(async (response) => {
+				const data = await response.json();
+
+				// console.log("status : " , response.status , "data:" , data);
+
+				if(response.status === 401){
+					window.location.href = './login.html';
+					return ;
+				}
+				// console.log("User:", data);
+				window.location.href = '../../private/account_setup/setup.html';
+			})
         	.catch((error) => console.log("Error saving user:",error));
 		});
 	}

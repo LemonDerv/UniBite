@@ -163,6 +163,18 @@ BEGIN
 END$
 DELIMITER ;
 
+/*insert into admin/student after insert on user table*/
+DELIMITER $$
 
+CREATE TRIGGER user_reg
+AFTER INSERT ON USER
+FOR EACH ROW
+BEGIN
+    IF NEW.usr_role ='student' THEN
+        INSERT INTO student(std_id) VALUES (NEW.usr_id);
+    ELSEIF NEW.usr_role = 'admin' THEN
+        INSERT INTO admin(adm_id) VALUES (NEW.usr_id);
+    END IF;
+END $$
 
-
+DELIMITER ;

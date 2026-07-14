@@ -3,15 +3,10 @@ USE UNIBITES_DB;
 
 CREATE TABLE IF NOT EXISTS user(
     usr_id INT PRIMARY KEY AUTO_INCREMENT,
-    usr_email VARCHAR(100) UNIQUE NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS credentials(
-    usr_id INT PRIMARY KEY, 
-    usr_username VARCHAR(100) NOT NULL UNIQUE, 
-    usr_passw VARCHAR(255) NOT NULL ,
-    FOREIGN KEY (usr_id) REFERENCES user(usr_id)
-    ON DELETE RESTRICT
+    usr_username VARCHAR(100) NOT NULL, 
+    usr_email VARCHAR(100) NOT NULL,
+    usr_passw VARCHAR(255) NOT NULL,
+    usr_role ENUM("student","admin") NOT NULL DEFAULT "student";
 );
 
 CREATE TABLE IF NOT EXISTS student(
@@ -143,3 +138,6 @@ CREATE INDEX idx_delivery_status ON deliveries(status);
 CREATE INDEX idx_requests_listing ON requests(lst_id);
 CREATE INDEX idx_deliveries_req ON deliveries(req_id);
 CREATE INDEX idx_pickup_listing ON pickup_window(lst_id);
+
+
+

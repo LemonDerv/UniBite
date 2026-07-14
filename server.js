@@ -15,6 +15,9 @@ app.use(express.urlencoded({extended: true}));
 
 app.use('/api/user',userRoutes);
 
+app.use('/private',express.static('private'));
+
 app.listen(3000,()=>{
     console.log("Running ");
 });
+

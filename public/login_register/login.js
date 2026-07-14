@@ -89,4 +89,48 @@ document.addEventListener('DOMContentLoaded', () => {
 			setLanguage(input.value);
 		});
 	});
+
+	const loginForm = document.querySelector(".auth-form form");
+	const referenceElement = document.querySelector(".auth-form h2");
+	const sibling = document.querySelector(".auth-form h4");
+
+	if (loginForm){
+		loginForm.addEventListener('submit',(e)=>{
+			e.preventDefault();
+			sibling.classList.add("hidden");
+
+			const email = document.getElementById("email").value;
+			const password = document.getElementById("password").value;
+
+			const user = {
+				email : email,
+				password: password
+			}
+
+			fetch("/api/user/login", {
+				method: "POST",
+				headers: {
+					"Content-Type" : "application/json"
+				},
+				body: JSON.stringify(user)
+			})
+			.then(async(response)=>{
+				const data = await response.json();
+				// console.log("data: " , data);
+				// console.log("status : " ,response.status);
+
+				if(response.status === 401){
+					sibling.textContent='Incorrect Credentials';
+					referenceElement.parentNode.insertBefore(sibling, referenceElement.nextSibling);
+					sibling.classList.remove("hidden");
+					return ;
+				}
+				else if(response.status === 200 && data.status === 'admin log-in')
+					window.location.href = "../../private/admin/admin_dashboard.html";
+				else if(response.status === 200 && data.status === 'student log-in')
+					window.location.href = "../../private/homepage/homepage.html";
+			})
+			.catch((err)=>{console.log("Error verifying user" , err);})
+		});
+	}
 });
