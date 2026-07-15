@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UniBite | Posts</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="user_posts.css">
+</head>
+
+<body class="theme-light">
+
+    <!-- TOP NAV -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <a class="logo" href="/">UniBite</a>
+        </div>
+    </header>
+
+    <!-- UTILITY BAR -->
+    <section class="utility-bar">
+        <div class="utility-group">
+            <button class="utility-trigger">Choose Theme ◐</button>
+            <div class="utility-menu">
+                <label><input type="radio" name="theme"> Dark</label>
+                <label><input type="radio" name="theme" checked> Light</label>
+            </div>
+        </div>
+        <div class="utility-group">
+            <button class="utility-trigger">ENG ▾</button>
+            <div class="utility-menu">
+                <label><input type="radio" name="language" checked> English</label>
+                <label><input type="radio" name="language"> Ελληνικά</label>
+            </div>
+        </div>
+    </section>
+
+    <!-- LAYOUT -->
+    <div class="layout posts-layout">
+        <!-- SIDEBAR -->
+        <aside class="account-sidebar">
+            <section class="account-box">
+                <h3 class="username">User 1</h3>
+                <p class="credits">Credits: 120</p>
+                <a href="#" class="menu-link">Edit Account</a>
+            </section>
+            <nav class="account-menu">
+                <a href="/deliveries" class="menu-link">Deliveries</a>
+                <a href="/requests" class="menu-link">Requests</a>
+                <a href="/user_orders" class="menu-link">Your Orders</a>
+                <a href="/user_posts" class="menu-link active">Your Posts</a>
+                <a href="/logout" class="menu-link logout">Log Out</a>
+            </nav>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main posts-main">
+            <header class="page-heading">
+                <h1>Your Meal Posts</h1>
+                <p>Manage the posts you have created</p>
+            </header>
+            <!-- ACTIVE POSTS (GRID) -->
+            <section class="posts-section">
+                <div class="section-title">
+                    <span>Active Posts (Check Requests)</span>
+                </div>
+                <div class="posts-grid">
+
+                    <!-- CARD -->
+                    <article class="post-card yes-requests"
+                        data-pickup='[
+                            {"date":"2026-05-20","start":"15:30","end":"17:00"},
+                            {"date":"2026-05-21","start":"12:00","end":"14:00"}
+                        ]'
+                    >
+                        <div class="post-status-bar yes-requests"></div>
+                        <div class="post-thumb"><!-- <img src="meal.jpg" alt="Meal"> --></div>
+
+                        <div class="post-body">
+                            <div class="post-header">
+                                <div class="post-title-group">
+                                    <h2 class="post-title">Homemade Pasta</h2>
+                                    <span class="post-portions">3 left</span>
+                                </div>
+                                <div class="post-menu">
+                                    <button class="menu-trigger" type="button" aria-label="Post actions" aria-expanded="false">
+                                        <svg width="18" height="18" viewBox="0 0 24 24">
+                                            <circle cx="12" cy="5" r="2" fill="currentColor"/>
+                                            <circle cx="12" cy="12" r="2" fill="currentColor"/>
+                                            <circle cx="12" cy="19" r="2" fill="currentColor"/>
+                                        </svg>
+                                    </button>
+                                    <div class="menu-dropdown">
+                                        <a href="#" class="edit-post">Edit</a>
+                                        <a href="#" class="delete">Delete</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="post-description">Fresh pasta with tomato sauce and basil.</p>
+                            <div class="post-tags">
+                                <span class="tag">Pasta</span>
+                                <span class="tag">Vegetarian</span>
+                            </div>
+                            <div class="post-meta">
+                                <span class="post-time">Posted on • 03/04 @ 18:30</span>
+                                <span class="post-time-remaining">24h remaining</span>
+                            </div>
+                            <div class="post-meta">
+                                <span class="post-address">Aratou 60, Patras</span>
+                            </div>
+                            <div class="post-allergens no-allergens">This meal has no allergens noted.</div>
+                        </div>
+                    </article>
+
+                    <!-- CARD 2 -->
+                    <article class="post-card" data-tags="Pasta,Vegetarian" data-allergens="Milk,Gluten">
+                        <div class="post-status-bar no-requests"></div>
+                        <div class="post-thumb"></div>
+
+                        <div class="post-body">
+                            <div class="post-header">
+                                <div class="post-title-group">
+                                    <h2 class="post-title">Homemade Pasta</h2>
+                                    <span class="post-portions">3 left</span>
+                                </div>
+                                <div class="post-menu">
+                                    <button class="menu-trigger" type="button" aria-label="Post actions" aria-expanded="false">
+                                        <svg width="18" height="18" viewBox="0 0 24 24">
+                                            <circle cx="12" cy="5" r="2" fill="currentColor"/>
+                                            <circle cx="12" cy="12" r="2" fill="currentColor"/>
+                                            <circle cx="12" cy="19" r="2" fill="currentColor"/>
+                                        </svg>
+                                    </button>
+                                    <div class="menu-dropdown">
+                                        <a href="#" class="edit-post">Edit</a>
+                                        <a href="#" class="delete">Delete</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="post-description">Fresh pasta with tomato sauce and basil.</p>
+                            <div class="post-tags">
+                                <span class="tag">Pasta</span>
+                                <span class="tag">Vegetarian</span>
+                            </div>
+                            <div class="post-meta">
+                                <span class="post-time">Posted on • 03/04 @ 18:30</span>
+                                <span class="post-time-remaining">24h remaining</span>
+                            </div>
+                            <div class="post-meta">
+                                <span class="post-address">Aratou 60, Patras</span>
+                            </div>
+                            <div class="post-allergens yes-allergens">This meal has allergens.</div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+<!---------------------------------------------------------------------------------- REQUESTS MODAL ------------------------------------------------------------------------------------------------------------>
+            <div class="requests-modal hidden" id="requestsModal">
+                <div class="modal-overlay"></div>
+                <div class="requests-modal-content">
+                    <h2>Requests</h2>
+                    <div class="requests-list">
+                        <div class="request-item">
+                            <strong>John Doe</strong>
+                        </div>
+                        <div class="request-item">
+                            <strong>Maria</strong>
+                        </div>
+                    </div>
+                    <button class="btn primary close-requests-modal">Close</button>
+                </div>
+            </div>
+
+<!---------------------------------------------------------------------------------- EDIT POST MODAL ------------------------------------------------------------------------------------------------------------>
+            <div class="edit-modal hidden" id="editModal">
+                <div class="modal-overlay"></div>
+                <div class="edit-modal-content">
+
+                    <!-- HEADER -->
+                    <div class="edit-modal-header">
+                        <h2>Edit Meal Post</h2>
+                        <button class="close-edit-modal">✕</button>
+                    </div>
+                    <!-- FORM -->
+                    <form class="edit-form">
+                        <!-- PAGE 1 -->
+                        <div class="edit-page active" id="editPage1">
+                            <!-- MEAL INFO -->
+                            <section class="edit-section">
+                                <h3 class="edit-section-title">Meal Information</h3>
+                                <div class="edit-grid">
+                                    <div class="edit-field">
+                                        <label for="editTitle">Title</label>
+                                        <input type="text" id="editTitle">
+                                    </div>
+                                    <div class="edit-field">
+                                        <label for="editTotalPortions">Total Portions</label>
+                                        <input type="number" id="editTotalPortions" min="1">
+                                    </div>
+                                </div>
+                                <div class="edit-field">
+                                    <label for="editDescription">Description</label>
+                                    <textarea id="editDescription" rows="5"></textarea>
+                                </div>
+                                <div class="edit-field">
+                                    <label for="editImage">Replace Image</label>
+                                    <div class="image-preview-wrapper">
+                                        <div class="image-preview" id="editImagePreview">No Image Set</div>
+                                        <input type="file" id="editImage" accept="image/*">
+                                    </div>
+                                </div>
+                            </section>
+                            <!-- TAGS -->
+                            <section class="edit-section">
+                                <h3 class="edit-section-title">Meal Tags</h3>
+                                <div class="chip-group">
+                                    <label class="chip-option">
+                                        <input type="checkbox" value="Bread">
+                                        <span>Bread</span>
+                                    </label>
+                                    <label class="chip-option">
+                                        <input type="checkbox" value="Dairy">
+                                        <span>Dairy</span>
+                                    </label>
+                                    <label class="chip-option">
+                                        <input type="checkbox" value="Eggs">
+                                        <span>Eggs</span>
+                                    </label>
+                                    <label class="chip-option">
+                                        <input type="checkbox" value="Fish">
+                                        <span>Fish</span>
+                                    </label>
+                                    <label class="chip-option">
+                                        <input type="checkbox" value="Fruits">
+                                        <span>Fruits</span>
+                                    </label>
+                                    <label class="chip-option">
+                                        <input type="checkbox" value="Nuts">
+                                        <span>Nuts</span>
+                                    </label>
+                                    <label class="chip-option">
+                                        <input type="checkbox" value="Pasta">
+                                        <span>Pasta</span>
+                                    </label>
+                                    <label class="chip-option">
+                                        <input type="checkbox" value="Poultry">
+                                        <span>Poultry</span>
+                                    </label>
+                                    <label class="chip-option">
+                                        <input type="checkbox" value="Red Meat">
+                                        <span>Red Meat</span>
+                                    </label>
+                                    <label class="chip-option">
+                                        <input type="checkbox" value="Rice">
+                                        <span>Rice</span>
+                                    </label>
+                                    <label class="chip-option">
+                                        <input type="checkbox" value="Vegetables">
+                                        <span>Vegetables</span>
+                                    </label>
+                                </div>
+                            </section>
+                            <!-- ALLERGENS -->
+                            <section class="edit-section">
+                                <h3 class="edit-section-title">Allergens</h3>
+                                    <details class="allergen-dropdown">
+                                        <summary>Select allergens</summary>
+                                        <div class="allergen-list">
+                                            <label><input type="checkbox" value="Gluten"> Gluten</label>
+                                            <label><input type="checkbox" value="Crustaceans"> Crustaceans</label>
+                                            <label><input type="checkbox" value="Eggs"> Eggs</label>
+                                            <label><input type="checkbox" value="Fish"> Fish</label>
+                                            <label><input type="checkbox" value="Peanuts"> Peanuts</label>
+                                            <label><input type="checkbox" value="Soybeans"> Soybeans</label>
+                                            <label><input type="checkbox" value="Milk"> Milk</label>
+                                            <label><input type="checkbox" value="Nuts"> Nuts</label>
+                                            <label><input type="checkbox" value="Celery"> Celery</label>
+                                            <label><input type="checkbox" value="Mustard"> Mustard</label>
+                                            <label><input type="checkbox" value="Sesame Seeds"> Sesame Seeds</label>
+                                            <label><input type="checkbox" value="Sulphur Dioxide and Sulphites"> Sulphur Dioxide and Sulphites</label>
+                                            <label><input type="checkbox" value="Lupin"> Lupin</label>
+                                            <label><input type="checkbox" value="Molluscs"> Molluscs</label>
+                                        </div>
+                                    </details>
+                            </section>
+                        </div>
+
+                        <!-- PAGE 2 -->
+                        <div class="edit-page" id="editPage2">
+                            <!-- PICKUP -->
+                            <section class="edit-section">
+                                <h3 class="edit-section-title">Pickup Information</h3>
+                                <div class="edit-field">
+                                    <label for="editAddress">Address</label>
+                                    <div class="pickup-address-search-row">
+                                        <input type="text" id="editAddress" autocomplete="off">
+                                        <button class="pickup-search-btn" id="pickupAddressSearch" type="button">Search</button>
+                                    </div>
+                                    <p class="pickup-geo-error" id="pickupGeoError" hidden></p>
+                                    <div class="pickup-map" id="pickupMap"></div>
+                                </div>
+
+                                <section class="edit-section">
+                                    <div class="pickup-window-builder">
+                                        <!-- date -->
+                                        <div class="edit-field">
+                                            <label for="pickupDate">Pickup Date</label>
+                                            <input
+                                                type="date"
+                                                id="pickupDate"
+                                                min=""
+                                                max=""
+                                            >
+                                        </div>
+                                        <!-- start -->
+                                        <div class="edit-field">
+                                            <label for="pickupStart">Start Time</label>
+                                            <input type="text" id="pickupStart" maxlength="5" placeholder="HH:MM" inputmode="numeric">
+                                        </div>
+                                        <!-- end -->
+                                        <div class="edit-field">
+                                            <label for="pickupEnd">End Time</label>
+                                            <input type="text" id="pickupEnd" maxlength="5" placeholder="HH:MM" inputmode="numeric">
+                                        </div>
+                                        <button
+                                            type="button"
+                                            class="btn primary"
+                                            id="addPickupWindow">
+                                            Add Pickup Window
+                                        </button>
+                                    </div>
+                                    <!-- preview -->
+                                    <div id="pickupWindowList" class="pickup-window-list">
+                                    </div>
+                                </section>
+                            </section>
+                        </div>
+                        <!-- FOOTER -->
+                        <div class="edit-footer">
+                            <!-- PAGE NAVIGATION -->
+                            <div class="edit-page-nav">
+                                <button type="button" class="btn secondary prev-edit-page">Previous</button>
+                                <button type="button" class="btn primary next-edit-page">Next</button>
+                            </div>
+                            <!-- ACTION BUTTONS -->
+                            <div class="edit-actions">
+                                <button type="button" class="btn primary save-edit">Save Changes</button>
+                                <button type="button" class="btn secondary cancel-edit">Cancel</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+<!---------------------------------------------------------------------------------- VIEW POST MODAL ------------------------------------------------------------------------------------------------------------>
+            <div class="view-modal hidden" id="viewModal">
+                <div class="modal-overlay"></div>
+                <div class="view-modal-content">
+                    <!-- HEADER -->
+                    <div class="view-modal-header">
+                        <h2>Meal Details</h2>
+                        <button class="close-view-modal">✕</button>
+                    </div>
+                    <!-- IMAGE -->
+                    <div class="view-image-wrapper">
+                        <div class="view-image" id="viewImage">No Image Set</div>
+                    </div>
+                    <!-- POST META -->
+                    <div class="view-post-meta">
+                        <span id="viewPostedDate">Posted on • 03/04 @ 18:30</span>
+                        <span class="view-rating" id="viewRating" data-rating="0"></span>
+                    </div>
+                    <!-- MEAL INFO -->
+                    <section class="view-section">
+                        <h3 class="view-section-title">Meal Information</h3>
+                        <div class="view-grid">
+                            <div class="view-field">
+                                <label>Title</label>
+                                <div class="view-value" id="viewTitle">Homemade Pasta</div>
+                            </div>
+                            <div class="view-field">
+                                <label>Total Portions</label>
+                                <div class="view-value" id="viewPortions">5</div>
+                            </div>
+                        </div>
+                        <div class="view-field">
+                            <label>Description</label>
+                            <div class="view-description" id="viewDescription">Fresh pasta with tomato sauce and basil.</div>
+                        </div>
+                    </section>
+                    <!-- TAGS -->
+                    <section class="view-section">
+                        <h3 class="view-section-title">Meal Tags</h3>
+                        <div class="view-chip-group" id="viewTags">
+                            <span class="view-chip">Pasta</span>
+                            <span class="view-chip">Vegetarian</span>
+                        </div>
+                    </section>
+                    <!-- ALLERGENS -->
+                    <section class="view-section">
+                        <h3 class="view-section-title">Allergens</h3>
+                        <div class="view-chip-group" id="viewAllergens">
+                            <span class="view-chip allergen-view-chip">Gluten</span>
+                        </div>
+                    </section>
+                    <!-- PICKUP -->
+                    <section class="view-section">
+                        <h3 class="view-section-title">Pickup Information</h3>
+                        <div class="view-field">
+                            <label>Address</label>
+                            <div class="view-value" id="viewAddress">Aratou 60, Patras</div>
+                        </div>
+                        <div class="view-field">
+                            <label>Pickup Times</label>
+                            <div class="view-value" id="viewPickupTimes">
+                            </div>
+                        </div>
+                    </section>
+                    <!-- FOOTER -->
+                    <div class="view-actions">
+                        <button class="btn secondary close-view-btn">Close</button>
+                    </div>
+                </div>
+            </div>
+
+<!---------------------------------------------------------------------------------- EXPIRED POSTS (COLLAPSIBLE) ------------------------------------------------------------------------------------------------------------>
+            <section class="posts-section">
+                <div class="section-title-collapsible toggle-header collapsed">
+                    <span>Expired / Closed Posts</span>
+                    <span class="toggle-icon">▲</span>
+                </div>
+                <div class="post-list hidden">
+                    <!-- test data -->
+                    <article class="post-list-item" data-rating="4" data-allergens="Gluten,Milk,Eggs">
+                        <div class="post-list-info">
+                            <h3 class="post-list-title">Spaghetti Bolognese</h3>
+                            <p class="post-list-meta">Posted on • 03/04 @ 18:30</p>
+                        </div>
+                        <button class="btn secondary view-details-btn">View Details</a>
+                    </article>
+                    <article class="post-list-item" data-rating="3">
+                        <div class="post-list-info">
+                            <h3 class="post-list-title">Spaghetti Bolognese</h3>
+                            <p class="post-list-meta">Posted on • 03/04 @ 18:30</p>
+                        </div>
+                        <button class="btn secondary view-details-btn">View Details</a>
+                    </article>
+                    <article class="post-list-item" data-rating="2.5">
+                        <div class="post-list-info">
+                            <h3 class="post-list-title">Spaghetti Bolognese</h3>
+                            <p class="post-list-meta">Posted on • 03/04 @ 18:30</p>
+                        </div>
+                        <button class="btn secondary view-details-btn">View Details</a>
+                    </article>
+                    <article class="post-list-item" data-rating="2.5">
+                        <div class="post-list-info">
+                            <h3 class="post-list-title">Spaghetti Bolognese</h3>
+                            <p class="post-list-meta">Posted on • 03/04 @ 18:30</p>
+                        </div>
+                        <button class="btn secondary view-details-btn">View Details</a>
+                    </article>
+                    <article class="post-list-item" data-rating="2.5">
+                        <div class="post-list-info">
+                            <h3 class="post-list-title">Spaghetti Bolognese</h3>
+                            <p class="post-list-meta">Posted on • 03/04 @ 18:30</p>
+                        </div>
+                        <button class="btn secondary view-details-btn">View Details</a>
+                    </article>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="user_posts.js"></script>
+
+</body>
+</html>

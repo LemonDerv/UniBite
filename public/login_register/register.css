@@ -208,6 +208,15 @@ body.theme-dark .auth-close:hover {
     font-size: 28px;
 }
 
+.auth-form h4 {
+    text-align: center;
+    color: #9f1717;
+    margin-bottom: 30px;
+    font-size: 15px;
+}
+
+.hidden{ display: none;}
+
 .form-group {
     margin-bottom: 20px;
 }
