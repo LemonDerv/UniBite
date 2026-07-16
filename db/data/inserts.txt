@@ -28,19 +28,12 @@ INSERT INTO meal_tag(mtag_type) VALUES
 ('Rice'),
 ('Vegetables');
 
-INSERT INTO user (usr_email) VALUES
-('g.papadopoulos@mail.ntua.gr'), 
-('eleni.antoniou@mail.ntua.gr'),
-('d.dimitriou@mail.ntua.gr'), 
-('maria.georgiou@mail.ntua.gr'),
-('admin.unibites@ntua.gr');
-
-INSERT INTO credentials (usr_id, usr_username, usr_passw) VALUES 
-(1, 'gpapad_99', '$2b$12$K8MzM2vR8eO5gG9hWxY1uOaeX8K7b4f3g2h1j0k9l8m7n6o5p4q3r'),
-(2, 'eleni_ant', '$2b$12$L9NzN3vS9fP6hH0iXyZ2vBbfY9L8c5g4h3i2j1k0l9m8n7o6p5q4s'),
-(3, 'jim_dim', '$2b$12$M0OzO4vT0gQ7iI1jYzY3wCcgZ0M9d6h5i4j3k2l1m0n9o8p7q6t'),
-(4, 'maria_geo', '$2b$12$N1PzP5vU1hR8jJ2kZzZ4xDdhA1N0e7i6j5k4l3m2n1o0p9q8r7u'),
-(5, 'admin', '$2b$12$O2QzQ6vV2iS9kK3laaa5xEeiB2O1f8j7k6l5m4n3o2p1q0r9s8v');
+INSERT INTO user (usr_id, usr_username, usr_email, usr_passw, usr_role) VALUES
+(1, 'gpapad_99', 'g.papadopoulos@mail.ntua.gr', '$2b$12$K8MzM2vR8eO5gG9hWxY1uOaeX8K7b4f3g2h1j0k9l8m7n6o5p4q3r', 'student'),
+(2, 'eleni_ant', 'eleni.antoniou@mail.ntua.gr', '$2b$12$L9NzN3vS9fP6hH0iXyZ2vBbfY9L8c5g4h3i2j1k0l9m8n7o6p5q4s', 'student'),
+(3, 'jim_dim', 'd.dimitriou@mail.ntua.gr', '$2b$12$M0OzO4vT0gQ7iI1jYzY3wCcgZ0M9d6h5i4j3k2l1m0n9o8p7q6t', 'student'),
+(4, 'maria_geo', 'maria.georgiou@mail.ntua.gr', '$2b$12$N1PzP5vU1hR8jJ2kZzZ4xDdhA1N0e7i6j5k4l3m2n1o0p9q8r7u', 'student'),
+(5, 'admin', 'admin.unibites@ntua.gr', '$2b$12$O2QzQ6vV2iS9kK3laaa5xEeiB2O1f8j7k6l5m4n3o2p1q0r9s8v', 'admin');
 
 INSERT INTO admin (adm_id) VALUES 
 (5);
@@ -75,7 +68,7 @@ INSERT INTO lst_has_allergens(allerg_id,lst_id) VALUES
 (1,1),
 (3,1),
 (7,1),
-(1,2), --cereal bars allerg
+(1,2),
 (8,2);
 
 INSERT INTO lst_has_meal_tag (mtag_id, lst_id) VALUES 
