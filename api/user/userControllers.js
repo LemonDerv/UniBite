@@ -30,7 +30,18 @@ appRouter.post("/register",async (req,res)=>{
         }
         const hashedPassw = await hashPassword(password);
         await pool.query("INSERT INTO user(usr_username,usr_email,usr_passw) VALUES(?,?,?)",[username,email,hashedPassw]);
-        res.status(201).json({status:"User-Successful_Response", message: "User registered."});
+        const usr_id = (await pool.query("SELECT LAST_INSERT_ID()"))[0][0]['LAST_INSERT_ID()'];
+    
+        req.session.usr_id = usr_id;
+        req.session.LoggedIn = true;
+
+        req.session.save((err)=>{
+            if(err){
+                console.log("Error with sessions : ", err);
+                return res.status(403).json({status:"Session-Forbidden", message:"Error Saving Session"});
+            }
+            res.status(201).json({status:"User-Successful_Response", message: "User registered."});
+        });
     }
     catch(err){
         console.log(err);
