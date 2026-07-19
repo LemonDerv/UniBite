@@ -3,6 +3,16 @@ const app = express();
 const cors = require("cors");
 const session = require("express-session");
 
+app.use(cors());
+
+/* For Post req*/
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
+
+/* NO NEED TO '/public' .*/
+app.use(express.static("public"));
+
+/* CONFIG FOR SESSION*/ 
 app.use(session({
     secret:"keyboard cat",
     resave:false,
@@ -14,26 +24,15 @@ app.use(session({
     }
 }));
 
-// user Routes
+/*USE PUBLIC ROUTER*/ 
 const userRoutes = require("./api/user/userControllers");
-
-app.use(cors());
-
-app.use(express.json());
-
-app.use(express.static("public"));
-
-app.use(express.urlencoded({extended: true}));
-
 app.use('/api/user',userRoutes);
 
-app.use("/private", (req,res,next)=>{
-    if(req.session && req.session.usr_id)
-        next();
-    else
-        return res.status(401).json({status:"Session-Unauthorized"});
-});
+/*USE MIDDLEWARE ROUTER*/
+const middlewareRouter = require('./api/middleware');
+app.use('/private',middlewareRouter);
 
+/* FOR THE AUTH MIDDLEWARE*/
 app.use('/private',express.static('private'));
 
 app.listen(3000,()=>{

@@ -180,11 +180,11 @@ DELIMITER ;
 
 /* can be created after initials inserts */
 /*insert into admin/student after insert on user table*/
-/*
+
 DROP TRIGGER IF EXISTS user_reg;
 DELIMITER $$
 CREATE TRIGGER user_reg
-AFTER INSERT ON USER
+AFTER INSERT ON user
 FOR EACH ROW
 BEGIN
     IF NEW.usr_role ='student' THEN
@@ -195,4 +195,3 @@ BEGIN
 END $$
 
 DELIMITER ;
-*/

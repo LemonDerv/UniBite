@@ -45,7 +45,6 @@ CREATE TABLE IF NOT EXISTS listing(
     poster INT NOT NULL,
     title VARCHAR(100) NOT NULL,
     description TEXT,
-    image_url VARCHAR(255),
     portions SMALLINT NOT NULL,
     CHECK (portions >= 0),
     pickup_location VARCHAR(255) NOT NULL,
@@ -64,7 +63,6 @@ CREATE TABLE IF NOT EXISTS pickup_window(
     lst_id INT NOT NULL,
     pickup_start DATETIME NOT NULL,
     pickup_end DATETIME NOT NULL,
-    CHECK (pickup_end > pickup_start),
     FOREIGN KEY(lst_id) REFERENCES listing(lst_id) ON DELETE CASCADE
 );
 

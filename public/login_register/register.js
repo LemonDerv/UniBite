@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
         	})
         	.then(async (response) => {
 				const data = await response.json();
-
+				localStorage.setItem('username', data.username);
 				if(response.status === 409){
 					alert(data.message);
 					window.location.href = './login.html';

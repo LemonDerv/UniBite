@@ -116,7 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
 			})
 			.then(async(response)=>{
 				const data = await response.json();
-				
+
+				localStorage.setItem('username' , data.username);
+
 				if(response.status === 401){
 					inputEmail.value="";
 					inputPassword.value="";
