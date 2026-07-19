@@ -52,7 +52,7 @@ body.theme-dark {
     background: var(--bg-light);
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1000;
 }
 
 body.theme-dark .topbar {
@@ -137,10 +137,13 @@ body.theme-dark .topbar {
 ------------------------------ */
 .address-box {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     width: 100%;
     padding: 14px 16px;
     box-sizing: border-box;
+    gap: 8px;
+    margin-top: 0;
 }
 
 .address-panel {
@@ -149,6 +152,7 @@ body.theme-dark .topbar {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    align-self: center;
 }
 
 .address-btn {
@@ -156,11 +160,11 @@ body.theme-dark .topbar {
     max-width: 100%;
     padding: 8px 12px;
     border-radius: 999px;
-    border: 1px solid rgba(16, 12, 8, 0.3);
+    border: 2px solid rgba(16, 12, 8, 0.3);
     background-color: var(--bg-light);
     color: var(--text-dark);
     cursor: pointer;
-    font-size: 14px;
+    font-size: var(--font-md);
     overflow-wrap: anywhere;
 }
 
@@ -263,7 +267,7 @@ body.theme-dark .homepage-address-input {
     border-color: var(--primary);
 }
 
-.homepage-search-btn {
+.homepage-search-btn, .homepage-use-location-btn {
     padding: 12px 20px;
     background-color: var(--primary);
     color: var(--text-light);
@@ -278,11 +282,14 @@ body.theme-dark .homepage-address-input {
 }
 
 .homepage-search-btn:hover,
-.homepage-search-btn:focus-visible {
+.homepage-search-btn:focus-visible,
+.homepage-use-location-btn:hover,
+.homepage-use-location-btn:focus-visible {
     background-color: #d96605;
 }
 
-.homepage-search-btn:disabled {
+.homepage-search-btn:disabled, 
+.homepage-use-location-btn:disabled {
     cursor: wait;
     opacity: 0.7;
 }
@@ -321,6 +328,28 @@ body.theme-dark .homepage-address-input {
 .homepage-add-address-btn:focus-visible {
     background-color: rgba(204, 85, 0, 0.08);
 }
+
+.homepage-address-cancel-btn {
+    display: block;
+    width: 100%;
+    padding: 11px;
+    background-color: transparent;
+    border: 2px solid var(--red-text);
+    border-radius: 7px;
+    color: var(--red-text);
+    background-color: var(--red-bg);
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.18s;  
+}
+
+.homepage-address-cancel-btn:hover,
+.homepage-address-cancel-btn:focus-visible {
+    background-color: var(--red-bg-hover);
+}
+
 
 /* ------------------------------
    BUTTONS
@@ -470,31 +499,39 @@ body.theme-dark .homepage-address-input {
 ------------------------------ */
 .layout {
     display: grid;
-    grid-template-columns: 240px 1fr;
+    grid-template-columns: 400px 1fr;
     min-height: calc(100vh - 64px);
+    border-top: 1px solid rgba(16,12,8,0.18);
 }
 
 
 /* ------------------------------
-   SIDEBAR
+   HORIZONTAL TAGS
 ------------------------------ */
-.sidebar {
-    padding: 20px;
-    border-right: 1px solid rgba(16,12,8,0.18);
+.horizontal-tags-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    align-self: center;
+    max-width: min(760px, 100%);
 }
 
-.sidebar-section {
-    margin-bottom: 28px;
+.tags-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.sidebar-title {
+.tags-title, .map-title {
     background: var(--text-dark);
     color: var(--bg-light);
     padding: 10px 14px;
     border-radius: 8px;
     font-size: .85rem;
     text-transform: uppercase;
-    margin-bottom: 12px;
+    margin-top: 8px;
+    align-self: flex-start;
 }
 
 .category {
@@ -514,11 +551,94 @@ body.theme-dark .homepage-address-input {
     background: var(--menu-bg-light);
 }
 
+.horizontal-category-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.horizontal-category-list li {
+    margin: 0;
+}
+
+.horizontal-category-list .category {
+    padding: 8px 12px;
+    font-size: var(--font-sm);
+}
+
+.allergy-filter-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .allergy-filter {
     display: flex;
     gap: 8px;
     font-size: var(--font-sm);
     cursor: pointer;
+    align-items: center;
+    margin-bottom: 48px;
+}
+
+/* ------------------------------
+   INTERACTIVE MAP CONTAINER
+------------------------------ */
+.map-container {
+    padding: 20px;
+    border-right: 1px solid rgba(16,12,8,0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 0;
+}
+
+#interactive-map {
+    width: 100%;
+    height: 500px;
+    border-radius: 12px;
+    border: 2px solid var(--primary);
+    box-sizing: border-box;
+}
+
+.radius-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    background: var(--bg-light);
+    border-radius: 8px;
+    border: 1px solid rgba(16, 12, 8, 0.18);
+}
+
+.radius-control label {
+    font-size: var(--font-sm);
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.radius-control input[type="range"] {
+    flex: 1;
+    cursor: pointer;
+}
+
+.radius-control span {
+    display: inline-block;
+    width: 60px;
+    text-align: left;
+    font-size: var(--font-sm);
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.user-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
 }
 
 /* ------------------------------
@@ -528,15 +648,30 @@ body.theme-dark .homepage-address-input {
     padding: 20px;
 }
 
+.page-heading {
+    text-align: center;
+    padding: 16px 20px;
+    margin: 16px auto 0;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .page-heading h1 {
-    margin-top: -14px;
-    margin-bottom: 4px;
+    margin: 0;
+    font-size: 24px;
 }
 
 .page-heading p {
-    margin-top: 0;
+    margin: 0;
     color: var(--gray-500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
+
 
 /* ------------------------------
    FEED GRID

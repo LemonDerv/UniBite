@@ -73,7 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ------------------------------
        UTILITY MENU
     ------------------------------ */
-    /* EVENTS */
     themeInputs.forEach(input => {
         input.addEventListener('change', () => {
             setTheme(input.value);
@@ -276,6 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 setSelectedAddress(li.textContent.trim());
                 closeAddressMapPanel();
+                updateInteractiveMapRadius();
             }
 
             addressDropdown.classList.remove('show');
@@ -322,7 +322,164 @@ document.addEventListener('DOMContentLoaded', () => {
         renderAddressDropdown();
         setSelectedAddress(val);
         closeAddressMapPanel();
+        updateInteractiveMapRadius();
     });
+
+    const cancelAddressBtn = document.getElementById('homepage-btn-address-cancel');
+    if (cancelAddressBtn) {
+        cancelAddressBtn.addEventListener('click', () => {
+            closeAddressMapPanel();
+        });
+    }
+
+    /* ------------------------------
+       INTERACTIVE MAP FOR OFFERS
+    ------------------------------ */
+    const interactiveMapEl = document.getElementById('interactive-map');
+    const radiusSlider = document.getElementById('radius-slider');
+    const radiusValueEl = document.getElementById('radius-value');
+    let interactiveMap = null;
+    let userMarker = null;
+    let offerMarkers = [];
+    let userCircle = null;
+    let userLatLng = [38.2466, 21.7346]; // Patra as default
+
+    // Sample data for offers (to be replaced with real data)
+    const sampleOffers = [
+        { id: 1, title: 'Homemade Pasta Plate', lat: 38.2466, lng: 21.7346, distance: 1.2 },
+        { id: 2, title: 'Greek Salad', lat: 38.2500, lng: 21.7350, distance: 1.5 },
+        { id: 3, title: 'Vegetable Soup', lat: 38.2450, lng: 21.7400, distance: 2.0 },
+        { id: 4, title: 'Chicken Curry', lat: 38.2550, lng: 21.7250, distance: 3.0 },
+        { id: 5, title: 'Beef Stew', lat: 38.2600, lng: 21.7300, distance: 4.0 }
+    ];
+
+    function initInteractiveMap() {
+        if (interactiveMap || !interactiveMapEl) return;
+
+        if (!window.L) {
+            console.error('Leaflet not loaded');
+            return;
+        }
+
+        interactiveMap = L.map('interactive-map').setView(userLatLng, 14);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            subdomains: 'abcd',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+        }).addTo(interactiveMap);
+
+        // Add user marker
+        userMarker = L.marker(userLatLng, {
+            icon: L.divIcon({
+                className: 'user-marker',
+                html: '📍',
+                iconSize: [50, 50],
+                iconAnchor: [25, 50]
+            })
+        }).addTo(interactiveMap);
+
+        // Add circle for radius
+        userCircle = L.circle(userLatLng, {
+            radius: 1000, // Default radius in meters (1 km)
+            color: '#cc5500',
+            fillColor: '#cc5500',
+            fillOpacity: 0.2
+        }).addTo(interactiveMap);
+
+        // Add sample offer markers
+        sampleOffers.forEach(offer => {
+            const marker = L.marker([offer.lat, offer.lng]).addTo(interactiveMap);
+            marker.bindPopup(`<b>${offer.title}</b><br>Distance: ${offer.distance} km`);
+            offerMarkers.push(marker);
+        });
+
+        // Update circle radius when slider changes
+        radiusSlider?.addEventListener('input', (e) => {
+            const radiusKm = parseFloat(e.target.value);
+            const radiusMeters = radiusKm * 1000;
+            userCircle.setRadius(radiusMeters);
+            radiusValueEl.textContent = `${radiusKm} km`;
+            filterOffersByRadius(radiusKm);
+        });
+
+        // Set initial radius value
+        radiusSlider.value = 1;
+        radiusValueEl.textContent = `${radiusSlider.value} km`;
+
+        // Center map on user's selected address
+        updateInteractiveMapRadius();
+    }
+
+    function updateInteractiveMapRadius() {
+        if (!interactiveMap || !selectedAddress) return;
+
+        // Geocode the selected address to get coordinates
+        geocodeAddress(selectedAddress).then(({ lat, lng }) => {
+            userLatLng = [lat, lng];
+            userMarker.setLatLng(userLatLng);
+            userCircle.setLatLng(userLatLng);
+            interactiveMap.setView(userLatLng, 14);
+            filterOffersByRadius(parseInt(radiusSlider?.value || 1));
+        }).catch(() => {
+            console.error('Could not geocode selected address');
+        });
+    }
+
+    function filterOffersByRadius(radiusKm) {
+        const radiusMeters = radiusKm * 1000;
+        const userLat = userLatLng[0];
+        const userLng = userLatLng[1];
+
+        offerMarkers.forEach((marker, index) => {
+            const offer = sampleOffers[index];
+            const distance = calculateDistance(userLat, userLng, offer.lat, offer.lng);
+            
+            // Show/hide markers based on distance
+            if (distance <= radiusMeters) {
+                marker.addTo(interactiveMap);
+            } else {
+                interactiveMap.removeLayer(marker);
+            }
+        });
+
+        // Filter post cards in the feed
+        filterPostCardsByRadius(radiusKm);
+    }
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        // Haversine formula for the distance between two points
+        const R = 6371000; // Earth radius in meters
+        const f1 = lat1 * Math.PI / 180;
+        const f2 = lat2 * Math.PI / 180;
+        const Df = (lat2 - lat1) * Math.PI / 180;
+        const Dl = (lon2 - lon1) * Math.PI / 180;
+
+        const a = Math.sin(Df / 2) * Math.sin(Df / 2) +
+                  Math.cos(f1) * Math.cos(f2) *
+                  Math.sin(Dl / 2) * Math.sin(Dl / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c;
+    }
+
+    function filterPostCardsByRadius(radiusKm) {
+        const postCards = document.querySelectorAll('.post-card');
+        const radiusMeters = radiusKm * 1000;
+
+        postCards.forEach((card, index) => {
+            const offer = sampleOffers[index % sampleOffers.length]; // Cycle through sample offers
+            const distance = calculateDistance(userLatLng[0], userLatLng[1], offer.lat, offer.lng);
+            
+            if (distance <= radiusMeters) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    /* Initialize the interactive map */
+    initInteractiveMap();
 
     /* ------------------------------
        ALLERGY FILTER
@@ -340,8 +497,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const categoryButtons = document.querySelectorAll('.category');
     categoryButtons.forEach((btn) => {
         btn.addEventListener('click', () => {
-            categoryButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            btn.classList.toggle('active');
         });
     });
 
@@ -356,11 +512,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = "";
     }
 
-/*----------------------------------------------------------------------------------------------------*/
-    /* -----------------------------
-        VIEW DETAILS MODAL
-    ----------------------------- */
-
+    /* ------------------------------
+       VIEW DETAILS MODAL
+    ------------------------------ */
     const viewModal = document.getElementById("viewModal");
     const closeViewBtn = document.querySelector(".close-view-modal");
     const closeViewFooterBtn = document.querySelector(".close-view-btn");
@@ -380,15 +534,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderAllergens(allergens) {
         if (!allergens || allergens.length === 0) {
-            viewAllergens.innerHTML =
-                `<span class="no-allergens">No allergens noted</span>`;
+            viewAllergens.innerHTML = `<span class="no-allergens">No allergens noted</span>`;
             return;
         }
 
         viewAllergens.innerHTML = allergens
-            .map(allergen =>
-                `<span class="view-chip allergen-view-chip">${allergen}</span>`
-            )
+            .map(allergen => `<span class="view-chip allergen-view-chip">${allergen}</span>`)
             .join("");
     }
 
@@ -416,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
         viewTimeRemaining.textContent = timeRemaining;
         viewPortions.textContent = portions;
         viewDescription.textContent = "Fresh pasta with tomato sauce and basil.";
-        viewAddress.textContent = "Aratou 60, Patras";
+        viewAddress.textContent = selectedAddress || "Aratou 60, Patras";
         viewPickupTimes.textContent = "18:00 - 21:00";
         viewImage.innerHTML = "No Image Set";
         viewTags.innerHTML = `<span class="view-chip">Pasta</span><span class="view-chip">Vegetarian</span>`;
@@ -465,12 +616,9 @@ document.addEventListener('DOMContentLoaded', () => {
     /* close modal when clicking outside */
     viewModal.querySelector(".modal-overlay").addEventListener("click", closeViewModal);
 
-
-/*----------------------------------------------------------------------------------------------------*/
-    /* -----------------------------
-        CREATE POST MODAL
-    ----------------------------- */
-
+    /* ------------------------------
+       CREATE POST MODAL
+    ------------------------------ */
     document.querySelector(".open-create-modal").addEventListener("click", () => {
         openEditModal();
     });
@@ -510,18 +658,16 @@ document.addEventListener('DOMContentLoaded', () => {
         input.dataset.raw = "";
         input.addEventListener("keydown", (e) => {
             const allowedKeys = ["Backspace","Delete","Tab","ArrowLeft","ArrowRight"];
-            // allow control keys
             if (allowedKeys.includes(e.key)) {
                 if (e.key === "Backspace") {
                     e.preventDefault();
                     let raw = input.dataset.raw || "";
-                    raw = raw.slice(0, -1);   // remove last digit
+                    raw = raw.slice(0, -1);
                     input.dataset.raw = raw;
                     updateDisplay(input, raw);
                 }
                 return;
             }
-            // allow only digits
             if (!/^\d$/.test(e.key)) {
                 e.preventDefault();
                 return;
@@ -544,14 +690,11 @@ document.addEventListener('DOMContentLoaded', () => {
             input.value = raw;
             return;
         }
-        // 3 digits: preview with leading zero
         if (raw.length === 3) {
             const padded = raw.padStart(4, "0");
-            input.value =
-                padded.slice(0, 2) + ":" + padded.slice(2);
+            input.value = padded.slice(0, 2) + ":" + padded.slice(2);
             return;
         }
-        // 4 digits: validate
         const formatted = raw.slice(0, 2) + ":" + raw.slice(2);
         const [hours, minutes] = formatted.split(":").map(Number);
         if (hours > 23 || minutes > 59) {
@@ -654,7 +797,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function openEditModal(card) {
         editModal.classList.remove("hidden");
         disablePageScroll();
-        // reset fields
         editTitle.value = "";
         editDescription.value = "";
         editPortions.value = "";
@@ -669,13 +811,9 @@ document.addEventListener('DOMContentLoaded', () => {
         pickupEnd.dataset.raw = "";
         imagePreview.innerHTML = "No Image Set";
         imageInput.value = "";
-        /* reset all checkboxes (tags) */
         document.querySelectorAll('.chip-option input').forEach(cb => {cb.checked = false;});
-        /* reset allergens */
         document.querySelectorAll('.allergen-list input').forEach(cb => {cb.checked = false;});
-        /* always show first page */
         showEditPage(1);
-        /* always scroll to top */
         editModal.querySelector(".edit-modal-content").scrollTop = 0;
     }
 
@@ -718,17 +856,6 @@ document.addEventListener('DOMContentLoaded', () => {
         editModal.classList.add("hidden");
         enablePageScroll();
     }
-
-    /* edit button */
-    document.querySelectorAll(".menu-dropdown .edit-post").forEach(editBtn => {
-            editBtn.addEventListener("click", (e) => {
-                e.preventDefault();
-                const card = editBtn.closest(".post-card");
-                openEditModal(card);
-                /* close dropdown */
-                editBtn.closest(".menu-dropdown").classList.remove("active");
-            });
-        });
 
     /* tag selection */
     tagButtons.forEach(btn => {
@@ -780,7 +907,6 @@ document.addEventListener('DOMContentLoaded', () => {
     /* save changes */
     document.querySelector(".save-edit")
         .addEventListener("click", () => {
-
             console.log({
                 title: editTitle.value,
                 description: editDescription.value,
@@ -790,11 +916,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 tags: Array.from(tagButtons).filter(btn => btn.classList.contains("selected")).map(btn => btn.dataset.tag),
                 allergens: Array.from(allergyCheckboxes).filter(cb => cb.checked).map(cb => cb.value)
             });
-
-            /*
-            send data to backend
-            */
-
             closeEditModal();
         });
 
@@ -872,9 +993,6 @@ document.addEventListener('DOMContentLoaded', () => {
     /* close modal when clicking outside */
     editModal.querySelector(".modal-overlay").addEventListener("click", closeEditModal);
 
-
-
-/*----------------------------------------------------------------------------------------------------*/
     /* ------------------------------
        AVATAR
     ------------------------------ */
@@ -882,18 +1000,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const menu = document.getElementById("dropdownMenu");
 
     avatar.addEventListener("click", () => {
-        menu.style.display =
-            menu.style.display === "flex" ? "none" : "flex";
+        menu.style.display = menu.style.display === "flex" ? "none" : "flex";
     });
 
-    // Close when clicking outside
     document.addEventListener("click", (e) => {
         if (!avatar.contains(e.target) && !menu.contains(e.target)) {
             menu.style.display = "none";
         }
     });
 
-/*----------------------------------------------------------------------------------------------------*/
     /* ------------------------------
        PAGINATION
     ------------------------------ */
@@ -906,14 +1021,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showPage(page) {
         posts.forEach((post, index) => {
-            post.style.display =
+            post.style.display = 
                 index >= page * postsPerPage &&
                 index < (page + 1) * postsPerPage
                     ? 'block'
                     : 'none';
         });
 
-        /* disable buttons when needed */
         if (prevBtn) prevBtn.disabled = page === 0;
         if (nextBtn) nextBtn.disabled = (page + 1) * postsPerPage >= posts.length;
     }

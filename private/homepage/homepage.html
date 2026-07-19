@@ -62,7 +62,12 @@
         </div>
     </section>
 
-    <!-- ADDRESS BOX  -->
+    <section class="page-heading">
+        <h1>Welcome back, Student</h1>
+        <p>Fresh meal offerings near you.</p>
+    </section>
+
+    <!-- ADDRESS BOX -->
     <section class="address-box">
         <div class="address-panel">
             <button class="address-btn" aria-label="Select address" aria-expanded="false">
@@ -84,51 +89,59 @@
                         autocomplete="off"
                     />
                     <button class="homepage-search-btn" id="homepage-btn-search" type="button">Search</button>
+                    <button class="homepage-use-location-btn" id="homepage-btn-use-location" type="button">Use Current Location</button>
                 </div>
                 <p class="homepage-geo-error" id="homepage-geo-error" hidden></p>
 
                 <div id="homepage-map"></div>
 
                 <button class="homepage-add-address-btn" id="homepage-btn-add-address" type="button">+ Add this address</button>
+                <button class="homepage-address-cancel-btn" id="homepage-btn-address-cancel" type="button">✕ Cancel</button>
             </div>
         </div>
     </section>
 
     <div class="layout">
-        <!-- SIDEBAR -->
-        <aside class="sidebar">
-            <section class="sidebar-section">
-                <h2 class="sidebar-title">Food Categories</h2>
-                <ul class="category-list">
-                    <li><button class="category">Bread</button></li>
-                    <li><button class="category">Dairy</button></li>
-                    <li><button class="category">Eggs</button></li>
-                    <li><button class="category">Fish</button></li>
-                    <li><button class="category">Fruits</button></li>
-                    <li><button class="category">Nuts</button></li>
-                    <li><button class="category">Pasta</button></li>
-                    <li><button class="category">Poultry</button></li>
-                    <li><button class="category">Red Meat</button></li>
-                    <li><button class="category">Rice</button></li>
-                    <li><button class="category">Vegetables</button></li>
-                </ul>
-            </section>
-            <section class="sidebar-section">
-                <form>
-                    <label class="allergy-filter">
-                        <input type="checkbox" id="filter-allergies">
-                        Filter out meals with my allergies
-                    </label>
-                </form>
-            </section>
+        <!-- INTERACTIVE MAP CONTAINER -->
+        <aside class="map-container">
+            <h2 class="map-title">Filter by Distance</h2>
+            <div id="interactive-map"></div>
+            <div class="radius-control">
+                <label for="radius-slider">Search Radius (km):</label>
+                <input type="range" id="radius-slider" min="0.5" max="10" value="1" step="0.5">
+                <span id="radius-value">1 km</span>
+            </div>
         </aside>
 
         <!-- MAIN CONTENT -->
         <main id="main-content" class="main">
-            <section class="page-heading">
-                <h1>Welcome back, Student</h1>
-                <p>Fresh meal offerings near you.</p>
-            </section>
+            <!-- HORIZONTAL TAGS/FILTERS -->
+            <div class="horizontal-tags-container">
+                <section class="tags-section">
+                    <h2 class="tags-title">Filter by Food Type</h2>
+                    <ul class="horizontal-category-list">
+                        <li><button class="category">Bread</button></li>
+                        <li><button class="category">Dairy</button></li>
+                        <li><button class="category">Eggs</button></li>
+                        <li><button class="category">Fish</button></li>
+                        <li><button class="category">Fruits</button></li>
+                        <li><button class="category">Nuts</button></li>
+                        <li><button class="category">Pasta</button></li>
+                        <li><button class="category">Poultry</button></li>
+                        <li><button class="category">Red Meat</button></li>
+                        <li><button class="category">Rice</button></li>
+                        <li><button class="category">Vegetables</button></li>
+                    </ul>
+                </section>
+                <section class="allergy-filter-container">
+                    <form>
+                        <label class="allergy-filter">
+                            <input type="checkbox" id="filter-allergies">
+                            Filter out meals with my allergies
+                        </label>
+                    </form>
+                </section>
+            </div>
 
             <section class="feed-grid">
 
