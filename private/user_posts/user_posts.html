@@ -45,11 +45,11 @@
                 <a href="#" class="menu-link">Edit Account</a>
             </section>
             <nav class="account-menu">
-                <a href="/deliveries" class="menu-link">Deliveries</a>
-                <a href="/requests" class="menu-link">Requests</a>
-                <a href="/user_orders" class="menu-link">Your Orders</a>
-                <a href="/user_posts" class="menu-link active">Your Posts</a>
-                <a href="/logout" class="menu-link logout">Log Out</a>
+                <a href="../deliveries/deliveries.html" class="menu-link">Deliveries</a>
+                <a href="../requests/requests.html" class="menu-link">Requests</a>
+                <a href="../user_orders/user_orders.html" class="menu-link">Your Orders</a>
+                <a href="../user_posts/user_posts.html" class="menu-link active">Your Posts</a>
+                <a href="../../public/index.html" class="menu-link logout">Log Out</a>
             </nav>
         </aside>
 
@@ -66,93 +66,7 @@
                 </div>
                 <div class="posts-grid">
 
-                    <!-- CARD -->
-                    <article class="post-card yes-requests"
-                        data-pickup='[
-                            {"date":"2026-05-20","start":"15:30","end":"17:00"},
-                            {"date":"2026-05-21","start":"12:00","end":"14:00"}
-                        ]'
-                    >
-                        <div class="post-status-bar yes-requests"></div>
-                        <div class="post-thumb"><!-- <img src="meal.jpg" alt="Meal"> --></div>
-
-                        <div class="post-body">
-                            <div class="post-header">
-                                <div class="post-title-group">
-                                    <h2 class="post-title">Homemade Pasta</h2>
-                                    <span class="post-portions">3 left</span>
-                                </div>
-                                <div class="post-menu">
-                                    <button class="menu-trigger" type="button" aria-label="Post actions" aria-expanded="false">
-                                        <svg width="18" height="18" viewBox="0 0 24 24">
-                                            <circle cx="12" cy="5" r="2" fill="currentColor"/>
-                                            <circle cx="12" cy="12" r="2" fill="currentColor"/>
-                                            <circle cx="12" cy="19" r="2" fill="currentColor"/>
-                                        </svg>
-                                    </button>
-                                    <div class="menu-dropdown">
-                                        <a href="#" class="edit-post">Edit</a>
-                                        <a href="#" class="delete">Delete</a>
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="post-description">Fresh pasta with tomato sauce and basil.</p>
-                            <div class="post-tags">
-                                <span class="tag">Pasta</span>
-                                <span class="tag">Vegetarian</span>
-                            </div>
-                            <div class="post-meta">
-                                <span class="post-time">Posted on • 03/04 @ 18:30</span>
-                                <span class="post-time-remaining">24h remaining</span>
-                            </div>
-                            <div class="post-meta">
-                                <span class="post-address">Aratou 60, Patras</span>
-                            </div>
-                            <div class="post-allergens no-allergens">This meal has no allergens noted.</div>
-                        </div>
-                    </article>
-
-                    <!-- CARD 2 -->
-                    <article class="post-card" data-tags="Pasta,Vegetarian" data-allergens="Milk,Gluten">
-                        <div class="post-status-bar no-requests"></div>
-                        <div class="post-thumb"></div>
-
-                        <div class="post-body">
-                            <div class="post-header">
-                                <div class="post-title-group">
-                                    <h2 class="post-title">Homemade Pasta</h2>
-                                    <span class="post-portions">3 left</span>
-                                </div>
-                                <div class="post-menu">
-                                    <button class="menu-trigger" type="button" aria-label="Post actions" aria-expanded="false">
-                                        <svg width="18" height="18" viewBox="0 0 24 24">
-                                            <circle cx="12" cy="5" r="2" fill="currentColor"/>
-                                            <circle cx="12" cy="12" r="2" fill="currentColor"/>
-                                            <circle cx="12" cy="19" r="2" fill="currentColor"/>
-                                        </svg>
-                                    </button>
-                                    <div class="menu-dropdown">
-                                        <a href="#" class="edit-post">Edit</a>
-                                        <a href="#" class="delete">Delete</a>
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="post-description">Fresh pasta with tomato sauce and basil.</p>
-                            <div class="post-tags">
-                                <span class="tag">Pasta</span>
-                                <span class="tag">Vegetarian</span>
-                            </div>
-                            <div class="post-meta">
-                                <span class="post-time">Posted on • 03/04 @ 18:30</span>
-                                <span class="post-time-remaining">24h remaining</span>
-                            </div>
-                            <div class="post-meta">
-                                <span class="post-address">Aratou 60, Patras</span>
-                            </div>
-                            <div class="post-allergens yes-allergens">This meal has allergens.</div>
-                        </div>
-                    </article>
-                </div>
+            
             </section>
 
 <!---------------------------------------------------------------------------------- REQUESTS MODAL ------------------------------------------------------------------------------------------------------------>
@@ -473,7 +387,7 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="user_posts.js"></script>
+    <script type="module" src="user_posts.js"></script>
 
 </body>
 </html>

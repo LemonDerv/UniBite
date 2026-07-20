@@ -1,3 +1,15 @@
+import { Client, Storage } from 'https://cdn.jsdelivr.net/npm/appwrite@14.0.1/+esm';
+
+const client = new Client();
+
+const storage = new Storage(client);
+
+client
+    .setEndpoint("https://fra.cloud.appwrite.io/v1") 
+    .setProject("6a58ccf2000765bbcd9b") 
+;
+
+
 const mockPosts = [
     {
         id: 1,
@@ -173,6 +185,135 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.style.overflow = "";
     }
 
+    /* GET POSTS FROM DB */ 
+    fetch('/api/posts/meals' , {
+        method: 'GET'
+    })
+    .then(async (res)=>{
+        const {status,body} = await res.json();
+        const {meals, requests,imgUrl} = body;
+        
+        // dont forget to update the yes-requests class
+
+        const orders = requests[0]['count(rq_id)'] || 'No';
+
+        // update portion after each request
+        meals.forEach(meal=>{
+            const postHtml =  `<article class="post-card">
+                        <div class="post-status-bar ${orders === 'No' ? '' : 'yes-requests'}">${orders} new requests!</div>
+                        <div class="post-thumb">
+                            <canvas id="post-canvas"></canvas>
+                        </div>
+
+                        <div class="post-body">
+                            <div class="post-header">
+                                <div class="post-title-group">
+                                    <h2 class="post-title">${meal.title}</h2>
+                                    <span class="post-portions">${meal.portions}</span>
+                                </div>
+                                <div class="post-menu">
+                                    <button class="menu-trigger" type="button" aria-label="Post actions" aria-expanded="false">
+                                        <svg width="18" height="18" viewBox="0 0 24 24">
+                                            <circle cx="12" cy="5" r="2" fill="currentColor"/>
+                                            <circle cx="12" cy="12" r="2" fill="currentColor"/>
+                                            <circle cx="12" cy="19" r="2" fill="currentColor"/>
+                                        </svg>
+                                    </button>
+                                    <div class="menu-dropdown">
+                                        <a href="#" class="edit-post">Edit</a>
+                                        <a href="#" class="delete">Delete</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="post-description">${meal.description}</p>
+                            <div class="post-tags">
+                            </div>
+                            <div class="post-meta">
+                                <span class="post-time">Posted on • 03/04 @ 18:30</span>
+                                <span class="post-time-remaining">24h remaining</span>
+                            </div>
+                            <div class="post-meta">
+                                <span class="post-address">Aratou 60, Patras</span>
+                            </div>
+                            <div class="post-allergens no-allergens">This meal has no allergens noted.</div>
+                        </div>
+                    </article>`
+
+            document.querySelector(".posts-grid").innerHTML +=postHtml;
+            // document.querySelector('.post-tags').innerHTML += meal.tag`<span class="tag">Pasta</span>
+            //                     <span class="tag">Vegetarian</span>`; 
+        });
+
+        // multi step downscale
+        // const img = new Image();
+        // img.crossOrigin = 'Anonymous';
+        // img.src = result1.href;
+
+        // img.onload = function() {
+        //     multi_step_downscale(img,document.querySelector(".post-thumb").clientWidth , 0.5);
+        // };
+
+        // window.addEventListener('resize' , ()=>{
+        //     multi_step_downscale(img,document.querySelector(".post-thumb").clientWidth , 0.5);
+        // });
+
+        // function multi_step_downscale(img, displayWidth, step) {
+        //     const canvas = document.querySelector("#post-canvas") ;
+        //     const ctx = canvas.getContext("2d");
+        //     const dpr = window.devicePixelRatio || 1;
+
+
+        //     const targetWidth = displayWidth * dpr;
+        //     const targetHeight = (displayWidth * (img.height / img.width)) * dpr;
+
+        //     canvas.width = targetWidth;
+        //     const offX = (canvas.width-targetWidth) / 2;
+        //     canvas.height = targetHeight;
+        //     const offY = (canvas.height-targetHeight) / 2;
+        //     canvas.style.width = displayWidth + "px";
+        //     canvas.style.height = (displayWidth * (img.height / img.width)) + "px";
+
+        //     ctx.imageSmoothingEnabled = true;
+        //     ctx.imageSmoothingQuality = "high";
+
+        //     if (img.width * step > targetWidth) {
+        //         let curWidth = Math.floor(img.width * step);
+        //         let curHeight = Math.floor(img.height * step);
+
+        //         let oc = document.createElement('canvas');
+        //         let octx = oc.getContext('2d');
+        //         oc.width = curWidth;
+        //         oc.height = curHeight;
+
+        //         octx.imageSmoothingEnabled = true;
+        //         octx.imageSmoothingQuality = "high";
+        //         octx.drawImage(img, 0, 0, curWidth, curHeight);
+
+        //         while (curWidth * step > targetWidth) {
+        //             const nextWidth = Math.floor(curWidth * step);
+        //             const nextHeight = Math.floor(curHeight * step);
+
+        //             const tempCanvas = document.createElement('canvas');
+        //             const tempCtx = tempCanvas.getContext('2d');
+        //             tempCanvas.width = nextWidth;
+        //             tempCanvas.height = nextHeight;
+
+        //             tempCtx.imageSmoothingEnabled = true;
+        //             tempCtx.imageSmoothingQuality = "high";
+        //             tempCtx.drawImage(oc, 0, 0, curWidth, curHeight, 0, 0, nextWidth, nextHeight);
+
+        //             oc = tempCanvas;
+        //             curWidth = nextWidth;
+        //             curHeight = nextHeight;
+        //         }
+        //         ctx.drawImage(oc, 0, 0, curWidth, curHeight, offX, offY, targetWidth, targetHeight);
+        //     } else {
+        //         ctx.drawImage(img, 0, 0,img.width,img.height,offX,offY, targetWidth, targetHeight);
+        //     }
+        // }
+    })
+    .catch((err)=>{console.log(err)});
+
 /*----------------------------------------------------------------------------------------------------*/
     /* -----------------------------
        REQUESTS MODAL
@@ -218,7 +359,7 @@ document.addEventListener("DOMContentLoaded", () => {
     overlay?.addEventListener("click", closeModal);
 
     /* request items */
-    document.querySelectorAll(".post-card").forEach((card, index) => {
+    document.querySelectorAll(".post-card")?.forEach((card, index) => {
         const post = mockPosts?.[index];
         const statusBar = card.querySelector(".post-status-bar");
 
@@ -793,4 +934,23 @@ document.addEventListener("DOMContentLoaded", () => {
     /* close modal when clicking outside */
     viewModal.querySelector(".modal-overlay").addEventListener("click", closeViewModal);
 
+    const posts = document.querySelectorAll(".post-card");
+
+    document.querySelectorAll(".delete").forEach((btn,idx)=> {
+        btn.addEventListener('click', ()=>{
+            if(confirm("Are you sure.")){
+                console.log("you are going to delete a post");
+                // fetch('/api/posts/delete',{method: 'DELETE'})
+                // .then((res)=>{
+                //     const data = ;
+                // })
+
+                posts[idx].hidden = true;
+            }
+            else
+                console.log("nothing");
+            
+        });
+    });
+    
 });
