@@ -1,3 +1,4 @@
+DROP DATABASE UNIBITES_DB;
 CREATE DATABASE IF NOT EXISTS UNIBITES_DB;
 USE UNIBITES_DB;
 
@@ -63,6 +64,7 @@ CREATE TABLE IF NOT EXISTS pickup_window(
     lst_id INT NOT NULL,
     pickup_start DATETIME NOT NULL,
     pickup_end DATETIME NOT NULL,
+    CHECK (pickup_end > pickup_start),
     FOREIGN KEY(lst_id) REFERENCES listing(lst_id) ON DELETE CASCADE
 );
 
@@ -117,7 +119,7 @@ CREATE TABLE IF NOT EXISTS requests(
 
 CREATE TABLE IF NOT EXISTS deliveries(
     del_id INT PRIMARY KEY AUTO_INCREMENT,
-    del_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    del_time TIMESTAMP NULL,
     rating DECIMAL(3,2),
     rating_timestamp TIMESTAMP NULL,
     req_id INT UNIQUE NOT NULL,

@@ -178,7 +178,7 @@ END$
 DELIMITER ;
 
 
-/* can be created after initials inserts */
+-- can be created after initial inserts
 /*insert into admin/student after insert on user table*/
 
 DROP TRIGGER IF EXISTS user_reg;
