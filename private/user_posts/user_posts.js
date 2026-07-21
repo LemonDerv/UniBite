@@ -1,31 +1,3 @@
-import { Client, Storage } from 'https://cdn.jsdelivr.net/npm/appwrite@14.0.1/+esm';
-
-const client = new Client();
-
-const storage = new Storage(client);
-
-client
-    .setEndpoint("https://fra.cloud.appwrite.io/v1") 
-    .setProject("6a58ccf2000765bbcd9b") 
-;
-
-
-const mockPosts = [
-    {
-        id: 1,
-        hasRequests: true,
-        requests: [
-            { name: "Alex", timestamp: "2026-05-03 12:14" },
-            { name: "Maria", timestamp: "2026-05-03 13:02" }
-        ]
-    },
-    {
-        id: 2,
-        hasRequests: false,
-        requests: []
-    }
-];
-
 document.addEventListener("DOMContentLoaded", () => {
 
     /* -----------------------------
