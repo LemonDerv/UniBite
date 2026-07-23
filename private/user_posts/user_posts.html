@@ -183,7 +183,7 @@
                         <!-- PAGE 2 -->
                         <div class="edit-page" id="editPage2">
                             <!-- PICKUP -->
-                            <section class="edit-section">
+                             <section class="edit-section">
                                 <h3 class="edit-section-title">Pickup Information</h3>
                                 <div class="edit-field">
                                     <label for="editAddress">Address</label>
@@ -198,24 +198,33 @@
                                 <section class="edit-section">
                                     <div class="pickup-window-builder">
                                         <!-- date -->
+                                        <!-- start -->
                                         <div class="edit-field">
-                                            <label for="pickupDate">Pickup Date</label>
+                                            <label for="startPickupDate">Start Pickup Date</label>
                                             <input
                                                 type="date"
-                                                id="pickupDate"
+                                                id="startPickupDate"
                                                 min=""
                                                 max=""
                                             >
                                         </div>
-                                        <!-- start -->
                                         <div class="edit-field">
-                                            <label for="pickupStart">Start Time</label>
-                                            <input type="text" id="pickupStart" maxlength="5" placeholder="HH:MM" inputmode="numeric">
+                                            <label for="startPickupTime">Start Time</label>
+                                            <input type="text" id="startPickupTime" maxlength="8" placeholder="HH:MM:" inputmode="numeric">
                                         </div>
                                         <!-- end -->
                                         <div class="edit-field">
-                                            <label for="pickupEnd">End Time</label>
-                                            <input type="text" id="pickupEnd" maxlength="5" placeholder="HH:MM" inputmode="numeric">
+                                            <label for="endPickupDate">Pickup Date</label>
+                                            <input
+                                                type="date"
+                                                id="endPickupDate"
+                                                min=""
+                                                max=""
+                                            >
+                                        </div>
+                                        <div class="edit-field">
+                                            <label for="endPickupTime">End Time</label>
+                                            <input type="text" id="endPickupTime" maxlength="8" placeholder="HH:MM" inputmode="numeric">
                                         </div>
                                         <button
                                             type="button"
@@ -258,7 +267,7 @@
                     </div>
                     <!-- IMAGE -->
                     <div class="view-image-wrapper">
-                        <div class="view-image" id="viewImage">No Image Set</div>
+                        <div class="view-image" id="viewImage"></div>
                     </div>
                     <!-- POST META -->
                     <div class="view-post-meta">

@@ -32,6 +32,10 @@ app.use('/api/user',userRoutes);
 const middlewareRouter = require('./api/middleware');
 app.use('/private',middlewareRouter);
 
+/*USE POST ROUTER*/ 
+const postRouter = require("./api/posts/postsControllers");
+app.use('/api/posts',postRouter);
+
 /* FOR THE AUTH MIDDLEWARE*/
 app.use('/private',express.static('private'));
 
