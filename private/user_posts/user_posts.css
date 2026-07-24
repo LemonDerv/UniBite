@@ -1242,6 +1242,13 @@ canvas{
     padding: 8px 0;
 }
 
+.view-no-tags {
+    color: var(--gray-500);
+    font-weight: 600;
+    font-style: italic;
+    padding: 8px 0;
+}
+
 /* footer */
 .view-actions {
     display: flex;
