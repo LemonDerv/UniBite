@@ -93,37 +93,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     setTheme(savedTheme);
     setLanguage(savedLanguage);
-/*----------------------------------------------------------------------------------------------------*/
-    /* -----------------------------
-       COLLAPSIBLE (EXPIRED POSTS)
-    ------------------------------ */
-    document.querySelectorAll(".section-title-collapsible").forEach(header => {
-        header.addEventListener("click", () => {
-            const section = header.closest(".posts-section");
-            const list = section.querySelector(".post-list");
 
-            if (!list) return;
-
-            const isCollapsed = header.classList.toggle("collapsed");
-            list.classList.toggle("hidden");
-
-            header.setAttribute("aria-expanded", !isCollapsed);
-        });
-    });
-
-    document.querySelectorAll(".section-title-collapsible").forEach(header => {
-        header.addEventListener("click", () => {
-            const section = header.closest(".posts-section");
-            const list = section.querySelector(".post-list");
-
-            if (!list) return;
-
-            const isCollapsed = header.classList.toggle("collapsed");
-            list.classList.toggle("hidden");
-
-            header.setAttribute("aria-expanded", !isCollapsed);
-        });
-    });
 
     // 3 DOT MENU BEHAVIOR
     document.addEventListener("click", (e) => {
@@ -234,6 +204,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     .then(async (res)=>{
         const data = await res.json();
         const meals = data.body;
+
+        if(res.status === 404){
+            console.log(data.message);
+            return ;
+        }
 
         pickup_windows = meals.reduce((acc,curr)=>{
             if(!acc[curr.lst_id]) acc[curr.lst_id]=[];
@@ -921,90 +896,165 @@ document.addEventListener("DOMContentLoaded", async () => {
         VIEW DETAILS MODAL
     ----------------------------- */
 
-//     const viewModal = document.getElementById("viewModal");
-//     const closeViewBtn = document.querySelector(".close-view-modal");
-//     const closeViewFooterBtn = document.querySelector(".close-view-btn");
+    const viewModal = document.getElementById("viewModal");
+    const closeViewBtn = document.querySelector(".close-view-modal");
+    const closeViewFooterBtn = document.querySelector(".close-view-btn");
 
-//     /* fields */
-//     const viewTitle = document.getElementById("viewTitle");
-//     const viewPortions = document.getElementById("viewPortions");
-//     const viewDescription = document.getElementById("viewDescription");
-//     const viewAddress = document.getElementById("viewAddress");
-//     const viewPickupTimes = document.getElementById("viewPickupTimes");
-//     const viewImage = document.getElementById("viewImage");
-//     const viewTags = document.getElementById("viewTags");
-//     const viewAllergens = document.getElementById("viewAllergens");
-//     const viewPostedDate = document.getElementById("viewPostedDate");
-//     const viewRating = document.getElementById("viewRating");
+    /* fields */
+    const viewTitle = document.getElementById("viewTitle");
+    const viewPortions = document.getElementById("viewPortions");
+    const viewDescription = document.getElementById("viewDescription");
+    const viewAddress = document.getElementById("viewAddress");
+    const viewPickupTimes = document.getElementById("viewPickupTimes");
+    const viewImage = document.getElementById("viewImage");
+    const viewTags = document.getElementById("viewTags");
+    const viewAllergens = document.getElementById("viewAllergens");
+    const viewPostedDate = document.getElementById("viewPostedDate");
+    const viewRating = document.getElementById("viewRating");
 
-//     function renderAllergens(allergens) {
-//         if (!allergens || allergens.length === 0) {
-//             viewAllergens.innerHTML =
-//                 `<span class="no-allergens">No allergens noted</span>`;
-//             return;
-//         }
+    /*----------------------------------------------------------------------------------------------------*/
+    /* -----------------------------
+       COLLAPSIBLE (EXPIRED POSTS)
+    ------------------------------ */
+    document.querySelectorAll(".section-title-collapsible").forEach(header => {
+        header.addEventListener("click", () => {
+            const section = header.closest(".posts-section");
+            const list = section.querySelector(".post-list");
 
-//         viewAllergens.innerHTML = allergens
-//             .map(allergen =>
-//                 `<span class="view-chip allergen-view-chip">${allergen}</span>`
-//             )
-//             .join("");
-//     }
+            if (!list) return;
 
-//     /* open modal */
-//     function openViewModal(postItem) {
-//         const title = postItem.querySelector(".post-list-title")?.textContent || "";
-//         const meta = postItem.querySelector(".post-list-meta")?.textContent || "";
-//         const rating = postItem.dataset.rating || 0;
-//         const allergens = postItem.dataset.allergens? postItem.dataset.allergens.split(",").map(a => a.trim()): [];
-//         viewTitle.textContent = title;
-//         /* placeholder values */
-//         viewPortions.textContent = "5";
-//         viewDescription.textContent = "Fresh pasta with tomato sauce and basil.";
-//         viewAddress.textContent = "Aratou 60, Patras";
-//         viewPickupTimes.textContent = "18:00 - 21:00";
-//         /* image placeholder */
-//         viewImage.innerHTML = "No Image Set";
-//         /* tags placeholder */
-//         viewTags.innerHTML = `<span class="view-chip">Pasta</span><span class="view-chip">Vegetarian</span>`;
-//         /* allergens */
-//         if (allergens.length === 0) {
-//             viewAllergens.innerHTML = `<span class="view-no-allergens">No allergens noted</span>`;
-//         } else {
-//             viewAllergens.innerHTML = allergens.map(a => `<span class="view-chip allergen-view-chip">${a}</span>`).join("");
-//         }
-//         viewPostedDate.textContent = meta;
-//         /* star rating */
-//         viewRating.textContent = `${Number(rating).toFixed(1)} ★`;
-//         /* show modal */
-//         viewModal.classList.remove("hidden");
-//         disablePageScroll();
-//         // always open at top
-//         viewModal.querySelector(".view-modal-content").scrollTop = 0;
+            const isCollapsed = header.classList.toggle("collapsed");
+            list.classList.toggle("hidden");
 
-//     }
+            header.setAttribute("aria-expanded", !isCollapsed);
+        });
+    });
 
-//     /* close */
-//     function closeViewModal() {
-//         viewModal.classList.add("hidden");
-//         enablePageScroll();
-//     }
+    let selectedExpiredPost;
+    let expiredMeals;
 
-//     /* open events */
-//     document.querySelectorAll(".view-details-btn")
-//         .forEach(button => {
-//             button.addEventListener("click", () => {
-//                 const postItem = button.closest(".post-list-item");
-//                 openViewModal(postItem);
-//             });
-//         });
+    await fetch("/api/posts/expiredMeals" , {method : 'GET'})
+        .then(async (res)=>{
+            const data =await res.json();
+            const list = document.querySelector(".post-list");
+            expiredMeals = data.body;
 
-//     /* close events */
-//     closeViewBtn.addEventListener("click", closeViewModal);
-//     closeViewFooterBtn.addEventListener("click", closeViewModal);
+            data.body.forEach((meal,idx)=>{
+                const allergens = meal.allergens.reduce((acc,curr)=>{
+                    if(acc === "") return curr;
+                    return acc=`${acc} , ${curr}`;
+                } , "");
 
-//     /* close modal when clicking outside */
-//     viewModal.querySelector(".modal-overlay").addEventListener("click", closeViewModal);
+                console.log("Meal ",allergens);
 
+                const expiredPostHtml = `<article class="post-list-item" data-id="${meal.lst_id}" data-rating="${meal.lst_rating}" , data-allergens="${allergens}">
+                                            <div class="post-list-info">
+                                                <h3 class="post-list-title">${meal.title}</h3>
+                                                <p class="post-list-meta">Posted on ${meal.created_at.replace('T', ' @ ').replaceAll('-','/').slice(5,18)}</p>
+                                            </div>
+                                            <button class="btn secondary view-details-btn">View Details</button>
+                                        </article>
+                                        `;
 
+                list.insertAdjacentHTML('beforeend', expiredPostHtml);
+            });
+        })
+
+    function renderAllergens(allergens) {
+        if (!allergens || allergens.length === 0) {
+            viewAllergens.innerHTML =
+                `<span class="no-allergens">No allergens noted</span>`;
+            return;
+        }
+
+        viewAllergens.innerHTML = allergens
+            .map(allergen =>
+                `<span class="view-chip allergen-view-chip">${allergen}</span>`
+            )
+            .join("");
+    }
+
+    /* open modal */
+    function openViewModal(postItem) {
+        const title = postItem.querySelector(".post-list-title")?.textContent || "";
+        const meta = postItem.querySelector(".post-list-meta")?.textContent || "";
+        const rating = postItem.dataset.rating==="null" ? 0 : Number(postItem.dataset.rating);
+        const allergens = postItem.dataset.allergens? postItem.dataset.allergens.split(",").map(a => a.trim()): [];
+        viewTitle.textContent= title;
+        const mealInfo = expiredMeals.filter(meal => meal.lst_id === Number(postItem.dataset.id))[0];
+        /* placeholder values */
+        viewPortions.textContent = mealInfo.portions;
+        viewDescription.textContent = mealInfo.description;
+        viewAddress.textContent = mealInfo.pickup_location;
+        viewPickupTimes.textContent = mealInfo.pickup_windows.reduce((acc,curr)=>{
+            if(acc === "") return `${curr.start.replace('T', ' ').replaceAll('-', '/').slice(5,16)} - ${curr.end.replace('T', ' ').replaceAll('-', '/').slice(5,16)}`; 
+            return acc = `${acc} , ${curr.start.replace('T', ' ').replaceAll('-', '/').slice(5,16)} - ${curr.end.replace('T', ' ').replaceAll('-', '/').slice(5,16)}`;
+        }, "");
+        /* image placeholder */
+        viewImage.innerHTML = "";
+        if(mealInfo.img){
+            viewImage.innerHTML = "<canvas></canvas>";
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.src = mealInfo.img;
+
+            img.onload = ()=>{
+                renderMealImg(img,document.querySelector("#viewImage").clientWidth , 0.5,viewImage.querySelector("canvas"));
+            };
+
+            window.addEventListener('resize' , ()=>{
+                renderMealImg(img,document.querySelector("#viewImage").clientWidth , 0.5,viewImage.querySelector("canvas"));
+            });
+        }
+        else{
+            viewImage.innerHTML = "No image set.";
+        }
+
+        /* tags placeholder */
+        const tags = mealInfo.tags.length === 0? `<span class="view-no-tags">No meal tags noted.</span>` : mealInfo.tags.reduce((acc,curr)=>{
+                return `${acc}<span class="view-chip">${curr}</span>`;
+            } , ``);
+
+        console.log(tags);
+
+        viewTags.innerHTML = "";
+        viewTags.insertAdjacentHTML('beforeend',tags);
+
+        /* allergens */
+        if (allergens.length === 0) {
+            viewAllergens.innerHTML = `<span class="view-no-allergens">No allergens noted</span>`;
+        } else {
+            viewAllergens.innerHTML = allergens.map(a => `<span class="view-chip allergen-view-chip">${a}</span>`).join("");
+        }
+
+        viewPostedDate.textContent = meta;
+        /* star rating */
+        viewRating.textContent = `${rating.toFixed(1)} ★`;
+        /* show modal */
+        viewModal.classList.remove("hidden");
+        disablePageScroll();
+        // always open at top
+        viewModal.querySelector(".view-modal-content").scrollTop = 0;
+    }
+
+    /* close */
+    function closeViewModal() {
+        viewModal.classList.add("hidden");
+        enablePageScroll();
+    }
+
+    /* open events */
+    document.querySelectorAll(".view-details-btn").forEach((button,idx) => {
+        button.addEventListener("click", () => {
+            const selectedExpiredPost = button.closest(".post-list-item");
+            openViewModal(selectedExpiredPost);
+        });
+    });
+
+    /* close events */
+    closeViewBtn.addEventListener("click", closeViewModal);
+    closeViewFooterBtn.addEventListener("click", closeViewModal);
+
+    /* close modal when clicking outside */
+    viewModal.querySelector(".modal-overlay").addEventListener("click", closeViewModal);
 });

@@ -20,7 +20,10 @@ appRouter.get('/meals' , async (req,res)=>{
     
     try{
         await connection.beginTransaction();    
-        let meals = (await connection.query("SELECT * from listing where poster= ? ",[req.session.usr_id]))[0];
+        let meals = (await connection.query("SELECT * from listing where poster= ? and status in ('ACTIVE','FULL')",[req.session.usr_id]))[0];
+        if(meals.length === 0)
+            return res.status(404).json({status:"MEALS-NOT_FOUND" , message : 'No Meals found.'});
+
         const lst_id = meals.map(meal=> meal.lst_id);
         
         const req_count = (await connection.query("SELECT count(rq_id),lst_id from requests where lst_id in(?) group by lst_id" , [lst_id]))[0].reduce((acc,curr)=>{
@@ -67,11 +70,11 @@ appRouter.get('/meals' , async (req,res)=>{
         const fileIdRegex =new RegExp(`^(${lst_id.join('|')})_.*`);
         images = images.files.filter((img)=> fileIdRegex.test(img.$id));
         
-        images = images.reduce((acc,curr)=>{
+        images = images?.reduce((acc,curr)=>{
             const meal = curr.$id.split('_')[0];
             acc[meal] = `${process.env.API_ENDPOINT}/storage/buckets/${process.env.BUCKET_ID}/files/${curr.$id}/view?project=${process.env.PROJECT_ID}`;
             return acc;
-        });
+        },{});
 
         /*FINAL MEALS*/ 
         meals = meals.map(meal=>{
@@ -182,6 +185,78 @@ appRouter.delete('/delete',  async(req,res)=>{
     catch(err){
         return res.status(500).json({status:'DB/SERVER-ERROR' , message:'Error deleting post.Try again.'});
     }
+});
+
+appRouter.get('/expiredMeals',async (req,res)=>{
+    const connection = await pool.getConnection();
+    let expiredMeals,tags,pickup_windows,allergens,images;
+    try{       
+        await connection.beginTransaction();    
+
+        expiredMeals = (await connection.query("SELECT * FROM listing where status='EXPIRED' AND poster=?" , req.session.usr_id))[0];
+        if(expiredMeals.length === 0)
+            return res.status(404).json({status:"EXPIRED-MEALS-NOT_FOUND" , message : 'No expired Meals found.'});
+
+        const lst_id = expiredMeals.map(meal=> meal.lst_id);
+
+        pickup_windows = (await connection.query('SELECT lst_id,pickup_start,pickup_end from pickup_window WHERE lst_id IN (?)',[lst_id]))[0].reduce((acc,curr)=>{
+            if(!acc[curr.lst_id])
+            acc[curr.lst_id] = [];
+            acc[curr.lst_id].push([curr.pickup_start,curr.pickup_end]);
+            return acc;
+        },{});
+
+        tags = (await connection.query('SELECT mtag_type,lst_id FROM lst_has_meal_tag JOIN meal_tag on lst_has_meal_tag.mtag_id = meal_tag.mtag_id where lst_has_meal_tag.lst_id IN (?)',[lst_id]))[0].reduce((acc,curr)=>{
+                if(!acc[curr.lst_id])
+                    acc[curr.lst_id] =[];
+                acc[curr.lst_id].push(curr.mtag_type);
+                return acc;
+            },{});
+
+        allergens = (await connection.query('SELECT allerg_type,lst_id FROM lst_has_allergens JOIN allergens on lst_has_allergens.allerg_id=allergens.allerg_id where lst_has_allergens.lst_id in (?)',[lst_id]))[0].reduce((acc,curr)=>{
+            if(!acc[curr.lst_id])
+            acc[curr.lst_id] = [];
+            acc[curr.lst_id].push(curr.allerg_type);
+            return acc;
+        },{});
+        await connection.commit();
+    }
+    catch(err){
+        await connection.rollback();
+        console.log("Error with server : ",err);
+        return res.status(500).json({status: "DB/SERVER-ERROR" , message : "Server error."});
+    }
+    finally{connection.release()};
+
+    try{
+        images =await cloudstorage.listFiles(process.env.BUCKET_ID);
+
+        const fileIdRegex =new RegExp(`^(${expiredMeals.map(meal=>meal.lst_id).join('|')})_.*`);
+        images = images.files.filter((img)=> fileIdRegex.test(img.name));
+        
+        images = images?.reduce((acc,curr)=>{
+            const meal = curr.name.split('_')[0];
+            acc[meal] = `${process.env.API_ENDPOINT}/storage/buckets/${process.env.BUCKET_ID}/files/${curr.$id}/view?project=${process.env.PROJECT_ID}`;
+            return acc;
+        },{});
+    }
+    catch(err){
+        console.log('Image Error: ' ,err);
+        return res.status(500).json({status: "CLOUD-STORAGE_ERR" , message : "Cant access the image right now."});
+    }
+
+    res.json({body: expiredMeals.map(meal=> {return {
+            ...meal ,                 
+            tags: tags[meal.lst_id] ?? [],
+            pickup_windows: pickup_windows[meal.lst_id]?.map(window =>
+                    ({
+                        start:window[0],
+                        end :window[1]
+                    })) ?? [],
+            allergens : allergens[meal.lst_id] ?? [],
+            img : images[meal.lst_id]
+        }})
+    });
 });
 
 module.exports = appRouter;
