@@ -13,30 +13,25 @@ body {
     margin: 0;
     font-family: "Trebuchet MS", Helvetica, sans-serif;
     background-color: var(--bg-light);
-}
-
-body.theme-light {
-    background-color: var(--bg-light);
     color: var(--text-dark);
-}
-
-body.theme-dark {
-    background-color: var(--bg-dark);
-    color: var(--text-light);
 }
 
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: var(--bg-light);
-    color: var(--primary);
-    padding: 15px 30px;
+    height: 64px;
+    padding: 0 20px;
+    border-bottom: 2px solid rgba(16,12,8,0.18);
+    background: var(--bg-light);
+    top: 0;
 }
 
 .logo {
     font-size: 24px;
     font-weight: bold;
+    text-decoration: none;
+    color: var(--primary);
 }
 
 .nav-buttons button {
@@ -54,8 +49,8 @@ body.theme-dark {
 
 .nav-buttons .login,
 .nav-buttons .signup {
+    font-size: 16px;
     background-color: var(--primary);
-    color: var(--bg-light);
 }
 
 .utility-bar {
@@ -82,7 +77,6 @@ body.theme-dark {
     line-height: 1;
     cursor: pointer;
     padding: 0;
-    font-family: "Trebuchet MS", Helvetica, sans-serif;
     opacity: 1;
     transform: none;
     pointer-events: auto;
@@ -137,65 +131,6 @@ body.theme-dark {
     color: var(--primary);
 }
 
-body.theme-dark .utility-bar {
-    background-color: var(--bg-dark);
-    border-top-color: rgba(247, 230, 214, 0.22);
-    border-bottom-color: rgba(247, 230, 214, 0.22);
-}
-
-body.theme-dark .navbar {
-    background-color: var(--bg-dark);
-}
-
-body.theme-dark .utility-trigger,
-body.theme-dark .about-link {
-    color: var(--text-light);
-}
-
-body.theme-dark .utility-menu {
-    background-color: var(--menu-bg-dark);
-    border-color: var(--text-light);
-    color: var(--text-light);
-}
-
-body.theme-dark .hero-text h1 {
-    background-color: rgba(204, 85, 0, 0.9);
-}
-
-body.theme-dark .about-section,
-body.theme-dark .card {
-    background-color: var(--bg-dark);
-    color: var(--text-light);
-}
-
-body.theme-dark .about-section p,
-body.theme-dark .about-section h2,
-body.theme-dark .stat p,
-body.theme-dark .carousel-section h2 {
-    color: var(--text-light);
-}
-
-body.theme-dark .stats {
-    background-color: var(--bg-dark);
-}
-
-@media (max-width: 900px) {
-    .utility-bar {
-        flex-wrap: wrap;
-        gap: 16px;
-        padding: 12px 18px;
-    }
-
-    .utility-trigger,
-    .about-link {
-        font-size: 15px;
-    }
-
-    .utility-menu label {
-        font-size: 14px;
-    }
-}
-
 .hero {
     position: relative;
     width: 100%;
@@ -226,6 +161,7 @@ body.theme-dark .stats {
 }
 
 .stats {
+    margin-top: 64px;
     display: flex;
     justify-content: space-around;
     padding: 20px 20px;
@@ -242,11 +178,11 @@ body.theme-dark .stats {
 }
 
 .about-section {
-    padding: 80px 20px;
-    background-color: var(--bg-light);
+    margin-top: 128px;
+    padding: 20px 20px;
     display: flex;
     justify-content: center;
-    text-align: center;
+    text-align: left;
 }
 
 .about-section .description {
@@ -266,7 +202,8 @@ body.theme-dark .stats {
 }
 
 .carousel-section {
-    padding: 40px 20px 100px;
+    margin-top: 64px;
+    padding: 40px 20px;
 }
 
 .carousel-container {
@@ -325,10 +262,10 @@ body.theme-dark .stats {
 }
 
 .footer {
+    margin-top: 128px;
     background-color: var(--text-dark);
     color: var(--bg-light);
     padding: 40px 20px 20px;
-    font-family: "Trebuchet MS", Helvetica, sans-serif;
 }
 
 .footer-content {
@@ -368,4 +305,22 @@ body.theme-dark .stats {
     font-size: 14px;
     border-top: 1px solid var(--text-dark);
     padding-top: 10px;
+}
+
+
+@media (max-width: 900px) {
+    .utility-bar {
+        flex-wrap: wrap;
+        gap: 16px;
+        padding: 12px 18px;
+    }
+
+    .utility-trigger,
+    .about-link {
+        font-size: 15px;
+    }
+
+    .utility-menu label {
+        font-size: 14px;
+    }
 }

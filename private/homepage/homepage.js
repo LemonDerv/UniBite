@@ -1,92 +1,17 @@
 document.addEventListener('DOMContentLoaded', () => {
     let file = null;
-    const user  = localStorage.getItem('username') || 'User';
     let meal_location = null;
+    const user  = localStorage.getItem('username') || 'User';
+    const heading = document.querySelector('.page-heading h1');
+    const subtitle = document.querySelector('.page-heading p');
 
-    /* ------------------------------
-       THEME + LANGUAGE
-    ------------------------------ */
-    const themeInputs = document.querySelectorAll('input[name="theme"]');
-    const languageInputs = document.querySelectorAll('input[name="language"]');
-    const languageLabel = document.getElementById('language-label');
+    if (heading) {
+        heading.textContent = `Welcome back, ${user}`;
+    }
 
-    const dictionary = {
-        en: {
-            chooseTheme: 'Choose Theme',
-            dark: 'Dark',
-            light: 'Light',
-            welcome: `Welcome back, ${user}`,
-            subtitle: 'Fresh meal offerings near you.',
-            geoNotFound: 'Address not found. Try a more specific address.',
-            geoError: 'Could not look up this address. Please try again.',
-            geoMapUnavailable: 'Map could not be loaded. Check your connection and refresh.'
-        },
-        gr: {
-            chooseTheme: 'Επιλογή Θέματος',
-            dark: 'Σκούρο',
-            light: 'Ανοιχτό',
-            welcome: 'Καλώς ήρθες ξανά',
-            subtitle: 'Φρέσκα γεύματα κοντά σου.'
-        }
-    };
-
-    let currentLang = 'en';
-
-    const setTheme = (theme) => {
-        document.body.classList.remove('theme-light', 'theme-dark');
-        document.body.classList.add(theme === 'dark' ? 'theme-dark' : 'theme-light');
-        localStorage.setItem('unibites-theme', theme);
-    };
-
-    const setLanguage = (lang) => {
-        currentLang = dictionary[lang] ? lang : 'en';
-        const selected = dictionary[currentLang];
-
-        if (languageLabel) {
-            languageLabel.textContent = lang === 'gr' ? 'ΕΛΛ' : 'ENG';
-        }
-
-        document.querySelectorAll('[data-i18n]').forEach((el) => {
-            const key = el.getAttribute('data-i18n');
-            if (selected[key]) el.textContent = selected[key];
-        });
-
-        const heading = document.querySelector('.page-heading h1');
-        const subtitle = document.querySelector('.page-heading p');
-
-        if (heading) heading.textContent = selected.welcome;
-        if (subtitle) subtitle.textContent = selected.subtitle;
-
-        localStorage.setItem('unibites-language', currentLang);
-    };
-
-    /* LOAD SAVED SETTINGS */
-    const savedTheme = localStorage.getItem('unibites-theme') || 'light';
-    const savedLang = localStorage.getItem('unibites-language') || 'en';
-
-    setTheme(savedTheme);
-    setLanguage(savedLang);
-
-    const selectedTheme = document.querySelector(`input[name="theme"][value="${savedTheme}"]`);
-    const selectedLang = document.querySelector(`input[name="language"][value="${savedLang}"]`);
-
-    if (selectedTheme) selectedTheme.checked = true;
-    if (selectedLang) selectedLang.checked = true;
-
-    /* ------------------------------
-       UTILITY MENU
-    ------------------------------ */
-    themeInputs.forEach(input => {
-        input.addEventListener('change', () => {
-            setTheme(input.value);
-        });
-    });
-
-    languageInputs.forEach(input => {
-        input.addEventListener('change', () => {
-            setLanguage(input.value);
-        });
-    });
+    if (subtitle) {
+        subtitle.textContent = 'Fresh meals near you.';
+    }
 
     /* ------------------------------
        ADDRESS MAP + DROPDOWN
@@ -183,14 +108,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function closeAddressMapPanel() {
         if (!addressMapPanel) return;
-
         addressMapPanel.hidden = true;
     }
 
     function showGeoError(key) {
         if (!geoErrorEl) return;
-        const dict = dictionary[currentLang] || dictionary.en;
-        geoErrorEl.textContent = dict[key] || dictionary.en[key] || key;
+        geoErrorEl.textContent = message;
         geoErrorEl.hidden = false;
     }
 
@@ -202,13 +125,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function placeHomepageMarker(lat, lng) {
         if (!homepageMap || !window.L) return;
-
         if (homepageMarker) {
             homepageMarker.setLatLng([lat, lng]);
         } else {
             homepageMarker = L.marker([lat, lng]).addTo(homepageMap);
         }
-
         homepageMap.setView([lat, lng], 16);
     }
 
@@ -216,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (homepageMap || !homepageMapEl) return;
 
         if (!window.L) {
-            showGeoError('geoMapUnavailable');
+            showGeoError('Map could not be loaded. Check your connection and refresh.');
             return;
         }
 
@@ -244,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function geocodeAddress(query) {
         const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
-        const res = await fetch(url, { headers: { 'Accept-Language': currentLang === 'gr' ? 'el' : 'en' } });
+        const res = await fetch(url);
         if (!res.ok) throw new Error('network');
         const data = await res.json();
         if (!data.length) throw new Error('not_found');
@@ -253,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function reverseGeocode(lat, lng) {
         const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
-        const res = await fetch(url, { headers: { 'Accept-Language': currentLang === 'gr' ? 'el' : 'en' } });
+        const res = await fetch(url);
         if (!res.ok) throw new Error('network');
         const data = await res.json();
         return shortenAddress(data.display_name) || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
@@ -302,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
             placeHomepageMarker(lat, lng);
             addressInput.value = display;
         } catch (err) {
-            showGeoError(err.message === 'not_found' ? 'geoNotFound' : 'geoError');
+            showGeoError(err.message === 'not_found' ? 'Address not found. Try a more specific address.' : 'Could not look up this address. Please try again.');
         } finally {
             btnSearchAddress.disabled = false;
         }

@@ -1,5 +1,7 @@
 :root {
     --primary: #cc5500;
+    --primary-light: #d96605;
+    --primary-dark: #a04400;
     --bg-light: #fff8e7;
     --bg-dark: #1a1714;
     --text-dark: #100C08;
@@ -33,12 +35,6 @@ body {
     color: var(--text-dark);
 }
 
-body.theme-dark {
-    background: var(--bg-dark);
-    color: var(--text-light);
-}
-
-
 /* ------------------------------
    TOPBAR
 ------------------------------ */
@@ -48,16 +44,11 @@ body.theme-dark {
     align-items: center;
     height: 64px;
     padding: 0 20px;
-    border-bottom: 1px solid rgba(16,12,8,0.18);
+    border-bottom: 2px solid rgba(16,12,8,0.18);
     background: var(--bg-light);
     position: sticky;
     top: 0;
     z-index: 1000;
-}
-
-body.theme-dark .topbar {
-    background: var(--bg-dark);
-    border-bottom-color: rgba(247,230,214,0.18);
 }
 
 .topbar-left {
@@ -84,52 +75,6 @@ body.theme-dark .topbar {
     font-weight: bold;
     text-decoration: none;
     color: var(--primary);
-}
-
-/* ------------------------------
-   UTILITY BAR
------------------------------- */
-.utility-bar {
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-start;
-    gap: 26px;
-    padding: 10px 30px 14px;
-    background-color: var(--bg-light);
-    border-top: 1px solid rgba(16, 12, 8, 0.18);
-    border-bottom: 4px solid rgba(16, 12, 8, 0.18);
-}
-
-.utility-group {
-    position: relative;
-}
-
-.utility-trigger {
-    background: none;
-    border: none;
-    color: var(--text-dark);
-    font-size: var(--font-sm);
-    cursor: pointer;
-    font-family: "Trebuchet MS", Helvetica, sans-serif;
-    font-weight: 400;
-}
-
-.utility-menu {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background-color: var(--menu-bg-light);
-    border: 1px solid var(--text-dark);
-    border-radius: 14px;
-    padding: 8px;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 10;
-}
-
-.utility-group:hover .utility-menu {
-    display: flex;
 }
 
 /* ------------------------------
@@ -168,12 +113,6 @@ body.theme-dark .topbar {
     overflow-wrap: anywhere;
 }
 
-body.theme-dark .address-btn {
-    background-color: var(--bg-dark);
-    color: var(--text-light);
-    border-color: rgba(247, 230, 214, 0.3);
-}
-
 .address-dropdown {
     position: absolute;
     top: 40px;
@@ -210,16 +149,6 @@ body.theme-dark .address-btn {
     background-color: var(--menu-bg-light);
 }
 
-body.theme-dark .address-dropdown {
-    background: var(--bg-dark);
-    color: var(--text-light);
-    border-color: rgba(247,230,214,0.18);
-}
-
-body.theme-dark .address-dropdown li:hover {
-    background-color: var(--menu-bg-dark);
-}
-
 .address-dropdown .add-new {
     color: var(--primary);
     font-weight: bold;
@@ -248,10 +177,9 @@ body.theme-dark .address-dropdown li:hover {
     padding: 12px 14px;
     border: 2px solid var(--primary);
     border-radius: 7px;
-    font-family: "Trebuchet MS", Helvetica, sans-serif;
     font-size: 14px;
     box-sizing: border-box;
-    background-color: #ffffff;
+    background-color: white;
     color: var(--text-dark);
     transition: box-shadow 0.2s;
 }
@@ -259,12 +187,6 @@ body.theme-dark .address-dropdown li:hover {
 .homepage-address-input:focus {
     outline: none;
     box-shadow: 0 0 6px rgba(204, 85, 0, 0.35);
-}
-
-body.theme-dark .homepage-address-input {
-    background-color: var(--bg-dark);
-    color: var(--text-light);
-    border-color: var(--primary);
 }
 
 .homepage-search-btn, .homepage-use-location-btn {
@@ -285,7 +207,7 @@ body.theme-dark .homepage-address-input {
 .homepage-search-btn:focus-visible,
 .homepage-use-location-btn:hover,
 .homepage-use-location-btn:focus-visible {
-    background-color: #d96605;
+    background-color: var(--primary-light);
 }
 
 .homepage-search-btn:disabled, 
@@ -296,7 +218,7 @@ body.theme-dark .homepage-address-input {
 
 .homepage-geo-error {
     font-size: 13px;
-    color: #cc3300;
+    color: var(--primary-dark);
     margin: 0;
 }
 
@@ -317,7 +239,6 @@ body.theme-dark .homepage-address-input {
     border: 2px dashed var(--primary);
     border-radius: 7px;
     color: var(--primary);
-    font-family: "Trebuchet MS", Helvetica, sans-serif;
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
@@ -338,7 +259,6 @@ body.theme-dark .homepage-address-input {
     border-radius: 7px;
     color: var(--red-text);
     background-color: var(--red-bg);
-    font-family: "Trebuchet MS", Helvetica, sans-serif;
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
@@ -349,7 +269,6 @@ body.theme-dark .homepage-address-input {
 .homepage-address-cancel-btn:focus-visible {
     background-color: var(--red-bg-hover);
 }
-
 
 /* ------------------------------
    BUTTONS
@@ -362,7 +281,8 @@ body.theme-dark .homepage-address-input {
     cursor: pointer;
     background: var(--primary);
     color: var(--text-light);
-    font-size: 20px;
+    font-size: 24px;
+    text-align: center;
     font-weight: 500;
     transition: background-color 0.2s ease;
 }
@@ -419,6 +339,8 @@ body.theme-dark .homepage-address-input {
     place-items: center;
     background: var(--menu-bg-dark);
     color: var(--primary);
+    font-size: var(--font-lg);
+    text-align: center;
     cursor: pointer;
     font-weight: bold;
 }
@@ -471,12 +393,16 @@ body.theme-dark .homepage-address-input {
 
 .username {
     font-weight: bold;
+    font-size: var(--font-lg);
     color: var(--text-dark);
+    margin-bottom: 0;
 }
 
 .credits {
-    font-size: 14px;
+    font-size: var(--font-sm);
     color: var(--text-dark);
+    padding-bottom: 12px;
+
 }
 
 .edit-btn {
@@ -485,13 +411,13 @@ body.theme-dark .homepage-address-input {
 }
 
 .logout {
-    background: var(--red-bg);
-    color: var(--red-text);
+    color: var(--gray-500);
     transition: background-color 0.2s ease;
 }
 
 .logout:hover {
-    background: var(--red-bg-hover);
+    color: var(--red-text);
+    background-color: var(--red-bg-hover);
 }
 
 /* ------------------------------
@@ -503,7 +429,6 @@ body.theme-dark .homepage-address-input {
     min-height: calc(100vh - 64px);
     border-top: 1px solid rgba(16,12,8,0.18);
 }
-
 
 /* ------------------------------
    HORIZONTAL TAGS
@@ -585,7 +510,7 @@ body.theme-dark .homepage-address-input {
 }
 
 /* ------------------------------
-   INTERACTIVE MAP CONTAINER
+   INTERACTIVE MAP
 ------------------------------ */
 .map-container {
     padding: 20px;
@@ -1366,7 +1291,7 @@ body.theme-dark .homepage-address-input {
 
 .pickup-search-btn:hover,
 .pickup-search-btn:focus-visible {
-    background-color: #d96605;
+    background-color: var(--primary-light);
 }
 
 .pickup-search-btn:disabled {
@@ -1376,7 +1301,7 @@ body.theme-dark .homepage-address-input {
 
 .pickup-geo-error {
     margin: 0;
-    color: #cc3300;
+    color: var(--primary-dark);
     font-size: 13px;
 }
 
