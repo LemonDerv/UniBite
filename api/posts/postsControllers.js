@@ -20,23 +20,26 @@ appRouter.get('/meals' , async (req,res)=>{
     
     try{
         await connection.beginTransaction();    
-        let meals = (await connection.query("SELECT * from listing where poster= ? and status in ('ACTIVE','FULL')",[req.session.usr_id]))[0];
-        if(meals.length === 0)
+        let meals = (await connection.query("SELECT * FROM activeMeals WHERE poster=?",[req.session.usr_id]))[0];
+
+        if(!meals || meals.length === 0)
             return res.status(404).json({status:"MEALS-NOT_FOUND" , message : 'No Meals found.'});
 
+        /*EXTRACT lst_id's MATCHING THE LOGGED-IN USER*/ 
         const lst_id = meals.map(meal=> meal.lst_id);
         
-        const req_count = (await connection.query("SELECT count(rq_id),lst_id from requests where lst_id in(?) group by lst_id" , [lst_id]))[0].reduce((acc,curr)=>{
+        const req_count = (await connection.query("SELECT * from countRequests where lst_id in(?) " , [lst_id]))[0].reduce((acc,curr)=>{
             acc[curr.lst_id] = curr['count(rq_id)'];
             return acc;
         },{});
         
-        const req_info = (await connection.query("SELECT requests.std_id,lst_id,usr_username ,created_at  from requests join user on requests.std_id = user.usr_id where status='PENDING' and lst_id IN(?)",[lst_id]))[0].reduce((acc,curr)=>{
+        const req_info = (await connection.query("SELECT * FROM mealRequests WHERE lst_id IN(?)",[lst_id]))[0].reduce((acc,curr)=>{
             if(!acc[curr.lst_id]) acc[curr.lst_id] =[];
             acc[curr.lst_id].push([curr.usr_username , curr.created_at]);
             return acc;
         },{});
 
+        /*COMBINE INFO AND COUNT FOREACH LISTING*/ 
         const requests  = Object.entries(req_info).reduce((acc,curr)=>{
             acc[curr[0]] ={
                 count : req_count[curr[0]],
@@ -45,21 +48,21 @@ appRouter.get('/meals' , async (req,res)=>{
             return acc;
         },{});
 
-        const tags = (await connection.query('SELECT mtag_type,lst_id FROM lst_has_meal_tag JOIN meal_tag on lst_has_meal_tag.mtag_id = meal_tag.mtag_id where lst_has_meal_tag.lst_id IN (?)',[lst_id]))[0].reduce((acc,curr)=>{
+        const tags = (await connection.query('SELECT * FROM tags WHERE tags.lst_id IN (?)',[lst_id]))[0].reduce((acc,curr)=>{
             if(!acc[curr.lst_id])
                 acc[curr.lst_id] =[];
             acc[curr.lst_id].push(curr.mtag_type);
             return acc;
         },{});
 
-        const pickup_windows = (await connection.query('SELECT lst_id,pickup_start,pickup_end from pickup_window WHERE lst_id IN (?)',[lst_id]))[0].reduce((acc,curr)=>{
+        const pickup_windows = (await connection.query('SELECT lst_id,pickup_start,pickup_end FROM pickupWindows WHERE lst_id IN (?)',[lst_id]))[0].reduce((acc,curr)=>{
             if(!acc[curr.lst_id])
                 acc[curr.lst_id] = [];
             acc[curr.lst_id].push([curr.pickup_start,curr.pickup_end]);
             return acc;
         },{});
 
-        const allergens = (await connection.query('SELECT allerg_type,lst_id FROM lst_has_allergens JOIN allergens on lst_has_allergens.allerg_id=allergens.allerg_id where lst_has_allergens.lst_id in (?)',[lst_id]))[0].reduce((acc,curr)=>{
+        const allergens = (await connection.query('SELECT * FROM allergens WHERE allergens.lst_id in (?)',[lst_id]))[0].reduce((acc,curr)=>{
             if(!acc[curr.lst_id])
                 acc[curr.lst_id] = [];
             acc[curr.lst_id].push(curr.allerg_type);
@@ -68,7 +71,7 @@ appRouter.get('/meals' , async (req,res)=>{
 
         let images =await  cloudstorage.listFiles(process.env.BUCKET_ID);
         const fileIdRegex =new RegExp(`^(${lst_id.join('|')})_.*`);
-        images = images.files.filter((img)=> fileIdRegex.test(img.$id));
+        images = images.files.filter((img)=> fileIdRegex.test(img.name));
         
         images = images?.reduce((acc,curr)=>{
             const meal = curr.$id.split('_')[0];
@@ -151,7 +154,7 @@ appRouter.post('/edit',upload.single('image'),async (req,res)=>{
         if(req.file){
             let images =await  cloudstorage.listFiles(process.env.BUCKET_ID);
             const fileIdRegex =new RegExp(`^${lst_id}_.*`);
-            images = images.files.filter((img)=> fileIdRegex.test(img.$id));
+            images = images.files.filter((img)=> fileIdRegex.test(img.name));
 
             await cloudstorage.deleteFile(process.env.BUCKET_ID, images[0].$id);    
 

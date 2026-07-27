@@ -577,7 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const now = new Date();
     const max = new Date();
-    max.setHours(now.getHours() + 24);
+    max.setHours(now.getHours() + 48);
 
     startPickupDate.min = now.toISOString().split("T")[0];
     startPickupDate.max = max.toISOString().split("T")[0];
@@ -807,38 +807,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    /* issue with dates needs fixing . */ 
     addPickupWindowBtn.addEventListener("click", () => {
         const startDate = startPickupDate.value; 
         const endDate = endPickupDate.value;
-        const start = new Date(`${startDate}T${pickupStartTime.value}`); 
-        const end = new Date(`${endDate}T${pickupEndTime.value}`); 
+        const startTime = pickupStartTime.value;
+        const endTime = pickupEndTime.value;
+        const start = new Date(`${startDate}T${startTime}`);
+        const end = new Date(`${endDate}T${endTime}`); 
+        const now = new Date();
+
         const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
-        const startTime =pickupStartTime.value;
-        const endTime = pickupEndTime.value;
-
-        if (!startDate || !start || !end) {
+        if (!startDate || !endDate || !startTime || !endTime) {
             alert("Fill all pickup fields.");
             return;
         }
 
-        if (!timeRegex.test(pickupStartTime.value) || !timeRegex.test(pickupEndTime.value)) {
+        if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
             alert("Use HH:MM format (example: 15:30)");
             return;
         }
 
-        const limit = new Date();
-        limit.setHours(limit.getHours() + 24);
+        if(start < now){
+            alert(`Start date must be after : ${now}`);
+            return ;
+        }
 
-        if (start > limit) {
-            alert("End time must be after start.");
+        if ((end-start) > 48 * 60 * 60 * 1000) {
+            alert("Pickup must be within 48 hours.");
             return;
         }
 
-        if ((end-start) > 24 * 60 * 60 * 1000) {
-            alert("Pickup must be within 24 hours.");
+        if(startDate > endDate){
+            alert("Start date must be after end date.");
             return;
+        }
+
+        if(startDate === endDate && startTime > endTime){
+            alert("Start time must be after end time");
+            return ;
         }
 
         pickupWindows.push({

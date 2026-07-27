@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             acc[curr.lst_id].push(...curr.pickup_windows);
             return acc;
         }, {});
-        
+
         allergies = meals.reduce((acc,curr)=>{
             if(!acc[curr.lst_id]) acc[curr.lst_id] = [];
             acc[curr.lst_id].push(...curr.allergens);
@@ -276,7 +276,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const now = new Date();
     const max = new Date();
-    max.setHours(now.getHours() + 24);
+    max.setHours(now.getHours() + 48);
     startPickupDate.min = now.toISOString().split("T")[0];
     startPickupDate.max = max.toISOString().split("T")[0];
     endPickupDate.min = now.toISOString().split("T")[0];
@@ -420,33 +420,49 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function addPickupWindow(){
-        // const date = startPickupDate.value;
-        // const start = pickupStart.value;
-        // const end = pickupEnd.value;
-        // const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/; 
-        const start = `${document.querySelector('#startPickupDate').value}T${document.querySelector("#startPickupTime").value}:00`;
-        const end = `${document.querySelector('#endPickupDate').value}T${document.querySelector("#endPickupTime").value}:00`;
-        // if (!date || !start || !end) {
-        //     alert("Fill all pickup fields.");
-        //     return;
-        // }
-        // if (!timeRegex.test(start) || !timeRegex.test(end)) {
-        //     alert("Use HH:MM format (example: 15:30)");
-        //     return;
-        // }
+        const startDate = startPickupDate.value; 
+        const endDate = endPickupDate.value;
+        const startTime = pickupStart.value;
+        const endTime = pickupEnd.value;
+        
+        let start = new Date(`${startDate}T${startTime}`);
+        let end = new Date(`${endDate}T${endTime}`); 
+        const now = new Date();
 
-        // if (start >= end) {
-        //     alert("End time must be after start.");
-        //     return;
-        // }
-        // const selected = new Date(`${date}T${start}`);
-        // const limit = new Date();
-        // limit.setHours(limit.getHours() + 48);
+        const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
-        // if (selected > limit) {
-        //     alert("Pickup must be within 48 hours.");
-        //     return;
-        // }
+        if (!startDate || !endDate || !startTime || !endTime) {
+            alert("Fill all pickup fields.");
+            return;
+        }
+
+        if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
+            alert("Use HH:MM format (example: 15:30)");
+            return;
+        }
+
+        if(start < now){
+            alert(`Start date must be after : ${now}`);
+            return ;
+        }
+
+        if ((end-start) > 48 * 60 * 60 * 1000) {
+            alert("Pickup must be within 48 hours.");
+            return;
+        }
+
+        if(startDate > endDate){
+            alert("Start date must be after end date.");
+            return;
+        }
+
+        if(startDate === endDate && startTime > endTime){
+            alert("Start time must be after end time");
+            return ;
+        }
+        
+        start = `${startDate}T${startTime}:00.000Z`;
+        end = `${endDate}T${endTime}:00.000Z`;
 
         pickup_windows[Number(selectedCard.dataset.id)].push({
             start,
@@ -467,7 +483,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         pickup_windows[Number(card.dataset.id)].forEach((w, index) => {
             pickupWindowList.innerHTML += `
                 <div class="pickup-chip">
-                    ${w.start.replace('T', ' ').slice(0,16)} - ${w.end.replace('T', ' ' ).slice(0,16)}
+                   ${w.start.replace('T' , ' ').replaceAll('-', '/').slice(0,16)}  - ${w.end.replace('T' , ' ').replaceAll('-' , '/').slice(0,16)}
                     <button
                         type="button"
                         class="remove-window"
@@ -711,14 +727,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 address: editAddress.value,
                 long_lat :long_lat,
                 pickupWindows: pickup_windows[selectedCard.dataset.id].map(window=>
-                ({start : window.start.slice(0,19).replace('T',' ') , end : window.end.slice(0,19).replace('T',' ')})
+                ({start : window.start.toString().replace('T',' ').slice(0,19), end : window.end.toString().replace('T',' ').slice(0,19)})
                 ),
                 tags: Array.from(tagButtons).filter(btn => btn.checked).map(btn=>btn.value),
                 allergens: Array.from(allergyCheckboxes).filter(cb => cb.checked).map(cb => cb.value),
         };
 
         updateModal(info);
-        console.log(info);
 
         const data = new FormData();
         data.append("lst_id" , selectedCard.dataset.id);

@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS pickup_window(
     FOREIGN KEY(lst_id) REFERENCES listing(lst_id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS allergens(
+CREATE TABLE IF NOT EXISTS allergen(
     allerg_id INT PRIMARY KEY AUTO_INCREMENT,
     allerg_type VARCHAR(100) NOT NULL
 );
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS lst_has_allergens(
     allerg_id INT NOT NULL,
     lst_id INT NOT NULL,
     PRIMARY KEY(allerg_id,lst_id),
-    FOREIGN KEY(allerg_id) REFERENCES allergens(allerg_id) 
+    FOREIGN KEY(allerg_id) REFERENCES allergen(allerg_id) 
     ON DELETE CASCADE,
     FOREIGN KEY(lst_id) REFERENCES listing(lst_id) 
     ON DELETE CASCADE
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS std_allergy(
     allerg_id INT NOT NULL,
     PRIMARY KEY(std_id, allerg_id),
     FOREIGN KEY(std_id) REFERENCES student(std_id) ON DELETE CASCADE,
-    FOREIGN KEY(allerg_id) REFERENCES allergens(allerg_id) ON DELETE CASCADE
+    FOREIGN KEY(allerg_id) REFERENCES allergen(allerg_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS meal_tag(
@@ -139,5 +139,40 @@ CREATE INDEX idx_requests_listing ON requests(lst_id);
 CREATE INDEX idx_deliveries_req ON deliveries(req_id);
 CREATE INDEX idx_pickup_listing ON pickup_window(lst_id);
 
+/*ACTIVE MEALS*/
+CREATE VIEW activeMeals AS 
+SELECT * FROM 
+listing WHERE status IN ('ACTIVE', 'FULL');
 
+/*EXPIRED MEALS*/
+CREATE VIEW expiredMeals AS 
+SELECT * FROM
+listing WHERE status='EXPIRED';
+
+/*PICKUP WINDOWS*/
+CREATE VIEW pickupWindows AS 
+SELECT * FROM pickup_window;
+
+/*TAGS*/
+CREATE VIEW tags AS
+SELECT mtag_type,lst_id FROM
+lst_has_meal_tag JOIN meal_tag ON
+lst_has_meal_tag.mtag_id = meal_tag.mtag_id ; 
+
+/*ALLERGENS*/
+CREATE VIEW allergens AS
+SELECT allergen.allerg_id,allerg_type,lst_id FROM
+lst_has_allergens JOIN allergen ON
+lst_has_allergens.allerg_id=allergen.allerg_id ;
+
+/*AMOUNT OF MEAL REQUESTS PER LISTING*/
+CREATE VIEW countRequests AS
+SELECT count(rq_id),lst_id FROM
+requests GROUP BY lst_id;
+
+/*REQUESTS INFORMATION(USER,LISTING,USERNAME,DATE OF REQUEST)*/
+CREATE VIEW mealRequests AS
+SELECT requests.std_id,lst_id,usr_username ,created_at FROM
+requests JOIN user ON
+requests.std_id = user.usr_id WHERE status='PENDING';
 
