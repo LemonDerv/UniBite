@@ -3,55 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UniBites</title>
+    <title>UniBite</title>
     <link rel="stylesheet" href="index.css">
 </head>
 <body>
 
     <!-- NAVIGATION BAR -->
     <nav class="navbar">
-        <div class="logo">UniBites</div>
+        <div class="logo" id="home">UniBite</div>
         <div class="nav-buttons">
             <button class="login"><a href="login_register/login.html">Login</a></button>
             <button class="signup"><a href="login_register/register.html">Sign Up</a></button>
         </div>
     </nav>
 
-    <section class="utility-bar" aria-label="Theme and language controls">
-        <div class="utility-group">
-            <button class="utility-trigger" type="button" data-menu-target="theme-menu" aria-expanded="false" aria-controls="theme-menu">
-                <span data-i18n="chooseTheme">Choose Theme</span> ◐
-            </button>
-            <div class="utility-menu" id="theme-menu">
-                <label>
-                    <input type="radio" name="theme" value="dark">
-                    <span data-i18n="dark">Dark</span>
-                </label>
-                <label>
-                    <input type="radio" name="theme" value="light" checked>
-                    <span data-i18n="light">Light</span>
-                </label>
-            </div>
-        </div>
-
-        <div class="utility-group">
-            <button class="utility-trigger" type="button" data-menu-target="language-menu" aria-expanded="false" aria-controls="language-menu">
-                <span id="language-label">ENG</span> ▾
-            </button>
-            <div class="utility-menu" id="language-menu">
-                <label>
-                    <input type="radio" name="language" value="en" checked>
-                    English(EN)
-                </label>
-                <label>
-                    <input type="radio" name="language" value="gr">
-                    Ελληνικά(GR)
-                </label>
-            </div>
-        </div>
-
+    <section class="utility-bar" aria-label="About Unibite">
         <a class="about-link" href="#about-us">
-            <span data-i18n="moreAboutUs">More About us</span> ⓘ
+            <span data-i18n="moreAboutUs">More About Us</span> ⓘ
         </a>
     </section>
 
@@ -69,7 +37,7 @@
     <section class="stats">
         <div class="stat">
             <h3>350</h3>
-            <p>Meals Shared Last Week</p>
+            <p>Meals Being Offered Now</p>
         </div>
         <div class="stat">
             <h3>1300+</h3>
@@ -83,13 +51,13 @@
 
     <section class="about-section" id="about-us">
         <div class="description">
-            <h2 data-i18n="aboutTitle">About UniBites</h2>
-            <p data-i18n="aboutText">UniBite is a website that aims to blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah</p>
+            <h2 data-i18n="aboutTitle">About UniBite</h2>
+            <p data-i18n="aboutText">UniBite is a food-sharing platform created for the university community. It aims to connect students who have homemade meals to share with fellow students looking for fresh, home-cooked food. By sharing their extra portions and earning credits, students help reduce food waste, support one another, and build a stronger campus community.</p>
         </div>
     </section>
     
     <section class="carousel-section">
-    <h2>Popular Meal Offerings</h2>
+    <h2>Popular Meals</h2>
 
     <div class="carousel-container">
         <button class="arrow left">❮</button>
@@ -111,7 +79,7 @@
     </section>
 
     <section class="carousel-section">
-    <h2>Meal Offerings near you</h2>
+    <h2>Meals Near You</h2>
 
     <div class="carousel-container">
         <button class="arrow left">❮</button>
@@ -140,8 +108,7 @@
         <h4>Quick Links</h4>
         <ul>
             <li><a href="#">Home</a></li>
-            <li><a href="#">About</a></li>
-            <li><a href="#">Contact</a></li>
+            <li><a href="#about-us">About</a></li>
         </ul>
         </div>
         <div class="footer-section contact">

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="user_orders.css">
 </head>
 
-<body class="theme-light">
+<body>
 
     <!-- TOP NAV -->
     <header class="topbar">
@@ -15,24 +15,6 @@
             <a class="logo" href="/">UniBite</a>
         </div>
     </header>
-
-    <!-- UTILITY BAR -->
-    <section class="utility-bar">
-        <div class="utility-group">
-            <button class="utility-trigger">Choose Theme ◐</button>
-            <div class="utility-menu">
-                <label><input type="radio" name="theme"> Dark</label>
-                <label><input type="radio" name="theme" checked> Light</label>
-            </div>
-        </div>
-        <div class="utility-group">
-            <button class="utility-trigger">ENG ▾</button>
-            <div class="utility-menu">
-                <label><input type="radio" name="language" checked> English</label>
-                <label><input type="radio" name="language"> Ελληνικά</label>
-            </div>
-        </div>
-    </section>
 
     <!-- LAYOUT -->
     <div class="layout orders-layout">
@@ -46,8 +28,8 @@
             <nav class="account-menu">
                 <a href="../deliveries/deliveries.html" class="menu-link">Deliveries</a>
                 <a href="../requests/requests.html" class="menu-link">Requests</a>
-                <a href="../user_orders/user_orders.html" class="menu-link active">Your Orders</a>
-                <a href="../user_posts/user_posts.html" class="menu-link">Your Posts</a>
+                <a href="/user_orders" class="menu-link active">Orders</a>
+                <a href="../user_posts/user_posts.html" class="menu-link">Posts</a>
                 <a href="../../public/index.html" class="menu-link logout">Log Out</a>
             </nav>
         </aside>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="homepage.css">
 </head>
 
-<body class="theme-light">
+<body>
 
     <!-- TOP NAV -->
     <header class="topbar">
@@ -25,16 +25,16 @@
                 <nav class="dropdown-menu" id="dropdownMenu">
                     <section class="menu-section">
                         <div class="account-info">
-                            <p class="username">User 1</p>
+                            <p class="username">User</p>
                             <p class="credits">Credits: 120</p>
                             <a href="/edit-account" class="menu-btn edit-btn">Edit Account</a>
                         </div>
                     </section>
                     <section class="menu-section">
-                        <a href="/deliveries" class="menu-btn">Deliveries</a>
-                        <a href="/requests" class="menu-btn">Requests</a>
-                        <a href="/user_orders" class="menu-btn">Your Orders</a>
-                        <a href="/user_posts" class="menu-btn">Your Posts</a>
+                        <a href="../deliveries/deliveries.html" class="menu-btn">Deliveries</a>
+                        <a href="../requests/requests.html" class="menu-btn">Requests</a>
+                        <a href="../user_orders/user_orders.html" class="menu-btn">Orders</a>
+                        <a href="../user_posts/user_posts.html" class="menu-btn">Posts</a>
                     </section>
                     <section class="menu-section">
                         <a href="/logout" class="menu-btn logout">Log Out</a>
@@ -43,28 +43,9 @@
             </div>
         </div>
     </header>
-
-    <!-- UTILITY BAR -->
-    <section class="utility-bar">
-        <div class="utility-group">
-            <button class="utility-trigger">Choose Theme ◐</button>
-            <div class="utility-menu">
-                <label><input type="radio" name="theme" value="dark"> Dark</label>
-                <label><input type="radio" name="theme" value="light" checked> Light</label>
-            </div>
-        </div>
-        <div class="utility-group">
-            <button class="utility-trigger">ENG ▾</button>
-            <div class="utility-menu">
-                <label><input type="radio" name="language" value="en" checked> English</label>
-                <label><input type="radio" name="language" value="gr"> Ελληνικά</label>
-            </div>
-        </div>
-    </section>
-
     <section class="page-heading">
-        <h1>Welcome back, Student</h1>
-        <p>Fresh meal offerings near you.</p>
+        <h1>Welcome back, User</h1>
+        <p>Fresh meals near you.</p>
     </section>
 
     <!-- ADDRESS BOX -->
@@ -102,7 +83,7 @@
     </section>
 
     <div class="layout">
-        <!-- INTERACTIVE MAP CONTAINER -->
+        <!-- INTERACTIVE MAP -->
         <aside class="map-container">
             <h2 class="map-title">Filter by Distance</h2>
             <div id="interactive-map"></div>
@@ -115,7 +96,7 @@
 
         <!-- MAIN CONTENT -->
         <main id="main-content" class="main">
-            <!-- HORIZONTAL TAGS/FILTERS -->
+            <!-- TAGS/FILTERS -->
             <div class="horizontal-tags-container">
                 <section class="tags-section">
                     <h2 class="tags-title">Filter by Food Type</h2>
@@ -829,7 +810,7 @@
                                         <!-- date -->
                                         <!-- start -->
                                         <div class="edit-field">
-                                            <label for="startPickupDate">Start Pickup Date</label>
+                                            <label for="startPickupDate">Pickup Date - Start</label>
                                             <input
                                                 type="date"
                                                 id="startPickupDate"
@@ -838,12 +819,12 @@
                                             >
                                         </div>
                                         <div class="edit-field">
-                                            <label for="startPickupTime">Start Time</label>
+                                            <label for="startPickupTime">Time</label>
                                             <input type="text" id="startPickupTime" maxlength="8" placeholder="HH:MM:" inputmode="numeric">
                                         </div>
                                         <!-- end -->
                                         <div class="edit-field">
-                                            <label for="endPickupDate">Pickup Date</label>
+                                            <label for="endPickupDate">Pickup Date - End</label>
                                             <input
                                                 type="date"
                                                 id="endPickupDate"
@@ -852,7 +833,7 @@
                                             >
                                         </div>
                                         <div class="edit-field">
-                                            <label for="endPickupTime">End Time</label>
+                                            <label for="endPickupTime">Time</label>
                                             <input type="text" id="endPickupTime" maxlength="8" placeholder="HH:MM" inputmode="numeric">
                                         </div>
                                         <button
