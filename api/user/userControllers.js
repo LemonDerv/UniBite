@@ -113,11 +113,13 @@ appRouter.post('/createMeal',upload.single('image') ,async (req,res)=>{
         });
         await connection.query("INSERT INTO pickup_window(lst_id,pickup_start,pickup_end) VALUES ?", [pickup_windows_data]);
 
-        if(allergens.length){
-            let allerg_data = await connection.query("SELECT allerg_id FROM allergens WHERE  allerg_type IN (?)",[allergens]);
-            allerg_data  = allerg_data[0].map(allergy=>{
+        if(allergens.length > 0){
+            let allerg_data = (await connection.query("SELECT allerg_id FROM allergen WHERE  allerg_type IN (?)",[allergens]))[0];
+            console.log(allerg_data);
+            allerg_data  = allerg_data.map(allergy=>{
                 return [allergy.allerg_id, lst_id];
             });
+            console.log(allerg_data);
             await connection.query("INSERT INTO lst_has_allergens(allerg_id,lst_id) VALUES ?" , [allerg_data]);
         }
         if(tags.length){
@@ -126,6 +128,8 @@ appRouter.post('/createMeal',upload.single('image') ,async (req,res)=>{
             tag_data = tag_data[0].map(tag=>{
                 return [tag.mtag_id , lst_id];
             });
+
+            console.log(tag_data);
             await connection.query("INSERT INTO lst_has_meal_tag(mtag_id,lst_id) VALUES ?",[tag_data]);
         }
         await connection.commit();

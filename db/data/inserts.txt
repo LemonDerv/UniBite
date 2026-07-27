@@ -1,5 +1,5 @@
 
-INSERT INTO allergens(allerg_type) VALUES
+INSERT INTO allergen(allerg_type) VALUES
 ('Gluten'),
 ('Crustaceans'),
 ('Eggs'),

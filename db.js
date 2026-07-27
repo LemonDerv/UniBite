@@ -4,7 +4,8 @@ const pool = mysql.createPool({
     host: "localhost",
     user: "root",
     password: "",
-    database: "UNIBITES_DB"
+    database: "UNIBITES_DB",
+    timezone: '+00:00'
 });
 
 module.exports = pool;
