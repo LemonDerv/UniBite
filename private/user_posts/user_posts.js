@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let allergies = [];
 
     /* GET POSTS FROM DB */ 
-    await fetch('/api/posts/meals' , {
+    await fetch('/api/posts/activeMeals' , {
         method: 'GET'
     })
     .then(async (res)=>{
@@ -357,13 +357,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     /*OPEN POST EDIT MODAL*/ 
     function openEditModal(card){
         // retrieve data
+        console.log(card);
         const title = card.querySelector(".post-title")?.textContent.trim() || "";
         const description = card.querySelector(".post-description")?.textContent.trim() || "";
         const portions = card.querySelector(".post-portions")?.textContent.replace(" left", "").trim() || "";
         const address = card.querySelector(".post-address")?.textContent.trim() || "";
         const imgUrl = card.querySelector('canvas').toDataURL();
         tags = [...card.querySelectorAll('.tag')].map(tag => tag.textContent);
-        const allergens = allergies[card.dataset.id];
+        const selectedCardAllergen =card.dataset.allergens ||  allergies[card.dataset.id] ;
         imagePreview.innerHTML = '';
 
         /* fill fields */
@@ -387,7 +388,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // /* reset allergens */
         allergyCheckboxes.forEach(cb => {
-            cb.checked = allergens.includes(cb.value);
+            cb.checked = selectedCardAllergen.includes(cb.value);
         });
 
         document.addEventListener("click", (e) => {
@@ -558,7 +559,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function geocodeAddress(query) {
         const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
-        const res = await fetch(url, { headers: { "Accept-Language": currentLang === "gr" ? "el" : "en" } });
+        const res = await fetch(url, { headers: { "Accept-Language": "gr"} });
         if (!res.ok) throw new Error("network");
         const data = await res.json();
         if (!data.length) throw new Error("not_found");
@@ -567,7 +568,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function reverseGeocode(lat, lng) {
         const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
-        const res = await fetch(url, { headers: { "Accept-Language": currentLang === "gr" ? "el" : "en" } });
+        const res = await fetch(url, { headers: { "Accept-Language": "gr" } });
         if (!res.ok) throw new Error("network");
         const data = await res.json();
         return shortenAddress(data.display_name) || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
@@ -686,6 +687,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const posts = document.querySelectorAll(".post-card");
 
     function updateModal(info){
+        selectedCard.dataset.allergens = info.allergens;
+
         selectedCard.querySelector(".post-tags").innerHTML = '';
         selectedCard.querySelector(".post-title").textContent = info.title;
         selectedCard.querySelector(".post-description").textContent = info.description;
@@ -766,7 +769,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         })
         .catch(err=>{console.log(err)});
-
+        
         closeEditModal();
     });
 
@@ -853,31 +856,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     let expiredMeals;
 
     await fetch("/api/posts/expiredMeals" , {method : 'GET'})
-        .then(async (res)=>{
-            const data =await res.json();
-            const list = document.querySelector(".post-list");
-            expiredMeals = data.body;
+    .then(async (res)=>{
+        const data =await res.json();
+        const list = document.querySelector(".post-list");
+        expiredMeals = data.body;
+        console.log(expiredMeals);
+        if(!expiredMeals)
+            return;
 
-            data.body.forEach((meal,idx)=>{
-                const allergens = meal.allergens.reduce((acc,curr)=>{
-                    if(acc === "") return curr;
-                    return acc=`${acc} , ${curr}`;
-                } , "");
+        expiredMeals.forEach((meal,idx)=>{
+            const allergens = meal.allergens.reduce((acc,curr)=>{
+                if(acc === "") return curr;
+                return acc=`${acc} , ${curr}`;
+            } , "");
 
-                console.log("Meal ",allergens);
+            const expiredPostHtml = `<article class="post-list-item" data-id="${meal.lst_id}" data-rating="${meal.lst_rating}" , data-allergens="${allergens}">
+                                        <div class="post-list-info">
+                                            <h3 class="post-list-title">${meal.title}</h3>
+                                            <p class="post-list-meta">Posted on ${meal.created_at.replace('T', ' @ ').replaceAll('-','/').slice(5,18)}</p>
+                                        </div>
+                                        <button class="btn secondary view-details-btn">View Details</button>
+                                    </article>
+                                    `;
 
-                const expiredPostHtml = `<article class="post-list-item" data-id="${meal.lst_id}" data-rating="${meal.lst_rating}" , data-allergens="${allergens}">
-                                            <div class="post-list-info">
-                                                <h3 class="post-list-title">${meal.title}</h3>
-                                                <p class="post-list-meta">Posted on ${meal.created_at.replace('T', ' @ ').replaceAll('-','/').slice(5,18)}</p>
-                                            </div>
-                                            <button class="btn secondary view-details-btn">View Details</button>
-                                        </article>
-                                        `;
-
-                list.insertAdjacentHTML('beforeend', expiredPostHtml);
-            });
-        })
+            list.insertAdjacentHTML('beforeend', expiredPostHtml);
+        });
+    })
 
     function renderAllergens(allergens) {
         if (!allergens || allergens.length === 0) {
@@ -909,8 +913,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             if(acc === "") return `${curr.start.replace('T', ' ').replaceAll('-', '/').slice(5,16)} - ${curr.end.replace('T', ' ').replaceAll('-', '/').slice(5,16)}`; 
             return acc = `${acc} , ${curr.start.replace('T', ' ').replaceAll('-', '/').slice(5,16)} - ${curr.end.replace('T', ' ').replaceAll('-', '/').slice(5,16)}`;
         }, "");
+
         /* image placeholder */
         viewImage.innerHTML = "";
+        console.log(mealInfo);
         if(mealInfo.img){
             viewImage.innerHTML = "<canvas></canvas>";
             const img = new Image();
@@ -932,9 +938,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         /* tags placeholder */
         const tags = mealInfo.tags.length === 0? `<span class="view-no-tags">No meal tags noted.</span>` : mealInfo.tags.reduce((acc,curr)=>{
                 return `${acc}<span class="view-chip">${curr}</span>`;
-            } , ``);
+        } , ``);
 
-        console.log(tags);
 
         viewTags.innerHTML = "";
         viewTags.insertAdjacentHTML('beforeend',tags);

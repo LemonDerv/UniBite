@@ -5,7 +5,7 @@ USE UNIBITES_DB;
 CREATE TABLE IF NOT EXISTS user(
     usr_id INT PRIMARY KEY AUTO_INCREMENT,
     usr_username VARCHAR(100) NOT NULL, 
-    usr_email VARCHAR(100) NOT NULL,
+    usr_email VARCHAR(100) NOT NULL UNIQUE,
     usr_passw VARCHAR(255) NOT NULL,
     usr_role ENUM('student', 'admin') NOT NULL DEFAULT 'student'
 );

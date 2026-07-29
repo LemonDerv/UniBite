@@ -15,12 +15,10 @@ const client = new sdk.Client()
 
 const cloudstorage = new sdk.Storage(client);
 
-appRouter.get('/meals' , async (req,res)=>{
-    const connection = await pool.getConnection();
-    
-    try{
-        await connection.beginTransaction();    
-        let meals = (await connection.query("SELECT * FROM activeMeals WHERE poster=?",[req.session.usr_id]))[0];
+appRouter.get('/activeMeals' , async (req,res)=>{
+
+    try{ 
+        let meals = (await pool.query("SELECT * FROM activeMeals WHERE poster=?",[req.session.usr_id]))[0];
 
         if(!meals || meals.length === 0)
             return res.status(404).json({status:"MEALS-NOT_FOUND" , message : 'No Meals found.'});
@@ -28,12 +26,14 @@ appRouter.get('/meals' , async (req,res)=>{
         /*EXTRACT lst_id's MATCHING THE LOGGED-IN USER*/ 
         const lst_id = meals.map(meal=> meal.lst_id);
         
-        const req_count = (await connection.query("SELECT * from countRequests where lst_id in(?) " , [lst_id]))[0].reduce((acc,curr)=>{
+        let req_count = (await pool.query("SELECT * from countRequests where lst_id in(?) " , [lst_id]))[0];
+        req_count = !req_count.length? {} : req_count.reduce((acc,curr)=>{
             acc[curr.lst_id] = curr['count(rq_id)'];
             return acc;
         },{});
         
-        const req_info = (await connection.query("SELECT * FROM mealRequests WHERE lst_id IN(?)",[lst_id]))[0].reduce((acc,curr)=>{
+        let req_info = (await pool.query("SELECT * FROM mealRequests WHERE lst_id IN(?)",[lst_id]))[0];
+        req_info = !req_info.length ? {} : req_info.reduce((acc,curr)=>{
             if(!acc[curr.lst_id]) acc[curr.lst_id] =[];
             acc[curr.lst_id].push([curr.usr_username , curr.created_at]);
             return acc;
@@ -48,21 +48,24 @@ appRouter.get('/meals' , async (req,res)=>{
             return acc;
         },{});
 
-        const tags = (await connection.query('SELECT * FROM tags WHERE tags.lst_id IN (?)',[lst_id]))[0].reduce((acc,curr)=>{
+        let tags = (await pool.query('SELECT * FROM tags WHERE tags.lst_id IN (?)',[lst_id]))[0];
+        tags = !tags.length ? {} :tags.reduce((acc,curr)=>{
             if(!acc[curr.lst_id])
                 acc[curr.lst_id] =[];
             acc[curr.lst_id].push(curr.mtag_type);
             return acc;
         },{});
 
-        const pickup_windows = (await connection.query('SELECT lst_id,pickup_start,pickup_end FROM pickupWindows WHERE lst_id IN (?)',[lst_id]))[0].reduce((acc,curr)=>{
+        let pickup_windows = (await pool.query('SELECT lst_id,pickup_start,pickup_end FROM pickupWindows WHERE lst_id IN (?)',[lst_id]))[0];
+        pickup_windows = !pickup_windows.length? {} :pickup_windows.reduce((acc,curr)=>{
             if(!acc[curr.lst_id])
                 acc[curr.lst_id] = [];
             acc[curr.lst_id].push([curr.pickup_start,curr.pickup_end]);
             return acc;
         },{});
 
-        const allergens = (await connection.query('SELECT * FROM allergens WHERE allergens.lst_id in (?)',[lst_id]))[0].reduce((acc,curr)=>{
+        let allergens = (await pool.query('SELECT * FROM allergens WHERE allergens.lst_id in (?)',[lst_id]))[0];
+        allergens = !allergens.length ? {} : allergens.reduce((acc,curr)=>{
             if(!acc[curr.lst_id])
                 acc[curr.lst_id] = [];
             acc[curr.lst_id].push(curr.allerg_type);
@@ -71,8 +74,7 @@ appRouter.get('/meals' , async (req,res)=>{
 
         let images =await  cloudstorage.listFiles(process.env.BUCKET_ID);
         const fileIdRegex =new RegExp(`^(${lst_id.join('|')})_.*`);
-        images = images.files.filter((img)=> fileIdRegex.test(img.name));
-        
+        images = images.files.filter((img)=> fileIdRegex.test(img.$id));
         images = images?.reduce((acc,curr)=>{
             const meal = curr.$id.split('_')[0];
             acc[meal] = `${process.env.API_ENDPOINT}/storage/buckets/${process.env.BUCKET_ID}/files/${curr.$id}/view?project=${process.env.PROJECT_ID}`;
@@ -95,19 +97,15 @@ appRouter.get('/meals' , async (req,res)=>{
                 imgUrl : images[meal.lst_id] ?? ''
             }
         });
-        await connection.commit();
         res.status(200).json({status:"READY-MEALS",body:meals});
     }
     catch(err){
-        await connection.rollback();
         console.log('DB/SERVER ERROR : ', err)
         return res.status(500).json({status:'DB/SERVER-ERROR' , message:'Error getting meals.'});
     }
-    finally{connection.release();}
 });
 
 appRouter.post('/edit',upload.single('image'),async (req,res)=>{
-    /*DATA FROM FRONTEND*/ 
     const lst_id = req.body.lst_id;
     const title = req.body.title;
     const description = req.body.description;
@@ -119,27 +117,36 @@ appRouter.post('/edit',upload.single('image'),async (req,res)=>{
     const pickupWindows = JSON.parse(req.body.pickupWindows);
     
     const connection = await pool.getConnection();
-    
+
     try{
         await connection.beginTransaction();
 
         await connection.query('UPDATE listing SET  poster=?, title=?, description=?, portions=?, pickup_location=?, pickup_latitude=?, pickup_longitude=? where lst_id=?',
             [req.session.usr_id,title,description,portions,address,long_lat.lat,long_lat.lng,lst_id]);
-        
+        /*RESET pickup_window TABLE*/ 
         await connection.query('delete from pickup_window where lst_id=?',[lst_id]);
-        const pickup_windows = pickupWindows.map(window=>[lst_id , window.start , window.end]); 
-        await connection.query('insert into pickup_window(lst_id,pickup_start,pickup_end) values ? ',[pickup_windows]);
-        
-        if(tags.length > 0){
-            await connection.query('delete from lst_has_meal_tag where lst_id=?',[lst_id]);
-            const tags_id = (await pool.query('select mtag_id from meal_tag where mtag_type in (?)',[tags]))[0].map(tag=>[lst_id , tag.mtag_id]);
-            await connection.query('insert into lst_has_meal_tag(lst_id,mtag_id) values ? ',[tags_id]);
+        if(pickupWindows.length > 0){
+            const pickup_windows = pickupWindows.map(window=>[lst_id , window.start , window.end]); 
+            await connection.query('INSERT INTO pickup_window(lst_id,pickup_start,pickup_end) VALUES ? ',[pickup_windows]);
         }
         
+        await connection.query('DELETE FROM lst_has_meal_tag where lst_id=?',[lst_id]);
+        if(tags.length > 0 ){
+            let tags_id = (await connection.query('select mtag_id from meal_tag where mtag_type in (?)',[tags]))[0];
+            if(tags_id.length >0){
+                tags_id = tags_id.map(tag=>[lst_id , tag.mtag_id]);
+                await connection.query('insert into lst_has_meal_tag(lst_id,mtag_id) values ? ',[tags_id]);
+            }   
+        }
+
+        await connection.query('delete from lst_has_allergens where lst_id=?',[lst_id]);
+        
         if(allergens.length > 0){
-            await connection.query('delete from lst_has_allergens where lst_id=?',[lst_id]);
-            const allergens_id = (await pool.query('select allerg_id from allergens where allerg_type in (?)',[allergens]))[0].map(allergen=>[lst_id , allergen.allerg_id]);
-            await connection.query('insert into lst_has_allergens(lst_id,allerg_id) values ? ',[allergens_id]);
+            let allergens_id = (await connection.query('select allerg_id from allergen where allerg_type in (?)',[allergens]))[0]
+            if(allergens_id.length > 0){
+                allergens_id = allergens_id.map(allergen=>[lst_id , allergen.allerg_id]);   
+                await connection.query('insert into lst_has_allergens(lst_id,allerg_id) values ? ',[allergens_id]);
+            }
         }
 
         await connection.commit();
@@ -155,9 +162,9 @@ appRouter.post('/edit',upload.single('image'),async (req,res)=>{
             let images =await  cloudstorage.listFiles(process.env.BUCKET_ID);
             const fileIdRegex =new RegExp(`^${lst_id}_.*`);
             images = images.files.filter((img)=> fileIdRegex.test(img.name));
-
-            await cloudstorage.deleteFile(process.env.BUCKET_ID, images[0].$id);    
-
+            if(images.length > 0){
+                await cloudstorage.deleteFile(process.env.BUCKET_ID, images[0].$id);    
+            }
             const newImageId = `${lst_id}_${req.body.fileName}`;
             const file = req.body.image;
             const inputFile = InputFile.fromBuffer(req.file.buffer, req.body.fileName);
@@ -191,54 +198,51 @@ appRouter.delete('/delete',  async(req,res)=>{
 });
 
 appRouter.get('/expiredMeals',async (req,res)=>{
-    const connection = await pool.getConnection();
     let expiredMeals,tags,pickup_windows,allergens,images;
-    try{       
-        await connection.beginTransaction();    
 
-        expiredMeals = (await connection.query("SELECT * FROM listing where status='EXPIRED' AND poster=?" , req.session.usr_id))[0];
+    try{       
+        expiredMeals = (await pool.query("SELECT * FROM listing where status='EXPIRED' AND poster=?" , req.session.usr_id))[0];
         if(expiredMeals.length === 0)
             return res.status(404).json({status:"EXPIRED-MEALS-NOT_FOUND" , message : 'No expired Meals found.'});
 
         const lst_id = expiredMeals.map(meal=> meal.lst_id);
 
-        pickup_windows = (await connection.query('SELECT lst_id,pickup_start,pickup_end from pickup_window WHERE lst_id IN (?)',[lst_id]))[0].reduce((acc,curr)=>{
+        pickup_windows = (await pool.query('SELECT lst_id,pickup_start,pickup_end from pickup_window WHERE lst_id IN (?)',[lst_id]))[0].reduce((acc,curr)=>{
             if(!acc[curr.lst_id])
             acc[curr.lst_id] = [];
             acc[curr.lst_id].push([curr.pickup_start,curr.pickup_end]);
             return acc;
         },{});
 
-        tags = (await connection.query('SELECT mtag_type,lst_id FROM lst_has_meal_tag JOIN meal_tag on lst_has_meal_tag.mtag_id = meal_tag.mtag_id where lst_has_meal_tag.lst_id IN (?)',[lst_id]))[0].reduce((acc,curr)=>{
+        tags = (await pool.query('SELECT mtag_type,lst_id FROM lst_has_meal_tag JOIN meal_tag on lst_has_meal_tag.mtag_id = meal_tag.mtag_id where lst_has_meal_tag.lst_id IN (?)',[lst_id]))[0];
+        tags = !tags.length ? {} : tags.reduce((acc,curr)=>{
                 if(!acc[curr.lst_id])
                     acc[curr.lst_id] =[];
                 acc[curr.lst_id].push(curr.mtag_type);
                 return acc;
             },{});
 
-        allergens = (await connection.query('SELECT allerg_type,lst_id FROM lst_has_allergens JOIN allergens on lst_has_allergens.allerg_id=allergens.allerg_id where lst_has_allergens.lst_id in (?)',[lst_id]))[0].reduce((acc,curr)=>{
+        allergens = (await pool.query('SELECT allerg_type,lst_id FROM lst_has_allergens JOIN allergen on lst_has_allergens.allerg_id=allergen.allerg_id where lst_has_allergens.lst_id in (?)',[lst_id]))[0];
+        allergens = !allergens.length ? {} : allergens.reduce((acc,curr)=>{
             if(!acc[curr.lst_id])
             acc[curr.lst_id] = [];
             acc[curr.lst_id].push(curr.allerg_type);
             return acc;
         },{});
-        await connection.commit();
     }
     catch(err){
-        await connection.rollback();
         console.log("Error with server : ",err);
         return res.status(500).json({status: "DB/SERVER-ERROR" , message : "Server error."});
     }
-    finally{connection.release()};
 
     try{
         images =await cloudstorage.listFiles(process.env.BUCKET_ID);
 
         const fileIdRegex =new RegExp(`^(${expiredMeals.map(meal=>meal.lst_id).join('|')})_.*`);
-        images = images.files.filter((img)=> fileIdRegex.test(img.name));
+        images = images.files.filter((img)=> fileIdRegex.test(img.$id));
         
         images = images?.reduce((acc,curr)=>{
-            const meal = curr.name.split('_')[0];
+            const meal = curr.$id.split('_')[0];
             acc[meal] = `${process.env.API_ENDPOINT}/storage/buckets/${process.env.BUCKET_ID}/files/${curr.$id}/view?project=${process.env.PROJECT_ID}`;
             return acc;
         },{});
