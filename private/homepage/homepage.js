@@ -863,9 +863,8 @@ document.addEventListener('DOMContentLoaded', () => {
         pickupStartTime.dataset.raw = "";
         pickupEndTime.dataset.raw = "";
     });
-
+    
     /* save changes */
-
     document.querySelector(".save-edit")
         .addEventListener("click", async () => {
             if(!editTitle.value){
@@ -886,11 +885,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const mealPost = new FormData();
-
+            
             /* RAW TEXT */
             mealPost.append('mealInfo'  , JSON.stringify({
                 title: editTitle.value,
-                description: editDescription.value,
+                description: editDescription.value.trim() || null,
                 portions: editPortions.value,
                 address: {
                     address : editAddress.value,
@@ -900,8 +899,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 tags: Array.from(tagButtons).filter(btn => btn.classList.contains("selected")).map(btn => btn.firstElementChild.value),
                 allergens: Array.from(allergyCheckboxes).filter(cb => cb.checked).map(cb => cb.value)
             }));    
-            
-            /* send data to backend */
             
             if(!file)
                 console.log("No image Found");
@@ -982,7 +979,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     imageInput.addEventListener("change", (e) => {
         file = e.target.files[0];
-        console.log(file)
         if (!file) {
             imagePreview.innerHTML = "No Image Set";
             return;
