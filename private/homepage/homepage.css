@@ -81,7 +81,6 @@ body {
    ADDRESS
 ------------------------------ */
 .address-box {
-    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -156,34 +155,10 @@ body {
 }
 
 .homepage-address-map-panel {
-    position: fixed;
-    width: 70%;
-    height: 70%;
-    top:50%;
-    left :50%;
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap : 20px;
-    z-index: 1000;
-    background-color: var(--bg-light);
-    transform: translate(-50%,-50%);
-    padding: 2em;
-    border-radius: 1em;
-}
-
-.homepage-address-map-panel p{
-    align-self: center;
-    padding: 1em;
-    font-size: var(--font-lg);
-}
-
-.homepage-address-overlay{
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    z-index:999;
 }
 
 .homepage-address-map-panel[hidden] {
