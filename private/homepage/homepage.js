@@ -268,14 +268,32 @@ document.addEventListener('DOMContentLoaded', () => {
     let userCircle = null;
     let userLatLng = [38.2466, 21.7346]; // Patra as default
 
+    // Helper to generate timestamps
+    const nowTimestamp = new Date().getTime();
+    const hoursToMs = (hours) => hours * 60 * 60 * 1000;
+
     // Sample data for offers (to be replaced with real data)
     const sampleOffers = [
-        { id: 1, title: 'Homemade Pasta Plate', lat: 38.2466, lng: 21.7346, distance: 1.2 },
-        { id: 2, title: 'Greek Salad', lat: 38.2500, lng: 21.7350, distance: 1.5 },
-        { id: 3, title: 'Vegetable Soup', lat: 38.2450, lng: 21.7400, distance: 2.0 },
-        { id: 4, title: 'Chicken Curry', lat: 38.2550, lng: 21.7250, distance: 3.0 },
-        { id: 5, title: 'Beef Stew', lat: 38.2600, lng: 21.7300, distance: 4.0 }
+        { id: 1, title: 'Homemade Pasta Plate', lat: 38.2466, lng: 21.7346, distance: 1.2, createdAt: new Date(nowTimestamp - hoursToMs(10)).toISOString(), portions: 3 },
+        { id: 2, title: 'Greek Salad', lat: 38.2500, lng: 21.7350, distance: 1.5, createdAt: new Date(nowTimestamp - hoursToMs(20)).toISOString(), portions: 0 },
+        { id: 3, title: 'Vegetable Soup', lat: 38.2450, lng: 21.7400, distance: 2.0, createdAt: new Date(nowTimestamp - hoursToMs(50)).toISOString(), portions: 2 },
+        { id: 4, title: 'Chicken Curry', lat: 38.2550, lng: 21.7250, distance: 3.0, createdAt: new Date(nowTimestamp - hoursToMs(5)).toISOString(), portions: 5 },
+        { id: 5, title: 'Beef Stew', lat: 38.2600, lng: 21.7300, distance: 4.0, createdAt: new Date(nowTimestamp - hoursToMs(40)).toISOString(), portions: 0 }
     ];
+
+    function getOfferStatus(offer) {
+        const now = new Date();
+        const created = new Date(offer.createdAt);
+        const diffHours = (now - created) / (1000 * 60 * 60);
+
+        if (diffHours >= 48) {
+            return 'deleted';
+        } else if (offer.portions > 0) {
+            return 'active';
+        } else {
+            return 'inactive';
+        }
+    }
 
     function initInteractiveMap() {
         if (interactiveMap || !interactiveMapEl) return;
@@ -313,7 +331,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add sample offer markers
         sampleOffers.forEach(offer => {
             const marker = L.marker([offer.lat, offer.lng]).addTo(interactiveMap);
-            marker.bindPopup(`<b>${offer.title}</b><br>Distance: ${offer.distance} km`);
+            let statusText = '';
+            const status = getOfferStatus(offer);
+            if (status === 'inactive') statusText = ' (Inactive)';
+            marker.bindPopup(`<b>${offer.title}${statusText}</b><br>Distance: ${offer.distance} km`);
             offerMarkers.push(marker);
         });
 
@@ -357,10 +378,16 @@ document.addEventListener('DOMContentLoaded', () => {
         offerMarkers.forEach((marker, index) => {
             const offer = sampleOffers[index];
             const distance = calculateDistance(userLat, userLng, offer.lat, offer.lng);
+            const status = getOfferStatus(offer);
             
-            // Show/hide markers based on distance
-            if (distance <= radiusMeters) {
+            // Show/hide markers based on distance and status
+            if (distance <= radiusMeters && status !== 'deleted') {
                 marker.addTo(interactiveMap);
+                if (status === 'inactive') {
+                    marker.setOpacity(0.5);
+                } else {
+                    marker.setOpacity(1);
+                }
             } else {
                 interactiveMap.removeLayer(marker);
             }
@@ -393,9 +420,17 @@ document.addEventListener('DOMContentLoaded', () => {
         postCards.forEach((card, index) => {
             const offer = sampleOffers[index % sampleOffers.length]; // Cycle through sample offers
             const distance = calculateDistance(userLatLng[0], userLatLng[1], offer.lat, offer.lng);
+            const status = getOfferStatus(offer);
             
-            if (distance <= radiusMeters) {
+            if (distance <= radiusMeters && status !== 'deleted') {
                 card.style.display = 'block';
+                if (status === 'inactive') {
+                    card.style.opacity = '0.5';
+                    card.style.pointerEvents = 'none'; // Optional: disable clicks
+                } else {
+                    card.style.opacity = '1';
+                    card.style.pointerEvents = 'auto';
+                }
             } else {
                 card.style.display = 'none';
             }
