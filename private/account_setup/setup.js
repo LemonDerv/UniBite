@@ -36,32 +36,27 @@
         updateStepLabel(2);
         setTimeout(() => { initMap(); map.invalidateSize(); }, 60);
 
-		const allergySelected = document.querySelectorAll('.allergy-chip.selected input');
-        let i = 1;
+        const selectedAllergies = [...document.querySelectorAll(".allergy-chip")].filter(chip => chip.classList.contains('selected')).map(chip => chip.querySelector("input").value);
 
-        let allergyJson = {
-            allergies: []
-        };
-        
-		allergySelected.forEach((allergy=>{
-            // console.log(allergy.value);
-            allergyJson.allergies.push(allergy.value);
-        }));
-        //console.log(allergyJson);
+        if(selectedAllergies.length){
+            // send user allergies
+            await fetch("/api/user/allergies", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(selectedAllergies)
+            })
+            .then(async (res)=>{
+                const data = await res.json();
 
-        // send user allergies
-        const promise =fetch("/api/user/allergies", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(allergyJson)
-        })
-        .then(response => response.json())
-        .then(data => console.log("Allergies saved:", data))
-        .catch((error) => console.log("Error saving allergies:",error));
-
-
+                if(res.status === 404){
+                    console.log(data.message);
+                    return ;
+                }
+            })
+            .catch((error) => console.log("Error saving allergies:",error));
+        }
     });
 
     btnBack.addEventListener('click', () => {
@@ -197,10 +192,34 @@
     });
 
     /* FINISH */
-    btnFinish.addEventListener('click', () => {
+    btnFinish.addEventListener('click', async () => {
         const allergies = Array.from(
             document.querySelectorAll('input[name="allergy"]:checked')
         ).map((cb) => cb.value);
+
+        let location = [];
+        await Promise.all(
+            addresses.map(async (addr) =>{
+                const res = await geocodeAddress(addr);
+                location.push(res);
+            })
+        );
+        
+        await fetch('/api/user/addresses' , {
+            method:'POST',
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body : JSON.stringify(location)
+        })
+        .then(async (res) =>{
+            const data =await res.json();
+            if(res.status === 500){
+                alert(data.message);
+                return ;
+            }
+        })
+        .catch((err)=>{console.log(err)});
 
         localStorage.setItem('unibites-user-setup', JSON.stringify({ allergies, addresses }));
         window.location.href = '../homepage/homepage.html';

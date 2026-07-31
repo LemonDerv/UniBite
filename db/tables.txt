@@ -25,20 +25,15 @@ CREATE TABLE IF NOT EXISTS admin(
     ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS usr_address(
-    addr_id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    address_text VARCHAR(255) NOT NULL,
-    latitude DECIMAL(9,6),
-    longitude DECIMAL(9,6)
-);
-
 CREATE TABLE IF NOT EXISTS usr_has_addr(
     std_id INT NOT NULL,
-    addr_id INT UNSIGNED NOT NULL,
+    addr_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     is_default BOOLEAN DEFAULT FALSE,
-    PRIMARY KEY(std_id, addr_id),
-    FOREIGN KEY(std_id) REFERENCES student(std_id) ON DELETE CASCADE,
-    FOREIGN KEY(addr_id) REFERENCES usr_address(addr_id) ON DELETE CASCADE
+    address_text VARCHAR(255) NOT NULL,
+    latitude DECIMAL(9,6),
+    longitude DECIMAL(9,6),
+    PRIMARY KEY(addr_id),
+    FOREIGN KEY(std_id) REFERENCES student(std_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS listing(

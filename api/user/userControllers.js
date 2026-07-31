@@ -170,4 +170,46 @@ appRouter.post('/createMeal',upload.single('image') ,async (req,res)=>{
     return res.status(201).json({status:"Meal Created."});
 });
 
+appRouter.post('/allergies' , async (req,res)=>{
+    const data =req.body;
+    const connection = await pool.getConnection();
+
+    try{
+        const allerg_id = (await connection.query('SELECT allerg_id FROM allergen WHERE allerg_type IN (?)' , [data]))[0];
+
+        if(!allerg_id.length)
+            return res.status(404).json({status:"ALLERGENS-NOT_FOUND", message : "Allergies not found"});
+
+        await connection.beginTransaction();
+        await connection.query('INSERT INTO std_allergy(std_id,allerg_id) VALUES ?' , [allerg_id.map(id => [req.session.usr_id , id.allerg_id])]);
+        await connection.commit();
+        return res.status(200).json({status:"ALLERGENS-FOUND" , message: 'Allergens found.'});
+    }
+    catch(err){
+        await connection.rollback();
+        console.log('Server Error : ', err);
+        return res.status(500).json({status:"DB/SERVER-ERROR" , message : "Server Error"});
+    }
+    finally{await connection.release();}
+})
+
+appRouter.post('/addresses' , async (req,res)=>{
+    const data = req.body;
+    const addr=data.map(addr=>[req.session.usr_id , addr.display, addr.lat , addr.lng]);
+    const connection =await pool.getConnection();
+    
+    try{
+        await connection.beginTransaction();
+        await connection.query("INSERT INTO usr_has_addr(std_id, address_text,latitude,longitude) VALUES ?",[addr]);
+        await connection.commit();
+        return res.status(200).json({status: "ADRESSES-FOUND" , message: "Addresses found"});
+    }
+    catch(err){
+        await connection.rollback();
+        console.log('Server Error : ', err);
+        return res.status(500).json({status:"DB/SERVER-ERROR" , message : "Server Error"});
+    }
+    finally{await connection.release();}
+})
+
 module.exports = appRouter;
