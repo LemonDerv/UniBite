@@ -701,6 +701,11 @@ body {
     color: var(--green-text);
 }
 
+.no-tags {
+    background: var(--green-bg);
+    color: var(--green-text);
+}
+
 .yes-allergens {
     background: var(--red-bg);
     color: var(--red-text);
@@ -915,7 +920,7 @@ body {
 }
 
 /* no allergens message */
-.view-no-allergens {
+.view-no-allergens,.view-no-tags {
     color: var(--gray-500);
     font-weight: 600;
     font-style: italic;
