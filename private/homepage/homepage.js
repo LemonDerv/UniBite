@@ -79,6 +79,98 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    const feedGrid = document.querySelector(".feed-grid");
+    
+    fetch('/api/posts/meals' ,{
+        method : 'GET'
+    })
+    .then(async (res)=>{
+        const data = await res.json();
+        // console.log(data.body);
+        const meals = data.body;
+
+        if(!meals.length){
+            alert("No meals found");
+            return;
+        }
+
+        meals.forEach(meal=>{
+            console.log(meal);
+            feedGrid.insertAdjacentHTML('beforeend', `<article class="post-card" data-id="${meal.lst_id}" data-location="${meal.pickup_location}" data-pickup_windows='${JSON.stringify(meal.pickup_windows)}' data-img="${meal.img}">
+                    <div class="post-thumb"></div>
+                    <div class="post-body">
+                        <div class="post-header">
+                            <div class="post-title-group">
+                                <h2 class="post-title">${meal.title}</h2>
+                                <span class="post-portions">${meal.portions}</span>
+                            </div>
+                        </div>
+                        <p class="post-description">${meal.description}</p>
+                        <div class="post-tags" data-tags="${!meal.meal_tags.length? '' : meal.meal_tags}">
+                        </div>
+                        <div class="post-meta">
+                            <span>By ${meal.usr_username} • 1.2 km away</span>
+                            <span class="post-time-remaining">24h remaining</span>
+                        </div>
+                        <div class="post-allergens" data-allergens="${!meal.allergens.length ? '': meal.allergens}"></div>
+                        <div class="post-actions">
+                            <button class="btn secondary view-details-btn">View Details</button>
+                        </div>
+                    </div>
+                </article>`);
+
+            const card = feedGrid.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-tags`);
+            const postImg = document.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-thumb`);
+            if(meal.img !== ''){
+                postImg.innerHTML = `<canvas></canvas>`;
+                const img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.src = meal.img;
+
+                img.onload = ()=>{
+                    renderMealImg(img,postImg.clientWidth , 0.5,postImg.querySelector("canvas"));
+                };
+
+                window.addEventListener('resize' , ()=>{
+                    renderMealImg(img,postImg.clientWidth , 0.5,postImg.querySelector("canvas"));
+                });
+            }
+            else postImg.innerHTML = "No Image Set";
+
+            if(meal.meal_tags?.length){
+                meal.meal_tags.forEach(tag=>{
+                    card.insertAdjacentHTML('beforeend' , `<span class="tag">${tag}</span>`);      
+               });
+            }
+            else {
+                card.innerHTML += 'This meal has no tags.';
+                card.classList.add('no-tags');
+            }
+
+            const allergenscard = feedGrid.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-allergens`);
+
+            if(meal.allergens?.length){
+                allergenscard.innerHTML += 'This meal has allergens noted.';
+                allergenscard.classList.add('yes-allergens');
+            }
+            else {
+                allergenscard.innerHTML += 'This meal has no allergens noted.';
+                allergenscard.classList.add('no-allergens');
+            }
+        });
+
+        /* open events */
+        document.querySelectorAll(".view-details-btn").forEach(button => {
+            button.addEventListener("click", () => {
+                const postItem = button.closest(".post-card");
+                
+                openViewModal(postItem);
+            });
+        });
+
+    })
+    .catch((err)=>{console.log(err)});
+
     function renderAddressDropdown() {
         if (!addressDropdown) return;
 
@@ -422,18 +514,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const distance = calculateDistance(userLatLng[0], userLatLng[1], offer.lat, offer.lng);
             const status = getOfferStatus(offer);
             
-            if (distance <= radiusMeters && status !== 'deleted') {
-                card.style.display = 'block';
-                if (status === 'inactive') {
-                    card.style.opacity = '0.5';
-                    card.style.pointerEvents = 'none'; // Optional: disable clicks
-                } else {
-                    card.style.opacity = '1';
-                    card.style.pointerEvents = 'auto';
-                }
-            } else {
-                card.style.display = 'none';
-            }
+            // if (distance <= radiusMeters && status !== 'deleted') {
+            //     card.style.display = 'block';
+            //     if (status === 'inactive') {
+            //         card.style.opacity = '0.5';
+            //         card.style.pointerEvents = 'none'; // Optional: disable clicks
+            //     } else {
+            //         card.style.opacity = '1';
+            //         card.style.pointerEvents = 'auto';
+            //     }
+            // } else {
+            //     card.style.display = 'none';
+            // }
         });
     }
 
@@ -502,40 +594,98 @@ document.addEventListener('DOMContentLoaded', () => {
             .join("");
     }
 
+    function renderMealImg(img, displayWidth, step,canvas) {
+        const ctx = canvas.getContext("2d");
+        const dpr = window.devicePixelRatio || 1;
+
+
+        const targetWidth = displayWidth * dpr;
+        const targetHeight = (displayWidth * (img.height / img.width)) * dpr;
+
+        canvas.width = targetWidth;
+        const offX = (canvas.width-targetWidth) / 2;
+        canvas.height = targetHeight;
+        const offY = (canvas.height-targetHeight) / 2;
+        canvas.style.width = displayWidth + "px";
+        canvas.style.height = (displayWidth * (img.height / img.width)) + "px";
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+
+        if (img.width * step > targetWidth) {
+            let curWidth = Math.floor(img.width * step);
+            let curHeight = Math.floor(img.height * step);
+
+            let oc = document.createElement('canvas');
+            let octx = oc.getContext('2d');
+            oc.width = curWidth;
+            oc.height = curHeight;
+
+            octx.imageSmoothingEnabled = true;
+            octx.imageSmoothingQuality = "high";
+            octx.drawImage(img, 0, 0, curWidth, curHeight);
+
+            while (curWidth * step > targetWidth) {
+                const nextWidth = Math.floor(curWidth * step);
+                const nextHeight = Math.floor(curHeight * step);
+
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCanvas.width = nextWidth;
+                tempCanvas.height = nextHeight;
+
+                tempCtx.imageSmoothingEnabled = true;
+                tempCtx.imageSmoothingQuality = "high";
+                tempCtx.drawImage(oc, 0, 0, curWidth, curHeight, 0, 0, nextWidth, nextHeight);
+
+                oc = tempCanvas;
+                curWidth = nextWidth;
+                curHeight = nextHeight;
+            }
+            ctx.drawImage(oc, 0, 0, curWidth, curHeight, offX, offY, targetWidth, targetHeight);
+        } else {
+            ctx.drawImage(img, 0, 0,img.width,img.height,offX,offY, targetWidth, targetHeight);
+        }
+    }
     /* open modal */
     function openViewModal(postItem) {
         const title = postItem.querySelector(".post-title")?.textContent || "";
-        /* meta (creator + distance + time) */
         const metaText = postItem.querySelector(".post-meta span:first-child")?.textContent || "";
         const [creatorRaw, distanceRaw] = metaText.split("•");
         const creator = creatorRaw?.trim() || "";
         const distance = distanceRaw?.trim() || "";
         const timeRemaining = postItem.querySelector(".post-time-remaining")?.textContent?.trim() || "";
-        /* portions */
         const portions = postItem.querySelector(".post-portions")?.textContent || "";
-        /* allergens (from data attribute) */
-        const allergensRaw = postItem.querySelector(".post-allergens")?.dataset.allergens || "";
-        const allergens = allergensRaw
-            ? allergensRaw.split(",").map(a => a.trim()).filter(Boolean)
-            : [];
+        const allergens = postItem.querySelector(".post-allergens")?.dataset.allergens === "" ? [] : postItem.querySelector(".post-allergens").dataset.allergens.split(',');
+        const tags = postItem.querySelector(".post-tags").dataset.tags === "" ? [] : postItem.querySelector(".post-tags").dataset.tags.split(',');
 
-        /* fill fields (with test/placeholder data) */
         viewTitle.textContent = title;
-        viewCreator.textContent = `Posted by ${creator}`;
+        viewCreator.textContent = `Posted ${creator}`;
         viewDistance.textContent = distance;
         viewTimeRemaining.textContent = timeRemaining;
         viewPortions.textContent = portions;
-        viewDescription.textContent = "Fresh pasta with tomato sauce and basil.";
-        viewAddress.textContent = selectedAddress || "Aratou 60, Patras";
-        viewPickupTimes.textContent = "18:00 - 21:00";
-        viewImage.innerHTML = "No Image Set";
-        viewTags.innerHTML = `<span class="view-chip">Pasta</span><span class="view-chip">Vegetarian</span>`;
-        /* allergens logic */
-        if (allergens.length === 0) {
-            viewAllergens.innerHTML = `<span class="view-no-allergens">No allergens noted</span>`;
-        } else {
-            viewAllergens.innerHTML = allergens.map(a => `<span class="view-chip allergen-view-chip">${a}</span>`).join("");
+        viewDescription.textContent = postItem.querySelector(".post-description")?.textContent;
+        viewAddress.textContent = postItem.dataset.location;
+        viewPickupTimes.textContent = JSON.parse(postItem.dataset.pickup_windows).map(window => `${window.start.replace('T',' ').replaceAll('-','/').slice(0,16)} - ${window.end.replace('T',' ').replaceAll('-','/').slice(0,16)}`).join(' , ');
+
+        if(postItem.dataset.img !== ''){
+            viewImage.innerHTML = "<canvas></canvas>";
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.src = postItem.dataset.img;
+
+            img.onload = ()=>{
+                renderMealImg(img,viewImage.clientWidth , 0.5,viewImage.querySelector("canvas"));
+            };
+
+            window.addEventListener('resize' , ()=>{
+                renderMealImg(img.viewImage.clientWidth , 0.5,viewImage.querySelector("canvas"));
+            });
         }
+        else viewImage.innerHTML = "No Image Set";
+
+        viewTags.innerHTML = !tags.length ? `<span class="view-no-tags">No meal tags noted.</span>` : tags.map(tag => `<span class="view-chip">${tag}</span>`).join('');
+        viewAllergens.innerHTML = !allergens.length ? `<span class="view-no-allergens">No allergens noted</span>` : allergens.map(allergen => `<span class="view-chip allergen-view-chip">${allergen}</span>`).join('');
 
         /* show modal */
         disablePageScroll();
@@ -551,15 +701,6 @@ document.addEventListener('DOMContentLoaded', () => {
         viewModal.classList.add("hidden");
         enablePageScroll();
     }
-
-    /* open events */
-    document.querySelectorAll(".view-details-btn")
-        .forEach(button => {
-            button.addEventListener("click", () => {
-                const postItem = button.closest(".post-card");
-                openViewModal(postItem);
-            });
-        });
 
     /* close events */
     closeViewBtn.addEventListener("click", closeViewModal);
