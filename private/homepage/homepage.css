@@ -627,6 +627,14 @@ body {
 .post-thumb {
     height: 160px;
     background: var(--gray-200);
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid var(--text-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-500);
+    overflow: hidden;
 }
 
 .post-body {
@@ -1387,6 +1395,13 @@ body {
 .edit-page-nav,
 .edit-actions {
     padding-top: 6px;
+}
+
+canvas{
+    width: 100%;
+    height: 100%;
+    object-position: center;
+    object-fit: fill;
 }
 
 /* HIDE MODALS */
