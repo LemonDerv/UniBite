@@ -79,6 +79,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function updateTime(expires_at, counter) {
+        let now = new Date();
+        const diff = expires_at - now;
+
+        const hours  = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        counter.textContent = `${hours}h : ${minutes}m : ${seconds}s `;
+
+        if(diff < 0){
+            if(counter.dataset.timer) clearInterval(counter.dataset.timer);
+            counter.dataset.timer = null;
+            counter.textContent = "Expired";
+            return ;
+        }
+        else if(diff < 60 * 1000 * 60 * 2){
+            counter.classList.add("blink");
+            counter.style.color = "red";
+        }
+    }
+
+    function startTimer(expires , counter){
+        const expires_at = new Date(expires);
+        expires_at.setHours(expires_at.getHours() - 3);
+
+        if(counter.timer){
+            clearInterval(counter.dataset.timer);
+            counter.dataset.timer = null;
+        }
+        updateTime(expires_at,counter);
+        counter.dataset.timer = setInterval(()=>{updateTime(expires_at,counter)},1000);
+    }
+
     const feedGrid = document.querySelector(".feed-grid");
     
     fetch('/api/posts/meals' ,{
@@ -86,7 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .then(async (res)=>{
         const data = await res.json();
-        // console.log(data.body);
         const meals = data.body;
 
         if(!meals.length){
@@ -95,8 +127,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         meals.forEach(meal=>{
-            console.log(meal);
-            feedGrid.insertAdjacentHTML('beforeend', `<article class="post-card" data-id="${meal.lst_id}" data-location="${meal.pickup_location}" data-pickup_windows='${JSON.stringify(meal.pickup_windows)}' data-img="${meal.img}">
+            feedGrid.insertAdjacentHTML('beforeend', `<article class="post-card" 
+                    data-id="${meal.lst_id}"
+                    data-location="${meal.pickup_location}"
+                    data-pickup_windows='${JSON.stringify(meal.pickup_windows)}' 
+                    data-img="${meal.img}" 
+                    data-expires_at="${meal.expires_at}"
+                >
                     <div class="post-thumb"></div>
                     <div class="post-body">
                         <div class="post-header">
@@ -105,12 +142,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="post-portions">${meal.portions}</span>
                             </div>
                         </div>
-                        <p class="post-description">${meal.description}</p>
+                        <p class="post-description">${meal.description? meal.description : "No description found."}</p>
                         <div class="post-tags" data-tags="${!meal.meal_tags.length? '' : meal.meal_tags}">
                         </div>
                         <div class="post-meta">
                             <span>By ${meal.usr_username} • 1.2 km away</span>
-                            <span class="post-time-remaining">24h remaining</span>
+                            <span class="post-time-remaining" data-timer> remaining</span>
                         </div>
                         <div class="post-allergens" data-allergens="${!meal.allergens.length ? '': meal.allergens}"></div>
                         <div class="post-actions">
@@ -119,6 +156,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </article>`);
 
+            startTimer(meal.expires_at, feedGrid.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-time-remaining`));
+        
+            
             const card = feedGrid.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-tags`);
             const postImg = document.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-thumb`);
             if(meal.img !== ''){
@@ -514,18 +554,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const distance = calculateDistance(userLatLng[0], userLatLng[1], offer.lat, offer.lng);
             const status = getOfferStatus(offer);
             
-            // if (distance <= radiusMeters && status !== 'deleted') {
-            //     card.style.display = 'block';
-            //     if (status === 'inactive') {
-            //         card.style.opacity = '0.5';
-            //         card.style.pointerEvents = 'none'; // Optional: disable clicks
-            //     } else {
-            //         card.style.opacity = '1';
-            //         card.style.pointerEvents = 'auto';
-            //     }
-            // } else {
-            //     card.style.display = 'none';
-            // }
+            if (distance <= radiusMeters && status !== 'deleted') {
+                card.style.display = 'block';
+                if (status === 'inactive') {
+                    card.style.opacity = '0.5';
+                    card.style.pointerEvents = 'none'; // Optional: disable clicks
+                } else {
+                    card.style.opacity = '1';
+                    card.style.pointerEvents = 'auto';
+                }
+            } else {
+                card.style.display = 'none';
+            }
         });
     }
 
@@ -598,7 +638,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx = canvas.getContext("2d");
         const dpr = window.devicePixelRatio || 1;
 
-
         const targetWidth = displayWidth * dpr;
         const targetHeight = (displayWidth * (img.height / img.width)) * dpr;
 
@@ -662,7 +701,12 @@ document.addEventListener('DOMContentLoaded', () => {
         viewTitle.textContent = title;
         viewCreator.textContent = `Posted ${creator}`;
         viewDistance.textContent = distance;
-        viewTimeRemaining.textContent = timeRemaining;
+
+        if(timeRemaining === "Expired"){
+            viewTimeRemaining.textContent = "Expired";
+        }
+        else startTimer(postItem.dataset.expires_at , viewTimeRemaining);
+
         viewPortions.textContent = portions;
         viewDescription.textContent = postItem.querySelector(".post-description")?.textContent;
         viewAddress.textContent = postItem.dataset.location;
@@ -679,7 +723,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             window.addEventListener('resize' , ()=>{
-                renderMealImg(img.viewImage.clientWidth , 0.5,viewImage.querySelector("canvas"));
+                renderMealImg(img,viewImage.clientWidth , 0.5,viewImage.querySelector("canvas"));
             });
         }
         else viewImage.innerHTML = "No Image Set";
@@ -698,6 +742,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* close modal */
     function closeViewModal() {
+        if (viewTimeRemaining.dataset.timer) {
+            clearInterval(viewTimeRemaining.dataset.timer);
+            viewTimeRemaining.dataset.timer = null;
+        }
         viewModal.classList.add("hidden");
         enablePageScroll();
     }
