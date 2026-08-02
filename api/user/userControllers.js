@@ -212,4 +212,21 @@ appRouter.post('/addresses' , async (req,res)=>{
     finally{await connection.release();}
 })
 
+appRouter.post('/request',async (req,res)=>{
+    const data = req.body;
+    const connection = await pool.getConnection();
+    try{
+        await connection.beginTransaction();
+        await connection.query("INSERT INTO requests(lst_id, std_id) VALUES (?,?) ",[data.lst_id , req.session.usr_id]);
+        await connection.commit();
+        return res.status(201).json({status:"REQUEST-CREATED", message:"Request created."});
+    }
+    catch(err){
+        await connection.rollback();
+        console.log('Server Error : ', err);
+        return res.status(500).json({status:"DB/SERVER-ERROR" , message : "Server Error"});
+    }
+    finally{await connection.release();}
+})
+
 module.exports = appRouter;

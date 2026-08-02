@@ -688,6 +688,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     /* open modal */
     function openViewModal(postItem) {
+        viewModal.dataset.id=postItem.dataset.id;
         const title = postItem.querySelector(".post-title")?.textContent || "";
         const metaText = postItem.querySelector(".post-meta span:first-child")?.textContent || "";
         const [creatorRaw, distanceRaw] = metaText.split("•");
@@ -747,6 +748,7 @@ document.addEventListener('DOMContentLoaded', () => {
             viewTimeRemaining.dataset.timer = null;
         }
         viewModal.classList.add("hidden");
+        viewModal.dataset.id="";
         enablePageScroll();
     }
 
@@ -754,11 +756,27 @@ document.addEventListener('DOMContentLoaded', () => {
     closeViewBtn.addEventListener("click", closeViewModal);
     closeViewFooterBtn.addEventListener("click", closeViewModal);
 
-    /* request (to be expanded) */
     const requestBtn = document.querySelector(".request-btn");
     requestBtn?.addEventListener("click", () => {
-        alert("Serving request submitted!");
-        closeViewModal();
+        const request = {
+            lst_id : viewModal.dataset.id
+        };
+        fetch('/api/user/request', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(request)
+        })
+        .then(async (res)=>{
+            const data = await res.json();
+            if(res.status === 500 ){
+                alert(data.message);
+                return ;
+            }
+            alert("Serving request submitted!");
+            closeViewModal();
+        })
+        .catch((err)=>{console.log(err)});
     });
 
     /* close modal when clicking outside */
