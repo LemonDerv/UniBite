@@ -158,7 +158,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                                     </div>
                                 </div>
                             </div>
-                            <p class="post-description">${meal.description}</p>
+                            <p class="post-description">${meal.description? meal.description : "No description found."}</p>
                             <div class="post-tags" id="post-tags_${idx}">
                             </div>
                             <div class="post-meta">
