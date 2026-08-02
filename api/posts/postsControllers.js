@@ -338,5 +338,84 @@ appRouter.get('/meals', async (req,res)=>{
     )});
 })
 
+appRouter.get('/requests', async (req,res)=>{
+    let lst_id,mealInfo,pickup_windows,allergens,meal_tags,images,requests;
+    try{
+        requests = (await pool.query("SELECT lst_id,status,created_at FROM requests WHERE std_id=?" , [req.session.usr_id]))[0];
+        if(!requests.length)
+            return res.status(404).json({status:"REQUESTS-NOT_FOUND" , message :"No requests found"});
+
+        lst_id = requests.map(request=>request.lst_id);
+
+        mealInfo = (await pool.query("SELECT * FROM listing JOIN user ON poster=usr_id WHERE lst_id IN (?)",[lst_id]))[0];
+
+        if(!mealInfo.length)
+            return res.status(404).json({status:"MEALS-NOT_FOUND" , message :"No meals found"});
+
+        pickup_windows = (await pool.query("SELECT * FROM pickup_window WHERE lst_id IN (?)",[lst_id]))[0];
+        pickup_windows = pickup_windows.reduce(((acc,curr)=>{
+            if(!acc[curr.lst_id]) acc[curr.lst_id] = [];
+            acc[curr.lst_id].push({start :curr.pickup_start , end: curr.pickup_end});
+            return acc;
+        }),{});
+
+        allergens = (await pool.query("SELECT lst_id,allerg_type FROM lst_has_allergens JOIN allergen ON allergen.allerg_id=lst_has_allergens.allerg_id WHERE lst_id IN  (?)" ,[lst_id]))[0];
+        if(!allergens.length)
+            console.log("Allergens not found.");
+        else{
+            allergens = allergens.reduce((acc,curr)=>{
+                if(!acc[curr.lst_id]) acc[curr.lst_id] = [];
+                acc[curr.lst_id].push(curr.allerg_type);
+                return acc;
+            },{});
+        }
+        
+        meal_tags = (await pool.query("SELECT lst_id,mtag_type FROM lst_has_meal_tag JOIN meal_tag ON meal_tag.mtag_id=lst_has_meal_tag.mtag_id WHERE lst_id IN (?)",[lst_id]))[0];
+        if(!meal_tags.length)
+            console.log("Meal tags not found");
+        else{
+            meal_tags = meal_tags.reduce((acc,curr)=>{
+                if(!acc[curr.lst_id]) acc[curr.lst_id] = [];
+                acc[curr.lst_id].push(curr.mtag_type);
+                return acc;
+            },{});
+        }
+    }
+    catch(err){console.log(err)};
+
+    try{    
+        images =await cloudstorage.listFiles(process.env.BUCKET_ID);
+
+        const fileIdRegex =new RegExp(`^(${lst_id.join('|')})_.*`);
+        images = images.files.filter((img)=> fileIdRegex.test(img.$id));
+        
+        images = images?.reduce((acc,curr)=>{
+            const meal = curr.$id.split('_')[0];
+            acc[meal] = `${process.env.API_ENDPOINT}/storage/buckets/${process.env.BUCKET_ID}/files/${curr.$id}/view?project=${process.env.PROJECT_ID}`;
+            return acc;
+        },{});
+    }
+    catch(err){console.log(err)};
+
+    console.log(mealInfo.map(meal=>({
+            ...meal, 
+            pickup_windows :pickup_windows[meal.lst_id],
+            allergens :allergens[meal.lst_id] || [],
+            meal_tags : meal_tags[meal.lst_id] || [],
+            img: images[meal.lst_id] || '',
+            requests : requests[meal.lst_id] || []
+        })));
+    
+    res.status(200).json({
+        body: mealInfo.map(meal=>({
+            ...meal, 
+            pickup_windows :pickup_windows[meal.lst_id],
+            allergens :allergens[meal.lst_id] || [],
+            meal_tags : meal_tags[meal.lst_id] || [],
+            img: images[meal.lst_id] || '',
+            requests : requests.filter(req => req.lst_id === meal.lst_id)
+        }))
+    });
+});
 
 module.exports = appRouter;
