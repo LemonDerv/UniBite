@@ -119,13 +119,13 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .then(async (res)=>{
         const data = await res.json();
-        const meals = data.body;
 
-        if(!meals.length){
-            alert("No meals found");
+        if(res.status === 500 || res.status=== 404){
+            alert("No meals found.")
             return;
         }
 
+        const meals = data.body;
         meals.forEach(meal=>{
             feedGrid.insertAdjacentHTML('beforeend', `<article class="post-card" 
                     data-id="${meal.lst_id}"
