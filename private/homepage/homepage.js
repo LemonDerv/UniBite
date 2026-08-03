@@ -711,7 +711,7 @@ document.addEventListener('DOMContentLoaded', () => {
         viewPortions.textContent = portions;
         viewDescription.textContent = postItem.querySelector(".post-description")?.textContent;
         viewAddress.textContent = postItem.dataset.location;
-        viewPickupTimes.textContent = JSON.parse(postItem.dataset.pickup_windows).map(window => `${window.start.replace('T',' ').replaceAll('-','/').slice(0,16)} - ${window.end.replace('T',' ').replaceAll('-','/').slice(0,16)}`).join(' , ');
+        viewPickupTimes.textContent = JSON.parse(postItem.dataset.pickup_windows).map(window => `${window[0].replace('T',' ').replaceAll('-','/').slice(0,16)} - ${window[1].replace('T',' ').replaceAll('-','/').slice(0,16)}`).join(' , ');
 
         if(postItem.dataset.img !== ''){
             viewImage.innerHTML = "<canvas></canvas>";
