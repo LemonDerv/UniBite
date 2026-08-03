@@ -1,5 +1,6 @@
 require('dotenv').config();
 const { request } = require('express');
+const argon2 = require("argon2");
 const pool  = require("../db.js");
 const sdk = require("node-appwrite");
 const {InputFile} = require('node-appwrite/file');
@@ -383,6 +384,21 @@ async function updatePostImg(lst_id,img,filename,buffer){
     }
 }
 
+async function hashPassword(password){
+    return await argon2.hash(password);
+}
+
+async function verifyPassword(hashedPassword, password){
+    try{
+        if(await argon2.verify(hashedPassword,password)) return true;
+        else return false;
+    }
+    catch(err){
+        console.log(err);
+        return false;
+    }
+}
+
 module.exports={
     getExpiredMeals ,
     getActiveMeals,
@@ -390,9 +406,11 @@ module.exports={
     getPickupWindows ,
     getMealTags ,
     getAllergens ,
-    searchListingsImages,
-    getRequestsPerListing,
-    getRequestsInfoPerListing,
-    getRequestPerUsr,
-    updatePostImg
+    searchListingsImages ,
+    getRequestsPerListing ,
+    getRequestsInfoPerListing ,
+    getRequestPerUsr ,
+    updatePostImg ,
+    hashPassword ,
+    verifyPassword
 };
