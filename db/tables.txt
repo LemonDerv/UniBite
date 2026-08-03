@@ -165,7 +165,11 @@ CREATE VIEW countRequests AS
 SELECT count(rq_id),lst_id FROM
 requests GROUP BY lst_id;
 
-/*REQUESTS INFORMATION(USER,LISTING,USERNAME,DATE OF REQUEST)*/
+/*REQUESTS*/
+CREATE VIEW userRequests AS
+SELECT * FROM requests;
+
+/*AVAILABLE REQUESTS(JUST FOR THE INFO) INFORMATION(USER,LISTING,USERNAME,DATE OF REQUEST)*/
 CREATE VIEW mealRequests AS
 SELECT requests.std_id,lst_id,usr_username ,created_at FROM
 requests JOIN user ON

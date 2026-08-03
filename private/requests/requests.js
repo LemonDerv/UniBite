@@ -229,7 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
         viewOrderStatus.textContent = status;
         viewDescription.textContent = requestItem.dataset.description || "No description found." ;
         viewAddress.textContent =requestItem.dataset.location.trim();
-        viewPickupTimes.textContent = JSON.parse(requestItem.dataset.windows).map(window => `${window.start.replace('T',' ').replaceAll('-','/').slice(0,16)} - ${window.end.replace('T',' ').replaceAll('-','/').slice(0,16)}`).join(' , ');
+        viewPickupTimes.textContent = JSON.parse(requestItem.dataset.windows).map(window => `${window[0].replace('T',' ').replaceAll('-','/').slice(0,16)} - ${window[1].replace('T',' ').replaceAll('-','/').slice(0,16)}`).join(' , ');
 
         if(requestItem.dataset.img){
             viewImage.innerHTML = "<canvas></canvas>";
