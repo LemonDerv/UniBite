@@ -69,9 +69,9 @@ async function getActiveMeals(usr_id){
     }
 }
 
-async function getAllActiveMeals(){
+async function getAllActiveMeals(logged_in_usr){
     try{
-        const activeMeals = (await pool.query("SELECT * FROM activeMeals JOIN user ON poster=usr_id "))[0];
+        const activeMeals = (await pool.query("SELECT * FROM activeMeals JOIN user ON poster=usr_id WHERE poster NOT IN (?) ",[logged_in_usr]))[0];
 
         if(!activeMeals.length)
             return {success_status : false , 
@@ -80,7 +80,7 @@ async function getAllActiveMeals(){
                     status_code :404 , 
                     body : {}
                 };
-        else return {success_status : true ,
+        return {success_status : true ,
                      status:"ACTIVE_MEALS-FOUND" , 
                      message : 'Active Meals found.' , 
                      status_code:200 ,

@@ -225,7 +225,7 @@ appRouter.get('/meals', async (req,res)=>{
     let success_status,status,message,status_code,body;
 
     /*ACTIVE MEALS INFORMATION*/ 
-    ({success_status,status,message,status_code,body} = await getAllActiveMeals());
+    ({success_status,status,message,status_code,body} = await getAllActiveMeals(req.session.usr_id));
     if(!success_status)
         return res.status(status_code).json({status : status , message:message});
     activeMeals=body;
