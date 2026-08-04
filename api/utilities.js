@@ -71,7 +71,8 @@ async function getActiveMeals(usr_id){
 
 async function getAllActiveMeals(logged_in_usr){
     try{
-        const activeMeals = (await pool.query("SELECT * FROM activeMeals JOIN user ON poster=usr_id WHERE poster NOT IN (?) ",[logged_in_usr]))[0];
+        const filterUsr = logged_in_usr ? [logged_in_usr] : [0];
+        const activeMeals = (await pool.query("SELECT * FROM activeMeals JOIN user ON poster=usr_id WHERE poster NOT IN (?) ",[filterUsr]))[0];
 
         if(!activeMeals.length)
             return {success_status : false , 
