@@ -112,22 +112,32 @@ document.addEventListener('DOMContentLoaded', () => {
         counter.dataset.timer = setInterval(()=>{updateTime(expires_at,counter)},1000);
     }
 
+    const feedGrid = document.querySelector('.feed-grid');
     let liveOffers = [];
 
     fetch('/api/posts/meals' ,{
         method : 'GET'
     })
     .then(async (res)=>{
-        const data = await res.json();
-
-        if(res.status === 500 || res.status=== 404){
-            alert("No meals found.")
+        if(!res.ok){
+            if (feedGrid) feedGrid.innerHTML = '<p class="no-meals-msg" style="text-align:center; padding: 2rem; color: #888;">No active meals found.</p>';
             return;
         }
 
+        const data = await res.json();
         const meals = data.body || [];
         liveOffers = meals;
+
+        if (feedGrid) {
+            feedGrid.innerHTML = '';
+            if (meals.length === 0) {
+                feedGrid.innerHTML = '<p class="no-meals-msg" style="text-align:center; padding: 2rem; color: #888;">No active meals available at the moment.</p>';
+                return;
+            }
+        }
+
         meals.forEach(meal=>{
+            if (!feedGrid) return;
             feedGrid.insertAdjacentHTML('beforeend', `<article class="post-card" 
                     data-id="${meal.lst_id}"
                     data-location="${meal.pickup_location || ''}"
@@ -158,46 +168,58 @@ document.addEventListener('DOMContentLoaded', () => {
                 </article>`);
 
             if (meal.expires_at) {
-                startTimer(meal.expires_at, feedGrid.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-time-remaining`));
+                const timerEl = feedGrid.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-time-remaining`);
+                if (timerEl) startTimer(meal.expires_at, timerEl);
             }
             
             const card = feedGrid.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-tags`);
-            const postImg = document.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-thumb`);
-            if(meal.img && meal.img !== ''){
+            const postImg = feedGrid.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-thumb`);
+            if(postImg && meal.img && meal.img !== ''){
                 postImg.innerHTML = `<canvas></canvas>`;
                 const img = new Image();
                 img.crossOrigin = 'Anonymous';
                 img.src = meal.img;
 
                 img.onload = ()=>{
-                    renderMealImg(img,postImg.clientWidth , 0.5,postImg.querySelector("canvas"));
+                    const canvas = postImg.querySelector("canvas");
+                    if (canvas && postImg.clientWidth > 0) {
+                        renderMealImg(img, postImg.clientWidth, 0.5, canvas);
+                    }
                 };
 
                 window.addEventListener('resize' , ()=>{
-                    renderMealImg(img,postImg.clientWidth , 0.5,postImg.querySelector("canvas"));
+                    const canvas = postImg.querySelector("canvas");
+                    if (canvas && postImg.clientWidth > 0) {
+                        renderMealImg(img, postImg.clientWidth, 0.5, canvas);
+                    }
                 });
             }
-            else postImg.innerHTML = "No Image Set";
-
-            if(meal.meal_tags?.length){
-                meal.meal_tags.forEach(tag=>{
-                    card.insertAdjacentHTML('beforeend' , `<span class="tag">${tag}</span>`);      
-               });
+            else if (postImg) {
+                postImg.innerHTML = "No Image Set";
             }
-            else {
-                card.innerHTML += 'This meal has no tags.';
-                card.classList.add('no-tags');
+
+            if(card) {
+                if(meal.meal_tags?.length){
+                    meal.meal_tags.forEach(tag=>{
+                        card.insertAdjacentHTML('beforeend' , `<span class="tag">${tag}</span>`);      
+                   });
+                }
+                else {
+                    card.innerHTML += 'This meal has no tags.';
+                    card.classList.add('no-tags');
+                }
             }
 
             const allergenscard = feedGrid.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-allergens`);
-
-            if(meal.allergens?.length){
-                allergenscard.innerHTML += 'This meal has allergens noted.';
-                allergenscard.classList.add('yes-allergens');
-            }
-            else {
-                allergenscard.innerHTML += 'This meal has no allergens noted.';
-                allergenscard.classList.add('no-allergens');
+            if (allergenscard) {
+                if(meal.allergens?.length){
+                    allergenscard.innerHTML += 'This meal has allergens noted.';
+                    allergenscard.classList.add('yes-allergens');
+                }
+                else {
+                    allergenscard.innerHTML += 'This meal has no allergens noted.';
+                    allergenscard.classList.add('no-allergens');
+                }
             }
         });
 
@@ -205,14 +227,16 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll(".view-details-btn").forEach(button => {
             button.addEventListener("click", () => {
                 const postItem = button.closest(".post-card");
-                openViewModal(postItem);
+                if (postItem) openViewModal(postItem);
             });
         });
 
         updateOfferMarkers();
         filterOffersByRadius(parseFloat(radiusSlider?.value || 10));
     })
-    .catch((err)=>{console.log(err)});
+    .catch((err)=>{
+        console.error("Error loading meals:", err);
+    });
 
     function renderAddressDropdown() {
         if (!addressDropdown) return;
