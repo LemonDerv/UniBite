@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS student(
     std_rating DECIMAL(3,2),
     CHECK (std_rating >= 1 AND std_rating <= 5),
     credits INT NOT NULL DEFAULT 5,
+    given_meals INT NOT NULL DEFAULT 0,
     FOREIGN KEY(std_id) REFERENCES user(usr_id) 
     ON DELETE CASCADE
 );
