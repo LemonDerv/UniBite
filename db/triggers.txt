@@ -195,3 +195,35 @@ BEGIN
 END $$
 
 DELIMITER ;
+
+DROP TRIGGER IF EXISTS listing_expired;
+DELIMITER $$
+CREATE TRIGGER listing_expired
+AFTER UPDATE ON listing
+FOR EACH ROW
+BEGIN
+	IF(NEW.status IN ('EXPIRED','FULL') AND OLD.status='ACTIVE') OR (NEW.portions<=0 AND OLD.portions > 0) THEN
+		UPDATE deliveries SET status='REJECTED' WHERE req_id IN (SELECT req_id FROM requests WHERE lst_id=NEW.lst_id) AND status='PENDING';
+		UPDATE requests SET status='REJECTED' WHERE lst_id=NEW.lst_id AND status='PENDING';
+	END IF ;
+END $$
+
+DELIMITER ;
+
+
+/*update poster's given_meals upon delivery (only from pending to delivered)*/
+DROP TRIGGER IF EXISTS increment_student_given_meals;
+DELIMITER $$
+CREATE TRIGGER increment_student_given_meals
+AFTER UPDATE ON deliveries
+FOR EACH ROW
+BEGIN
+	IF NEW.status = 'DELIVERED' AND OLD.status = 'PENDING' THEN
+		UPDATE student SET given_meals = given_meals + 1 WHERE std_id = (
+			SELECT listing.poster FROM listing
+			JOIN requests ON requests.lst_id = listing.lst_id
+			WHERE requests.rq_id = NEW.req_id
+		);
+	END IF;
+END $$
+DELIMITER ;

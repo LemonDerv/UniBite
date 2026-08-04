@@ -2,12 +2,13 @@ require('dotenv').config();
 const express = require("express");
 const appRouter = express.Router();
 const pool  = require("../../db.js");
-const argon2 = require("argon2");
 const sdk = require("node-appwrite");
 const {InputFile} = require('node-appwrite/file');
 const multer =  require('multer');
 const storage = multer.memoryStorage();
 const upload = multer({storage : storage});
+
+const { verifyPassword,hashPassword} = require("../utilities.js");
 
 const client = new sdk.Client()
     .setEndpoint(process.env.API_ENDPOINT)
@@ -16,34 +17,20 @@ const client = new sdk.Client()
 
 const cloudstorage = new sdk.Storage(client);
 
-async function hashPassword(password){
-    return await argon2.hash(password);
-}
-
-/*verify hashed password in db with non-hashed passw*/
-async function verifyPassword(hashedPassword, password){
-    try{
-        if(await argon2.verify(hashedPassword,password)) return true;
-        else return false;
-    }
-    catch(err){
-        console.log(err);
-        return false;
-    }
-}
-
 appRouter.post("/register",async (req,res)=>{
     const {username, email,password}= req.body;
+    const connection = pool.getConnection();
 
     try {
-        const emailValidation = (await pool.query("SELECT count(usr_email) from user WHERE usr_email = ?", [email]))[0][0]['count(usr_email)'] > 0 ? false : true;
+        const emailValidation = (await connection.query("SELECT count(usr_email) from user WHERE usr_email = ?", [email]))[0][0]['count(usr_email)'] > 0 ? false : true;
 
         if(!emailValidation){
             return res.status(409).json({status: "Email-Conflict" , message:"Email is already registered.Redirecting to Login."});
         }
         const hashedPassw = await hashPassword(password);
-
+        await connection.beginTransaction();
         const result = (await pool.query("INSERT INTO user(usr_username,usr_email,usr_passw) VALUES(?,?,?)",[username,email,hashedPassw]))[0];
+        await connection.commit();
 
         if(result.affectedRows === 0){
             return res.status(400).json({status : 'NO-INSERT_USER',message : 'Cant register right now.'});
@@ -64,9 +51,11 @@ appRouter.post("/register",async (req,res)=>{
         });
     }
     catch(err){
+        await connection.rollback();
         console.log(err);
         res.status(500).json({status:"DB/SERVER-Error", message: "Server is not available."});
     }
+    finally{await connection.release();}
 });
 
 appRouter.post("/login",async (req,res)=>{

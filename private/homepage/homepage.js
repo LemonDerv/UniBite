@@ -113,24 +113,103 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const feedGrid = document.querySelector(".feed-grid");
-    const interactiveMapEl = document.getElementById('interactive-map');
-    const radiusSlider = document.getElementById('radius-slider');
-    const radiusValueEl = document.getElementById('radius-value');
-    const allergyCheckbox = document.getElementById('filter-allergies');
-    const categoryButtons = document.querySelectorAll('.category');
-    const btnUseLocation = document.getElementById('homepage-btn-use-location');
-    const prevBtn = document.querySelector('.page-btn.prev');
-    const nextBtn = document.querySelector('.page-btn.next');
+    
+    fetch('/api/posts/meals' ,{
+        method : 'GET'
+    })
+    .then(async (res)=>{
+        const data = await res.json();
 
-    let allMeals = [];
-    let interactiveMap = null;
-    let userMarker = null;
-    let userCircle = null;
-    let offerMarkers = [];
-    let userLatLng = [38.2466, 21.7346]; // Patras default fallback
-    let activeCategories = new Set();
-    let currentPage = 0;
-    const postsPerPage = 12;
+        if(res.status === 500 || res.status=== 404){
+            alert("No meals found.")
+            return;
+        }
+
+        const meals = data.body;
+        meals.forEach(meal=>{
+            feedGrid.insertAdjacentHTML('beforeend', `<article class="post-card" 
+                    data-id="${meal.lst_id}"
+                    data-location="${meal.pickup_location}"
+                    data-pickup_windows='${JSON.stringify(meal.pickup_windows)}' 
+                    data-img="${meal.img}" 
+                    data-expires_at="${meal.expires_at}"
+                >
+                    <div class="post-thumb"></div>
+                    <div class="post-body">
+                        <div class="post-header">
+                            <div class="post-title-group">
+                                <h2 class="post-title">${meal.title}</h2>
+                                <span class="post-portions">${meal.portions}</span>
+                            </div>
+                        </div>
+                        <p class="post-description">${meal.description? meal.description : "No description found."}</p>
+                        <div class="post-tags" data-tags="${!meal.meal_tags.length? '' : meal.meal_tags}">
+                        </div>
+                        <div class="post-meta">
+                            <span>By ${meal.usr_username} • 1.2 km away</span>
+                            <span class="post-time-remaining" data-timer> remaining</span>
+                        </div>
+                        <div class="post-allergens" data-allergens="${!meal.allergens.length ? '': meal.allergens}"></div>
+                        <div class="post-actions">
+                            <button class="btn secondary view-details-btn">View Details</button>
+                        </div>
+                    </div>
+                </article>`);
+
+            startTimer(meal.expires_at, feedGrid.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-time-remaining`));
+        
+            
+            const card = feedGrid.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-tags`);
+            const postImg = document.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-thumb`);
+            if(meal.img !== ''){
+                postImg.innerHTML = `<canvas></canvas>`;
+                const img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.src = meal.img;
+
+                img.onload = ()=>{
+                    renderMealImg(img,postImg.clientWidth , 0.5,postImg.querySelector("canvas"));
+                };
+
+                window.addEventListener('resize' , ()=>{
+                    renderMealImg(img,postImg.clientWidth , 0.5,postImg.querySelector("canvas"));
+                });
+            }
+            else postImg.innerHTML = "No Image Set";
+
+            if(meal.meal_tags?.length){
+                meal.meal_tags.forEach(tag=>{
+                    card.insertAdjacentHTML('beforeend' , `<span class="tag">${tag}</span>`);      
+               });
+            }
+            else {
+                card.innerHTML += 'This meal has no tags.';
+                card.classList.add('no-tags');
+            }
+
+            const allergenscard = feedGrid.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-allergens`);
+
+            if(meal.allergens?.length){
+                allergenscard.innerHTML += 'This meal has allergens noted.';
+                allergenscard.classList.add('yes-allergens');
+            }
+            else {
+                allergenscard.innerHTML += 'This meal has no allergens noted.';
+                allergenscard.classList.add('no-allergens');
+            }
+        });
+
+        /* open events */
+        document.querySelectorAll(".view-details-btn").forEach(button => {
+            button.addEventListener("click", () => {
+                const postItem = button.closest(".post-card");
+                
+                openViewModal(postItem);
+            });
+        });
+
+    })
+    .catch((err)=>{console.log(err)});
 
     function renderAddressDropdown() {
         if (!addressDropdown) return;
@@ -164,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addressMapPanel.hidden = true;
     }
 
-    function showGeoError(message) {
+    function showGeoError(key) {
         if (!geoErrorEl) return;
         geoErrorEl.textContent = message;
         geoErrorEl.hidden = false;
@@ -194,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        homepageMap = L.map('homepage-map').setView(userLatLng, 14);
+        homepageMap = L.map('homepage-map').setView([38.2466, 21.7346], 14);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             maxZoom: 19,
             subdomains: 'abcd',
@@ -233,19 +312,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return shortenAddress(data.display_name) || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
     }
 
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-        if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return null;
-        const R = 6371; // Earth radius in km
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-    }
-
     if (addressBtn && addressDropdown) {
         renderAddressDropdown();
         setSelectedAddress(addresses[0]);
@@ -265,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 setSelectedAddress(li.textContent.trim());
                 closeAddressMapPanel();
-                updateInteractiveMapLocation();
+                updateInteractiveMapRadius();
             }
 
             addressDropdown.classList.remove('show');
@@ -312,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderAddressDropdown();
         setSelectedAddress(val);
         closeAddressMapPanel();
-        updateInteractiveMapLocation();
+        updateInteractiveMapRadius();
     });
 
     const cancelAddressBtn = document.getElementById('homepage-btn-address-cancel');
@@ -322,43 +388,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    btnUseLocation?.addEventListener('click', () => {
-        clearGeoError();
-        if (!navigator.geolocation) {
-            showGeoError('Geolocation is not supported by your browser.');
-            return;
-        }
-
-        btnUseLocation.disabled = true;
-        navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                const { latitude, longitude } = position.coords;
-                placeHomepageMarker(latitude, longitude);
-                userLatLng = [latitude, longitude];
-
-                if (userMarker) userMarker.setLatLng(userLatLng);
-                if (userCircle) userCircle.setLatLng(userLatLng);
-                if (interactiveMap) interactiveMap.setView(userLatLng, 14);
-
-                try {
-                    const disp = await reverseGeocode(latitude, longitude);
-                    addressInput.value = disp;
-                } catch {
-                    addressInput.value = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
-                }
-                btnUseLocation.disabled = false;
-            },
-            (err) => {
-                btnUseLocation.disabled = false;
-                showGeoError('Could not access current location. Please check browser permissions.');
-            },
-            { timeout: 10000 }
-        );
-    });
-
     /* ------------------------------
-       INTERACTIVE MAP FOR MEALS
+       INTERACTIVE MAP FOR OFFERS
     ------------------------------ */
+    const interactiveMapEl = document.getElementById('interactive-map');
+    const radiusSlider = document.getElementById('radius-slider');
+    const radiusValueEl = document.getElementById('radius-value');
+    let interactiveMap = null;
+    let userMarker = null;
+    let offerMarkers = [];
+    let userCircle = null;
+    let userLatLng = [38.2466, 21.7346]; // Patra as default
+
+    // Helper to generate timestamps
+    const nowTimestamp = new Date().getTime();
+    const hoursToMs = (hours) => hours * 60 * 60 * 1000;
+
+    // Sample data for offers (to be replaced with real data)
+    const sampleOffers = [
+        { id: 1, title: 'Homemade Pasta Plate', lat: 38.2466, lng: 21.7346, distance: 1.2, createdAt: new Date(nowTimestamp - hoursToMs(10)).toISOString(), portions: 3 },
+        { id: 2, title: 'Greek Salad', lat: 38.2500, lng: 21.7350, distance: 1.5, createdAt: new Date(nowTimestamp - hoursToMs(20)).toISOString(), portions: 0 },
+        { id: 3, title: 'Vegetable Soup', lat: 38.2450, lng: 21.7400, distance: 2.0, createdAt: new Date(nowTimestamp - hoursToMs(50)).toISOString(), portions: 2 },
+        { id: 4, title: 'Chicken Curry', lat: 38.2550, lng: 21.7250, distance: 3.0, createdAt: new Date(nowTimestamp - hoursToMs(5)).toISOString(), portions: 5 },
+        { id: 5, title: 'Beef Stew', lat: 38.2600, lng: 21.7300, distance: 4.0, createdAt: new Date(nowTimestamp - hoursToMs(40)).toISOString(), portions: 0 }
+    ];
+
+    function getOfferStatus(offer) {
+        const now = new Date();
+        const created = new Date(offer.createdAt);
+        const diffHours = (now - created) / (1000 * 60 * 60);
+
+        if (diffHours >= 48) {
+            return 'deleted';
+        } else if (offer.portions > 0) {
+            return 'active';
+        } else {
+            return 'inactive';
+        }
+    }
+
     function initInteractiveMap() {
         if (interactiveMap || !interactiveMapEl) return;
 
@@ -367,10 +435,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        interactiveMap = L.map('interactive-map').setView(userLatLng, 13);
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        interactiveMap = L.map('interactive-map').setView(userLatLng, 14);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            subdomains: 'abcd',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
         }).addTo(interactiveMap);
 
         // Add user marker
@@ -378,371 +447,148 @@ document.addEventListener('DOMContentLoaded', () => {
             icon: L.divIcon({
                 className: 'user-marker',
                 html: '📍',
-                iconSize: [40, 40],
-                iconAnchor: [20, 40]
+                iconSize: [50, 50],
+                iconAnchor: [25, 50]
             })
         }).addTo(interactiveMap);
 
         // Add circle for radius
-        const initialRadiusKm = parseFloat(radiusSlider?.value || 10);
         userCircle = L.circle(userLatLng, {
-            radius: initialRadiusKm * 1000,
+            radius: 1000, // Default radius in meters (1 km)
             color: '#cc5500',
             fillColor: '#cc5500',
             fillOpacity: 0.2
         }).addTo(interactiveMap);
 
-        if (radiusValueEl && radiusSlider) {
-            radiusValueEl.textContent = `${radiusSlider.value} km`;
-        }
-
-        setTimeout(() => {
-            if (interactiveMap) interactiveMap.invalidateSize();
-        }, 200);
-
-        window.addEventListener('resize', () => {
-            if (interactiveMap) interactiveMap.invalidateSize();
+        // Add sample offer markers
+        sampleOffers.forEach(offer => {
+            const marker = L.marker([offer.lat, offer.lng]).addTo(interactiveMap);
+            let statusText = '';
+            const status = getOfferStatus(offer);
+            if (status === 'inactive') statusText = ' (Inactive)';
+            marker.bindPopup(`<b>${offer.title}${statusText}</b><br>Distance: ${offer.distance} km`);
+            offerMarkers.push(marker);
         });
 
         // Update circle radius when slider changes
         radiusSlider?.addEventListener('input', (e) => {
             const radiusKm = parseFloat(e.target.value);
             const radiusMeters = radiusKm * 1000;
-            if (userCircle) userCircle.setRadius(radiusMeters);
-            if (radiusValueEl) radiusValueEl.textContent = `${radiusKm} km`;
-            applyAllFilters();
+            userCircle.setRadius(radiusMeters);
+            radiusValueEl.textContent = `${radiusKm} km`;
+            filterOffersByRadius(radiusKm);
         });
+
+        // Set initial radius value
+        radiusSlider.value = 1;
+        radiusValueEl.textContent = `${radiusSlider.value} km`;
 
         // Center map on user's selected address
-        updateInteractiveMapLocation();
+        updateInteractiveMapRadius();
     }
 
-    function updateInteractiveMapLocation() {
-        if (!selectedAddress) return;
+    function updateInteractiveMapRadius() {
+        if (!interactiveMap || !selectedAddress) return;
 
+        // Geocode the selected address to get coordinates
         geocodeAddress(selectedAddress).then(({ lat, lng }) => {
             userLatLng = [lat, lng];
-            if (userMarker) userMarker.setLatLng(userLatLng);
-            if (userCircle) userCircle.setLatLng(userLatLng);
-            if (interactiveMap) interactiveMap.setView(userLatLng, 14);
-            updateOfferMarkers();
-            applyAllFilters();
+            userMarker.setLatLng(userLatLng);
+            userCircle.setLatLng(userLatLng);
+            interactiveMap.setView(userLatLng, 14);
+            filterOffersByRadius(parseInt(radiusSlider?.value || 1));
         }).catch(() => {
-            console.log('Could not geocode selected address, keeping current coords.');
-            updateOfferMarkers();
-            applyAllFilters();
+            console.error('Could not geocode selected address');
         });
     }
 
-    function updateOfferMarkers() {
-        if (!interactiveMap || !window.L) return;
+    function filterOffersByRadius(radiusKm) {
+        const radiusMeters = radiusKm * 1000;
+        const userLat = userLatLng[0];
+        const userLng = userLatLng[1];
 
-        // Clear existing markers
-        offerMarkers.forEach(({ marker }) => {
-            interactiveMap.removeLayer(marker);
-        });
-        offerMarkers = [];
-
-        allMeals.forEach(meal => {
-            const lat = parseFloat(meal.pickup_latitude);
-            const lng = parseFloat(meal.pickup_longitude);
-            if (isNaN(lat) || isNaN(lng)) return;
-
-            const marker = L.marker([lat, lng]);
-            const dist = calculateDistance(userLatLng[0], userLatLng[1], lat, lng);
-            const distText = dist !== null ? `${dist.toFixed(1)} km away` : 'Distance unknown';
-
-            const popupContent = document.createElement('div');
-            popupContent.className = 'map-meal-popup';
-            popupContent.innerHTML = `
-                <div style="font-family: inherit; font-size: 13px; line-height: 1.4; min-width: 150px;">
-                    <strong style="display: block; font-size: 14px; margin-bottom: 2px; color: #222;">${meal.title}</strong>
-                    <span class="map-popup-dist" style="color: #666; font-size: 12px; display: block; margin-bottom: 4px;">By ${meal.usr_username || 'User'} • ${distText}</span>
-                    <span style="display: block; margin-bottom: 6px; font-size: 12px; font-weight: 500;">Portions: <strong>${meal.portions}</strong></span>
-                    <button type="button" class="map-popup-view-btn" style="background: #cc5500; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; width: 100%;">View Details</button>
-                </div>
-            `;
-
-            popupContent.querySelector('.map-popup-view-btn').addEventListener('click', () => {
-                const postItem = document.querySelector(`.post-card[data-id="${meal.lst_id}"]`);
-                if (postItem) {
-                    openViewModal(postItem);
-                }
-            });
-
-            marker.bindPopup(popupContent);
-            offerMarkers.push({ marker, meal, lat, lng });
-        });
-    }
-
-    function renderMealCards() {
-        if (!feedGrid) return;
-        feedGrid.innerHTML = '';
-
-        if (!allMeals.length) {
-            feedGrid.innerHTML = '<div class="no-meals-msg" style="grid-column: 1/-1; text-align: center; padding: 40px; color: #777;">No active meals found.</div>';
-            updatePagination();
-            return;
-        }
-
-        allMeals.forEach(meal => {
-            const lat = parseFloat(meal.pickup_latitude);
-            const lng = parseFloat(meal.pickup_longitude);
-            const dist = (!isNaN(lat) && !isNaN(lng))
-                ? calculateDistance(userLatLng[0], userLatLng[1], lat, lng)
-                : null;
-            const distText = dist !== null ? `${dist.toFixed(1)} km away` : 'Distance unknown';
-
-            const tagsAttr = Array.isArray(meal.meal_tags) ? meal.meal_tags.join(',') : '';
-            const allergensAttr = Array.isArray(meal.allergens) ? meal.allergens.join(',') : '';
-
-            feedGrid.insertAdjacentHTML('beforeend', `<article class="post-card" 
-                    data-id="${meal.lst_id}"
-                    data-location="${meal.pickup_location || ''}"
-                    data-lat="${meal.pickup_latitude || ''}"
-                    data-lng="${meal.pickup_longitude || ''}"
-                    data-pickup_windows='${JSON.stringify(meal.pickup_windows || [])}' 
-                    data-img="${meal.img || ''}" 
-                    data-expires_at="${meal.expires_at || ''}"
-                >
-                    <div class="post-thumb"></div>
-                    <div class="post-body">
-                        <div class="post-header">
-                            <div class="post-title-group">
-                                <h2 class="post-title">${meal.title}</h2>
-                                <span class="post-portions">${meal.portions}</span>
-                            </div>
-                        </div>
-                        <p class="post-description">${meal.description ? meal.description : "No description found."}</p>
-                        <div class="post-tags" data-tags="${tagsAttr}"></div>
-                        <div class="post-meta">
-                            <span>By ${meal.usr_username || 'User'} • <span class="post-dist-text">${distText}</span></span>
-                            <span class="post-time-remaining" data-timer> remaining</span>
-                        </div>
-                        <div class="post-allergens" data-allergens="${allergensAttr}"></div>
-                        <div class="post-actions">
-                            <button class="btn secondary view-details-btn">View Details</button>
-                        </div>
-                    </div>
-                </article>`);
-
-            const postCardEl = feedGrid.querySelector(`.post-card[data-id="${meal.lst_id}"]`);
-            if (meal.expires_at) {
-                startTimer(meal.expires_at, postCardEl.querySelector('.post-time-remaining'));
-            }
-
-            const cardTagsEl = postCardEl.querySelector('.post-tags');
-            const postImg = postCardEl.querySelector('.post-thumb');
-            if (meal.img) {
-                postImg.innerHTML = `<canvas></canvas>`;
-                const img = new Image();
-                img.crossOrigin = 'Anonymous';
-                img.src = meal.img;
-
-                img.onload = () => {
-                    renderMealImg(img, postImg.clientWidth, 0.5, postImg.querySelector("canvas"));
-                };
-
-                window.addEventListener('resize', () => {
-                    renderMealImg(img, postImg.clientWidth, 0.5, postImg.querySelector("canvas"));
-                });
-            } else {
-                postImg.innerHTML = "No Image Set";
-            }
-
-            if (meal.meal_tags && meal.meal_tags.length) {
-                meal.meal_tags.forEach(tag => {
-                    cardTagsEl.insertAdjacentHTML('beforeend', `<span class="tag">${tag}</span>`);
-                });
-            } else {
-                cardTagsEl.innerHTML = 'This meal has no tags.';
-                cardTagsEl.classList.add('no-tags');
-            }
-
-            const allergensCard = postCardEl.querySelector('.post-allergens');
-            if (meal.allergens && meal.allergens.length) {
-                allergensCard.innerHTML = 'This meal has allergens noted.';
-                allergensCard.classList.add('yes-allergens');
-            } else {
-                allergensCard.innerHTML = 'This meal has no allergens noted.';
-                allergensCard.classList.add('no-allergens');
-            }
-        });
-
-        feedGrid.querySelectorAll(".view-details-btn").forEach(button => {
-            button.addEventListener("click", () => {
-                const postItem = button.closest(".post-card");
-                openViewModal(postItem);
-            });
-        });
-    }
-
-    function applyAllFilters() {
-        const radiusKm = parseFloat(radiusSlider?.value || 10);
-        const setup = readUserSetup();
-        const userAllergies = (Array.isArray(setup.allergies) ? setup.allergies : []).map(a => a.toLowerCase().trim());
-        const shouldFilterAllergies = allergyCheckbox?.checked || false;
-
-        let visibleCount = 0;
-        const postCards = Array.from(document.querySelectorAll('.feed-grid .post-card'));
-
-        // 1. Filter Map Markers
-        offerMarkers.forEach(({ marker, meal, lat, lng }) => {
-            const dist = calculateDistance(userLatLng[0], userLatLng[1], lat, lng);
-            let matchesRadius = dist === null || dist <= radiusKm;
-
-            let matchesCategory = true;
-            if (activeCategories.size > 0) {
-                const mealTags = (meal.meal_tags || []).map(t => t.toLowerCase().trim());
-                matchesCategory = Array.from(activeCategories).some(cat => mealTags.includes(cat.toLowerCase().trim()));
-            }
-
-            let matchesAllergies = true;
-            if (shouldFilterAllergies && userAllergies.length > 0) {
-                const mealAllergens = (meal.allergens || []).map(a => a.toLowerCase().trim());
-                const hasConflict = mealAllergens.some(a => userAllergies.includes(a));
-                if (hasConflict) matchesAllergies = false;
-            }
-
-            if (matchesRadius && matchesCategory && matchesAllergies) {
+        offerMarkers.forEach((marker, index) => {
+            const offer = sampleOffers[index];
+            const distance = calculateDistance(userLat, userLng, offer.lat, offer.lng);
+            const status = getOfferStatus(offer);
+            
+            // Show/hide markers based on distance and status
+            if (distance <= radiusMeters && status !== 'deleted') {
                 marker.addTo(interactiveMap);
-                const distText = dist !== null ? `${dist.toFixed(1)} km away` : 'Distance unknown';
-                const popup = marker.getPopup();
-                if (popup) {
-                    const distSpan = popup.getElement()?.querySelector('.map-popup-dist');
-                    if (distSpan) distSpan.textContent = `By ${meal.usr_username || 'User'} • ${distText}`;
+                if (status === 'inactive') {
+                    marker.setOpacity(0.5);
+                } else {
+                    marker.setOpacity(1);
                 }
             } else {
                 interactiveMap.removeLayer(marker);
             }
         });
 
-        // 2. Filter Post Cards
-        postCards.forEach(card => {
-            const id = parseInt(card.dataset.id);
-            const meal = allMeals.find(m => m.lst_id === id);
-            if (!meal) {
-                card.dataset.filterVisible = 'false';
-                return;
-            }
-
-            const lat = parseFloat(meal.pickup_latitude);
-            const lng = parseFloat(meal.pickup_longitude);
-            const dist = (!isNaN(lat) && !isNaN(lng))
-                ? calculateDistance(userLatLng[0], userLatLng[1], lat, lng)
-                : null;
-
-            // Update distance text on card
-            const distSpan = card.querySelector('.post-dist-text');
-            if (distSpan) {
-                distSpan.textContent = dist !== null ? `${dist.toFixed(1)} km away` : 'Distance unknown';
-            }
-
-            let matchesRadius = dist === null || dist <= radiusKm;
-
-            let matchesCategory = true;
-            if (activeCategories.size > 0) {
-                const mealTags = (meal.meal_tags || []).map(t => t.toLowerCase().trim());
-                matchesCategory = Array.from(activeCategories).some(cat => mealTags.includes(cat.toLowerCase().trim()));
-            }
-
-            let matchesAllergies = true;
-            if (shouldFilterAllergies && userAllergies.length > 0) {
-                const mealAllergens = (meal.allergens || []).map(a => a.toLowerCase().trim());
-                const hasConflict = mealAllergens.some(a => userAllergies.includes(a));
-                if (hasConflict) matchesAllergies = false;
-            }
-
-            if (matchesRadius && matchesCategory && matchesAllergies) {
-                card.dataset.filterVisible = 'true';
-                visibleCount++;
-            } else {
-                card.dataset.filterVisible = 'false';
-            }
-        });
-
-        // Empty state handling
-        let noMealsEl = feedGrid?.querySelector('.no-meals-msg');
-        if (visibleCount === 0 && allMeals.length > 0) {
-            if (!noMealsEl && feedGrid) {
-                feedGrid.insertAdjacentHTML('beforeend', '<div class="no-meals-msg" style="grid-column: 1/-1; text-align: center; padding: 40px; color: #777;">No meals match your current distance, food type, or allergy filters.</div>');
-            }
-        } else if (noMealsEl) {
-            noMealsEl.remove();
-        }
-
-        currentPage = 0;
-        updatePagination();
+        // Filter post cards in the feed
+        filterPostCardsByRadius(radiusKm);
     }
 
-    function updatePagination() {
-        const visibleCards = Array.from(document.querySelectorAll('.feed-grid .post-card[data-filter-visible="true"]'));
-        const allCards = Array.from(document.querySelectorAll('.feed-grid .post-card'));
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        // Haversine formula for the distance between two points
+        const R = 6371000; // Earth radius in meters
+        const f1 = lat1 * Math.PI / 180;
+        const f2 = lat2 * Math.PI / 180;
+        const Df = (lat2 - lat1) * Math.PI / 180;
+        const Dl = (lon2 - lon1) * Math.PI / 180;
 
-        allCards.forEach(card => {
-            if (card.dataset.filterVisible === 'false') {
+        const a = Math.sin(Df / 2) * Math.sin(Df / 2) +
+                  Math.cos(f1) * Math.cos(f2) *
+                  Math.sin(Dl / 2) * Math.sin(Dl / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c;
+    }
+
+    function filterPostCardsByRadius(radiusKm) {
+        const postCards = document.querySelectorAll('.post-card');
+        const radiusMeters = radiusKm * 1000;
+
+        postCards.forEach((card, index) => {
+            const offer = sampleOffers[index % sampleOffers.length]; // Cycle through sample offers
+            const distance = calculateDistance(userLatLng[0], userLatLng[1], offer.lat, offer.lng);
+            const status = getOfferStatus(offer);
+            
+            if (distance <= radiusMeters && status !== 'deleted') {
+                card.style.display = 'block';
+                if (status === 'inactive') {
+                    card.style.opacity = '0.5';
+                    card.style.pointerEvents = 'none'; // Optional: disable clicks
+                } else {
+                    card.style.opacity = '1';
+                    card.style.pointerEvents = 'auto';
+                }
+            } else {
                 card.style.display = 'none';
             }
         });
-
-        visibleCards.forEach((card, index) => {
-            const shouldShow = index >= currentPage * postsPerPage && index < (currentPage + 1) * postsPerPage;
-            card.style.display = shouldShow ? 'block' : 'none';
-        });
-
-        if (prevBtn) prevBtn.disabled = currentPage === 0;
-        if (nextBtn) nextBtn.disabled = (currentPage + 1) * postsPerPage >= visibleCards.length;
     }
 
-    // Initialize the interactive map immediately on page load
+    /* Initialize the interactive map */
     initInteractiveMap();
-
-    // Fetch active meals directly from MySQL via Backend API
-    fetch('/api/posts/meals', {
-        method: 'GET'
-    })
-    .then(async (res) => {
-        if (!res.ok) {
-            console.error('Error fetching meals from server, status:', res.status);
-            allMeals = [];
-            renderMealCards();
-            return;
-        }
-        const data = await res.json();
-        allMeals = data.body || [];
-
-        renderMealCards();
-        updateOfferMarkers();
-        applyAllFilters();
-    })
-    .catch((err) => {
-        console.error('API connection failed:', err);
-        allMeals = [];
-        renderMealCards();
-    });
 
     /* ------------------------------
        ALLERGY FILTER
     ------------------------------ */
+    const allergyCheckbox = document.getElementById('filter-allergies');
     if (allergyCheckbox) {
         allergyCheckbox.addEventListener('change', () => {
-            applyAllFilters();
+            console.log(`Allergy filter: ${allergyCheckbox.checked}`);
         });
     }
 
     /* ------------------------------
        CATEGORY TOGGLE
     ------------------------------ */
+    const categoryButtons = document.querySelectorAll('.category');
     categoryButtons.forEach((btn) => {
         btn.addEventListener('click', () => {
-            const catName = btn.textContent.trim();
             btn.classList.toggle('active');
-            if (btn.classList.contains('active')) {
-                activeCategories.add(catName);
-            } else {
-                activeCategories.delete(catName);
-            }
-            applyAllFilters();
         });
     });
 
@@ -865,7 +711,7 @@ document.addEventListener('DOMContentLoaded', () => {
         viewPortions.textContent = portions;
         viewDescription.textContent = postItem.querySelector(".post-description")?.textContent;
         viewAddress.textContent = postItem.dataset.location;
-        viewPickupTimes.textContent = JSON.parse(postItem.dataset.pickup_windows).map(window => `${window.start.replace('T',' ').replaceAll('-','/').slice(0,16)} - ${window.end.replace('T',' ').replaceAll('-','/').slice(0,16)}`).join(' , ');
+        viewPickupTimes.textContent = JSON.parse(postItem.dataset.pickup_windows).map(window => `${window[0].replace('T',' ').replaceAll('-','/').slice(0,16)} - ${window[1].replace('T',' ').replaceAll('-','/').slice(0,16)}`).join(' , ');
 
         if(postItem.dataset.img !== ''){
             viewImage.innerHTML = "<canvas></canvas>";
@@ -1418,29 +1264,56 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* ------------------------------
-       PAGINATION CONTROLS
+       PAGINATION
     ------------------------------ */
+    const posts = document.querySelectorAll('.post-card');
+    const prevBtn = document.querySelector('.page-btn.prev');
+    const nextBtn = document.querySelector('.page-btn.next');
+
+    let currentPage = 0;
+    const postsPerPage = 12;
+
+    function showPage(page) {
+        posts.forEach((post, index) => {
+            post.style.display = 
+                index >= page * postsPerPage &&
+                index < (page + 1) * postsPerPage
+                    ? 'block'
+                    : 'none';
+        });
+
+        if (prevBtn) prevBtn.disabled = page === 0;
+        if (nextBtn) nextBtn.disabled = (page + 1) * postsPerPage >= posts.length;
+    }
+
     if (prevBtn && nextBtn) {
+        showPage(currentPage);
+
         nextBtn.addEventListener('click', () => {
-            const visibleCards = Array.from(document.querySelectorAll('.feed-grid .post-card[data-filter-visible="true"]'));
-            if ((currentPage + 1) * postsPerPage < visibleCards.length) {
+            if ((currentPage + 1) * postsPerPage < posts.length) {
                 currentPage++;
-                updatePagination();
-                window.scrollTo({
-                    top: 0,
-                    behavior: "smooth"
-                });
+                showPage(currentPage);
+
+                setTimeout(() => {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: "smooth"
+                    });
+                }, 0);
             }
         });
 
         prevBtn.addEventListener('click', () => {
             if (currentPage > 0) {
                 currentPage--;
-                updatePagination();
-                window.scrollTo({
-                    top: 0,
-                    behavior: "smooth"
-                });
+                showPage(currentPage);
+
+                setTimeout(() => {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: "smooth"
+                    });
+                }, 0);
             }
         });
     }
