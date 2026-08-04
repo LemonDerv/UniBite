@@ -107,7 +107,7 @@ CREATE PROCEDURE sp_fail_delivery(
 )
 BEGIN
 	UPDATE deliveries
-	SET status='NO_SHOW'
+	SET status='REJECTED'
 	WHERE req_id=p_req;
 END$
 DELIMITER ;
