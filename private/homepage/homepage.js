@@ -112,8 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
         counter.dataset.timer = setInterval(()=>{updateTime(expires_at,counter)},1000);
     }
 
-    const feedGrid = document.querySelector(".feed-grid");
-    
+    let liveOffers = [];
+
     fetch('/api/posts/meals' ,{
         method : 'GET'
     })
@@ -125,14 +125,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const meals = data.body;
+        const meals = data.body || [];
+        liveOffers = meals;
         meals.forEach(meal=>{
             feedGrid.insertAdjacentHTML('beforeend', `<article class="post-card" 
                     data-id="${meal.lst_id}"
-                    data-location="${meal.pickup_location}"
-                    data-pickup_windows='${JSON.stringify(meal.pickup_windows)}' 
-                    data-img="${meal.img}" 
-                    data-expires_at="${meal.expires_at}"
+                    data-location="${meal.pickup_location || ''}"
+                    data-pickup_windows='${JSON.stringify(meal.pickup_windows || [])}' 
+                    data-img="${meal.img || ''}" 
+                    data-expires_at="${meal.expires_at || ''}"
                 >
                     <div class="post-thumb"></div>
                     <div class="post-body">
@@ -143,25 +144,26 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
                         <p class="post-description">${meal.description? meal.description : "No description found."}</p>
-                        <div class="post-tags" data-tags="${!meal.meal_tags.length? '' : meal.meal_tags}">
+                        <div class="post-tags" data-tags="${!meal.meal_tags?.length? '' : meal.meal_tags.join(',')}">
                         </div>
                         <div class="post-meta">
-                            <span>By ${meal.usr_username} • 1.2 km away</span>
+                            <span>By ${meal.usr_username || 'User'} • <span class="post-card-dist">Distance calculating...</span></span>
                             <span class="post-time-remaining" data-timer> remaining</span>
                         </div>
-                        <div class="post-allergens" data-allergens="${!meal.allergens.length ? '': meal.allergens}"></div>
+                        <div class="post-allergens" data-allergens="${!meal.allergens?.length ? '': meal.allergens.join(',')}"></div>
                         <div class="post-actions">
                             <button class="btn secondary view-details-btn">View Details</button>
                         </div>
                     </div>
                 </article>`);
 
-            startTimer(meal.expires_at, feedGrid.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-time-remaining`));
-        
+            if (meal.expires_at) {
+                startTimer(meal.expires_at, feedGrid.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-time-remaining`));
+            }
             
             const card = feedGrid.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-tags`);
             const postImg = document.querySelector(`.post-card[data-id="${meal.lst_id}"] .post-thumb`);
-            if(meal.img !== ''){
+            if(meal.img && meal.img !== ''){
                 postImg.innerHTML = `<canvas></canvas>`;
                 const img = new Image();
                 img.crossOrigin = 'Anonymous';
@@ -203,11 +205,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll(".view-details-btn").forEach(button => {
             button.addEventListener("click", () => {
                 const postItem = button.closest(".post-card");
-                
                 openViewModal(postItem);
             });
         });
 
+        updateOfferMarkers();
+        filterOffersByRadius(parseFloat(radiusSlider?.value || 10));
     })
     .catch((err)=>{console.log(err)});
 
@@ -400,31 +403,33 @@ document.addEventListener('DOMContentLoaded', () => {
     let userCircle = null;
     let userLatLng = [38.2466, 21.7346]; // Patra as default
 
-    // Helper to generate timestamps
-    const nowTimestamp = new Date().getTime();
-    const hoursToMs = (hours) => hours * 60 * 60 * 1000;
-
-    // Sample data for offers (to be replaced with real data)
-    const sampleOffers = [
-        { id: 1, title: 'Homemade Pasta Plate', lat: 38.2466, lng: 21.7346, distance: 1.2, createdAt: new Date(nowTimestamp - hoursToMs(10)).toISOString(), portions: 3 },
-        { id: 2, title: 'Greek Salad', lat: 38.2500, lng: 21.7350, distance: 1.5, createdAt: new Date(nowTimestamp - hoursToMs(20)).toISOString(), portions: 0 },
-        { id: 3, title: 'Vegetable Soup', lat: 38.2450, lng: 21.7400, distance: 2.0, createdAt: new Date(nowTimestamp - hoursToMs(50)).toISOString(), portions: 2 },
-        { id: 4, title: 'Chicken Curry', lat: 38.2550, lng: 21.7250, distance: 3.0, createdAt: new Date(nowTimestamp - hoursToMs(5)).toISOString(), portions: 5 },
-        { id: 5, title: 'Beef Stew', lat: 38.2600, lng: 21.7300, distance: 4.0, createdAt: new Date(nowTimestamp - hoursToMs(40)).toISOString(), portions: 0 }
-    ];
-
     function getOfferStatus(offer) {
-        const now = new Date();
-        const created = new Date(offer.createdAt);
-        const diffHours = (now - created) / (1000 * 60 * 60);
-
-        if (diffHours >= 48) {
-            return 'deleted';
-        } else if (offer.portions > 0) {
-            return 'active';
-        } else {
-            return 'inactive';
+        if (!offer) return 'deleted';
+        if (offer.expires_at) {
+            const now = new Date();
+            const expires = new Date(offer.expires_at);
+            if (expires - now <= 0) return 'deleted';
         }
+        if (parseInt(offer.portions, 10) > 0 || offer.status === 'ACTIVE') {
+            return 'active';
+        }
+        return 'inactive';
+    }
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        // Haversine formula for the distance between two points in meters
+        const R = 6371000; // Earth radius in meters
+        const f1 = lat1 * Math.PI / 180;
+        const f2 = lat2 * Math.PI / 180;
+        const Df = (lat2 - lat1) * Math.PI / 180;
+        const Dl = (lon2 - lon1) * Math.PI / 180;
+
+        const a = Math.sin(Df / 2) * Math.sin(Df / 2) +
+                  Math.cos(f1) * Math.cos(f2) *
+                  Math.sin(Dl / 2) * Math.sin(Dl / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c;
     }
 
     function initInteractiveMap() {
@@ -452,39 +457,57 @@ document.addEventListener('DOMContentLoaded', () => {
             })
         }).addTo(interactiveMap);
 
+        const initialRadiusKm = parseFloat(radiusSlider?.value || 10);
+
         // Add circle for radius
         userCircle = L.circle(userLatLng, {
-            radius: 1000, // Default radius in meters (1 km)
+            radius: initialRadiusKm * 1000,
             color: '#cc5500',
             fillColor: '#cc5500',
             fillOpacity: 0.2
         }).addTo(interactiveMap);
 
-        // Add sample offer markers
-        sampleOffers.forEach(offer => {
-            const marker = L.marker([offer.lat, offer.lng]).addTo(interactiveMap);
-            let statusText = '';
-            const status = getOfferStatus(offer);
-            if (status === 'inactive') statusText = ' (Inactive)';
-            marker.bindPopup(`<b>${offer.title}${statusText}</b><br>Distance: ${offer.distance} km`);
-            offerMarkers.push(marker);
-        });
+        if (radiusSlider && radiusValueEl) {
+            radiusSlider.value = initialRadiusKm;
+            radiusValueEl.textContent = `${initialRadiusKm} km`;
 
-        // Update circle radius when slider changes
-        radiusSlider?.addEventListener('input', (e) => {
-            const radiusKm = parseFloat(e.target.value);
-            const radiusMeters = radiusKm * 1000;
-            userCircle.setRadius(radiusMeters);
-            radiusValueEl.textContent = `${radiusKm} km`;
-            filterOffersByRadius(radiusKm);
-        });
+            radiusSlider.addEventListener('input', (e) => {
+                const radiusKm = parseFloat(e.target.value);
+                const radiusMeters = radiusKm * 1000;
+                userCircle.setRadius(radiusMeters);
+                radiusValueEl.textContent = `${radiusKm} km`;
+                filterOffersByRadius(radiusKm);
+            });
+        }
 
-        // Set initial radius value
-        radiusSlider.value = 1;
-        radiusValueEl.textContent = `${radiusSlider.value} km`;
-
-        // Center map on user's selected address
+        // Center map on user's selected address if available
         updateInteractiveMapRadius();
+    }
+
+    function updateOfferMarkers() {
+        if (!interactiveMap || !window.L) return;
+
+        // Clear previous offer markers
+        offerMarkers.forEach(item => {
+            if (item.marker) interactiveMap.removeLayer(item.marker);
+        });
+        offerMarkers = [];
+
+        liveOffers.forEach(offer => {
+            const lat = parseFloat(offer.pickup_latitude);
+            const lng = parseFloat(offer.pickup_longitude);
+            if (isNaN(lat) || isNaN(lng)) return;
+
+            const marker = L.marker([lat, lng]);
+            const status = getOfferStatus(offer);
+            const statusText = status === 'inactive' ? ' (Inactive)' : '';
+            marker.bindPopup(`
+                <b>${offer.title}${statusText}</b><br>
+                <span>By ${offer.usr_username || 'User'} • Portions: ${offer.portions}</span><br>
+                <small>${offer.pickup_location || ''}</small>
+            `);
+            offerMarkers.push({ marker, offer, lat, lng });
+        });
     }
 
     function updateInteractiveMapRadius() {
@@ -493,10 +516,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Geocode the selected address to get coordinates
         geocodeAddress(selectedAddress).then(({ lat, lng }) => {
             userLatLng = [lat, lng];
-            userMarker.setLatLng(userLatLng);
-            userCircle.setLatLng(userLatLng);
+            if (userMarker) userMarker.setLatLng(userLatLng);
+            if (userCircle) userCircle.setLatLng(userLatLng);
             interactiveMap.setView(userLatLng, 14);
-            filterOffersByRadius(parseInt(radiusSlider?.value || 1));
+            filterOffersByRadius(parseFloat(radiusSlider?.value || 10));
         }).catch(() => {
             console.error('Could not geocode selected address');
         });
@@ -507,13 +530,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const userLat = userLatLng[0];
         const userLng = userLatLng[1];
 
-        offerMarkers.forEach((marker, index) => {
-            const offer = sampleOffers[index];
-            const distance = calculateDistance(userLat, userLng, offer.lat, offer.lng);
+        const activeCategoryBtns = document.querySelectorAll('.category.active');
+        const activeCategories = Array.from(activeCategoryBtns).map(btn => btn.textContent.trim().toLowerCase());
+        const allergyChecked = document.getElementById('filter-allergies')?.checked || false;
+
+        // Filter map markers
+        offerMarkers.forEach(item => {
+            const { marker, offer, lat, lng } = item;
+            const distance = calculateDistance(userLat, userLng, lat, lng);
             const status = getOfferStatus(offer);
-            
-            // Show/hide markers based on distance and status
-            if (distance <= radiusMeters && status !== 'deleted') {
+
+            // Category match check
+            let matchesCategory = true;
+            if (activeCategories.length > 0) {
+                const offerTags = (offer.meal_tags || []).map(t => String(t).toLowerCase());
+                matchesCategory = activeCategories.some(cat => offerTags.includes(cat));
+            }
+
+            // Allergy check
+            let matchesAllergy = true;
+            if (allergyChecked && offer.allergens && offer.allergens.length > 0) {
+                matchesAllergy = false;
+            }
+
+            if (distance <= radiusMeters && status !== 'deleted' && matchesCategory && matchesAllergy) {
                 marker.addTo(interactiveMap);
                 if (status === 'inactive') {
                     marker.setOpacity(0.5);
@@ -526,39 +566,51 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Filter post cards in the feed
-        filterPostCardsByRadius(radiusKm);
-    }
-
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-        // Haversine formula for the distance between two points
-        const R = 6371000; // Earth radius in meters
-        const f1 = lat1 * Math.PI / 180;
-        const f2 = lat2 * Math.PI / 180;
-        const Df = (lat2 - lat1) * Math.PI / 180;
-        const Dl = (lon2 - lon1) * Math.PI / 180;
-
-        const a = Math.sin(Df / 2) * Math.sin(Df / 2) +
-                  Math.cos(f1) * Math.cos(f2) *
-                  Math.sin(Dl / 2) * Math.sin(Dl / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        return R * c;
-    }
-
-    function filterPostCardsByRadius(radiusKm) {
         const postCards = document.querySelectorAll('.post-card');
-        const radiusMeters = radiusKm * 1000;
+        postCards.forEach((card) => {
+            const lstId = card.dataset.id;
+            const offer = liveOffers.find(o => String(o.lst_id) === String(lstId));
 
-        postCards.forEach((card, index) => {
-            const offer = sampleOffers[index % sampleOffers.length]; // Cycle through sample offers
-            const distance = calculateDistance(userLatLng[0], userLatLng[1], offer.lat, offer.lng);
+            if (!offer) {
+                card.style.display = 'block';
+                return;
+            }
+
+            const lat = parseFloat(offer.pickup_latitude);
+            const lng = parseFloat(offer.pickup_longitude);
+            const hasCoords = !isNaN(lat) && !isNaN(lng);
+            const distance = hasCoords ? calculateDistance(userLat, userLng, lat, lng) : 0;
             const status = getOfferStatus(offer);
-            
-            if (distance <= radiusMeters && status !== 'deleted') {
+
+            // Update distance text in card
+            const distEl = card.querySelector('.post-card-dist');
+            if (distEl) {
+                if (hasCoords) {
+                    const distKm = (distance / 1000).toFixed(1);
+                    distEl.textContent = `${distKm} km away`;
+                } else {
+                    distEl.textContent = 'Location on request';
+                }
+            }
+
+            // Category match check
+            let matchesCategory = true;
+            if (activeCategories.length > 0) {
+                const offerTags = (offer.meal_tags || []).map(t => String(t).toLowerCase());
+                matchesCategory = activeCategories.some(cat => offerTags.includes(cat));
+            }
+
+            // Allergy check
+            let matchesAllergy = true;
+            if (allergyChecked && offer.allergens && offer.allergens.length > 0) {
+                matchesAllergy = false;
+            }
+
+            if ((!hasCoords || distance <= radiusMeters) && status !== 'deleted' && matchesCategory && matchesAllergy) {
                 card.style.display = 'block';
                 if (status === 'inactive') {
                     card.style.opacity = '0.5';
-                    card.style.pointerEvents = 'none'; // Optional: disable clicks
+                    card.style.pointerEvents = 'none';
                 } else {
                     card.style.opacity = '1';
                     card.style.pointerEvents = 'auto';
@@ -578,7 +630,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const allergyCheckbox = document.getElementById('filter-allergies');
     if (allergyCheckbox) {
         allergyCheckbox.addEventListener('change', () => {
-            console.log(`Allergy filter: ${allergyCheckbox.checked}`);
+            filterOffersByRadius(parseFloat(radiusSlider?.value || 10));
         });
     }
 
@@ -589,6 +641,7 @@ document.addEventListener('DOMContentLoaded', () => {
     categoryButtons.forEach((btn) => {
         btn.addEventListener('click', () => {
             btn.classList.toggle('active');
+            filterOffersByRadius(parseFloat(radiusSlider?.value || 10));
         });
     });
 
