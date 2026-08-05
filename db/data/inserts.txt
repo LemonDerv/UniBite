@@ -29,15 +29,15 @@ INSERT INTO meal_tag(mtag_type) VALUES
 ('Vegetables');
 
 INSERT INTO user (usr_id, usr_username, usr_email, usr_passw, usr_role) VALUES
-(1, 'gpapad_99', 'g.papadopoulos@mail.ntua.gr', '$2b$12$K8MzM2vR8eO5gG9hWxY1uOaeX8K7b4f3g2h1j0k9l8m7n6o5p4q3r', 'student'),
-(2, 'eleni_ant', 'eleni.antoniou@mail.ntua.gr', '$2b$12$L9NzN3vS9fP6hH0iXyZ2vBbfY9L8c5g4h3i2j1k0l9m8n7o6p5q4s', 'student'),
-(3, 'jim_dim', 'd.dimitriou@mail.ntua.gr', '$2b$12$M0OzO4vT0gQ7iI1jYzY3wCcgZ0M9d6h5i4j3k2l1m0n9o8p7q6t', 'student'),
-(4, 'maria_geo', 'maria.georgiou@mail.ntua.gr', '$2b$12$N1PzP5vU1hR8jJ2kZzZ4xDdhA1N0e7i6j5k4l3m2n1o0p9q8r7u', 'student'),
-(5, 'admin', 'admin.unibites@ntua.gr', '$2b$12$O2QzQ6vV2iS9kK3laaa5xEeiB2O1f8j7k6l5m4n3o2p1q0r9s8v', 'admin'),
-(6, 'alex_k', 'alex.k@mail.ntua.gr', '$2b$12$P3RzR7vW3jT0lL4mYyY5yEejC3O2g9k7l6m5n4o3p2q1r0s9t8u', 'student'),
-(7, 'sofia_p', 'sofia.p@mail.ntua.gr', '$2b$12$Q4SzS8vX4kU1mM5nZzZ6zFfkD4P3h0l8m7n6o5p4q3r2s1t0u9v', 'student'),
-(8, 'nikos_t', 'nikos.t@mail.ntua.gr', '$2b$12$R5TzT9vY5lV2nN6oAaA7aGglE5Q4i1m9n8o7p6q5r4s3t2u1v0w', 'student'),
-(9, 'katerina_m', 'katerina.m@mail.ntua.gr', '$2b$12$S6UzU0vZ6mW3oO7pBbB8bHhmF6R5j2n0o9p8q7r6s5t4u3v2w1x', 'student');
+(1, 'gpapad_99', 'g.papadopoulos@mail.ntua.gr', ' $argon2id$v=19$m=65536,p=4,t=3$PxvGi4jWm6YCnnSdsbOpHw$4WSR7twBDek0bKK7eKtwuUpsiBdMtiBsRBfMDpZffYI', 'student'), /*password=1234567890*/
+(2, 'eleni_ant', 'eleni.antoniou@mail.ntua.gr', ' $argon2id$v=19$m=65536,p=4,t=3$WMJAWnXy6vYZJeov8qwbNg$lMMHsy36ZCyaZDK7gV8svaWCBs9Pw68TRFWUs216SVU', 'student'), /*password=2345678901*/
+(3, 'jim_dim', 'd.dimitriou@mail.ntua.gr', '$argon2id$v=19$m=65536,p=4,t=3$Tl67epNvsqlMPw1ARwV7BA$EzgyQlVS+KwrVB6KihRVyfizp7bI3Y4/G48AmQ06AaY', 'student'), /*password=3456789012*/
+(4, 'maria_geo', 'maria.georgiou@mail.ntua.gr', '$argon2id$v=19$m=65536,p=4,t=3$esNd+xDKNLvhCBceO1vLWQ$CiesY8n2vBdmBaj97ZB3dIxRLqhEhRJquvcx6FwB8TA', 'student'), /*password=4567890123*/
+(5, 'admin', 'admin.unibites@ntua.gr', '$argon2id$v=19$m=65536,p=4,t=3$57g17tnqzq1p+OVkV8NWgA$W0bKL8BeqkV0TngdbCbLIBpSfGsTmQRA2Hhi/oai8Ss', 'admin'), /*password=5678901234*/
+(6, 'alex_k', 'alex.k@mail.ntua.gr', '$argon2id$v=19$m=65536,p=4,t=3$IPUmPQ90s9kZPlbwKB4nzg$ODeERK7RFI5hGhYtaQPDWXWVBd5Mj9m8jgE6KUzCsvI', 'student'), /*password=6789012345*/
+(7, 'sofia_p', 'sofia.p@mail.ntua.gr', '$argon2id$v=19$m=65536,p=4,t=3$SZUXEBzjTDM3fHiIgg0Yug$bmx/rmuzcYX6Mcn5dhagT20DN5+UFZuIDBXKhGFE5Gc', 'student'), /*password=7890123456*/
+(8, 'nikos_t', 'nikos.t@mail.ntua.gr', '$argon2id$v=19$m=65536,p=4,t=3$c/BZQFd3v6viDIAXVRf7Iw$Mi01ovFtOaAsT6vi9/yeeGihkXQ+mwhvgiMEdiY0U5w', 'student'), /*password=8901234567*/
+(9, 'katerina_m', 'katerina.m@mail.ntua.gr', '$argon2id$v=19$m=65536,p=4,t=3$a7DelVbnyRHl8Fqi4f3TrA$8fGlGAhl1efgUxSw1emEBIm1WW6sciPkLt0ON1Yg67o', 'student'); /*password=9012345*/
 
 INSERT INTO admin (adm_id) VALUES 
 (5);
