@@ -19,7 +19,7 @@ const cloudstorage = new sdk.Storage(client);
 
 appRouter.post("/register",async (req,res)=>{
     const {username, email,password}= req.body;
-    const connection = pool.getConnection();
+    const connection =await pool.getConnection();
 
     try {
         const emailValidation = (await connection.query("SELECT count(usr_email) from user WHERE usr_email = ?", [email]))[0][0]['count(usr_email)'] > 0 ? false : true;
@@ -29,7 +29,7 @@ appRouter.post("/register",async (req,res)=>{
         }
         const hashedPassw = await hashPassword(password);
         await connection.beginTransaction();
-        const result = (await pool.query("INSERT INTO user(usr_username,usr_email,usr_passw) VALUES(?,?,?)",[username,email,hashedPassw]))[0];
+        const result = (await connection.query("INSERT INTO user(usr_username,usr_email,usr_passw) VALUES(?,?,?)",[username,email,hashedPassw]))[0];
         await connection.commit();
 
         if(result.affectedRows === 0){
@@ -55,7 +55,7 @@ appRouter.post("/register",async (req,res)=>{
         console.log(err);
         res.status(500).json({status:"DB/SERVER-Error", message: "Server is not available."});
     }
-    finally{await connection.release();}
+    finally{await connection.release()}
 });
 
 appRouter.post("/login",async (req,res)=>{
@@ -183,12 +183,13 @@ appRouter.post('/allergies' , async (req,res)=>{
 })
 
 appRouter.post('/addresses' , async (req,res)=>{
-    const data = req.body;
+    const [defaultAddr , ...data] = req.body;
     const addr=data.map(addr=>[req.session.usr_id , addr.display, addr.lat , addr.lng]);
     const connection =await pool.getConnection();
     
     try{
         await connection.beginTransaction();
+        await connection.query("INSERT INTO usr_has_addr(std_id, address_text,latitude,longitude,is_default) VALUES (?)",[[req.session.usr_id,defaultAddr.display,defaultAddr.lat,defaultAddr.lng,true]]);
         await connection.query("INSERT INTO usr_has_addr(std_id, address_text,latitude,longitude) VALUES ?",[addr]);
         await connection.commit();
         return res.status(200).json({status: "ADRESSES-FOUND" , message: "Addresses found"});

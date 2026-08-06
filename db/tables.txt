@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS usr_has_addr(
     std_id INT NOT NULL,
     addr_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     is_default BOOLEAN DEFAULT FALSE,
-    address_text VARCHAR(255) NOT NULL,
+    address_text TEXT NOT NULL,
     latitude DECIMAL(9,6),
     longitude DECIMAL(9,6),
     PRIMARY KEY(addr_id),
@@ -172,7 +172,7 @@ SELECT * FROM requests;
 
 /*AVAILABLE REQUESTS(JUST FOR THE INFO) INFORMATION(USER,LISTING,USERNAME,DATE OF REQUEST)*/
 CREATE VIEW mealRequests AS
-SELECT requests.std_id,lst_id,usr_username ,created_at FROM
+SELECT status,requests.std_id,lst_id,usr_username ,created_at,rq_id FROM
 requests JOIN user ON
 requests.std_id = user.usr_id WHERE status='PENDING';
 
