@@ -8,7 +8,7 @@ middlewareRouter.use("/", (req,res,next)=>{
         next();
     }
     else{
-        console.log("didnt passed from the middleware");
+        console.log("didn't pass from the middleware");
         return res.redirect('/login_register/login.html');
     }
 });
