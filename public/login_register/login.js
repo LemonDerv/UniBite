@@ -27,6 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
 				const data = await response.json();
 
 				localStorage.setItem('username' , data.username);
+				if (data.usr_id) {
+					sessionStorage.setItem('session', JSON.stringify({ usr_id: data.usr_id }));
+				}
 
 				if(response.status === 401){
 					inputEmail.value="";

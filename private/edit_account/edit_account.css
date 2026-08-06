@@ -1,0 +1,485 @@
+:root {
+    --primary: #cc5500;
+    --primary-light: #d96605;
+    --primary-dark: #a04400;
+    --bg-light: #fff8e7;
+    --bg-dark: #1a1714;
+    --text-dark: #100C08;
+    --text-light: #f7e6d6;
+    --menu-bg-light: #e8ddd0;
+    --menu-bg-dark: #26211d;
+    --gray-100: #f5f5f5;
+    --gray-200: #e0e0e0;
+    --gray-500: #777;
+    --green-bg: #e6f4ea;
+    --green-bg-hover: #c3f8d2;
+    --green-text: #2e7d32;
+    --red-bg: #fdecea;
+    --red-bg-hover: #f8c7c3;
+    --red-text: #c62828;
+
+    --font-xs: 12px;
+    --font-sm: 14px;
+    --font-md: 16px;
+    --font-lg: 20px;
+}
+
+
+/* ------------------------------
+   BODY
+------------------------------ */
+body {
+    margin: 0;
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+}
+
+/* ------------------------------
+   TOPBAR
+------------------------------ */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 64px;
+    padding: 0 20px;
+    border-bottom: 2px solid rgba(16,12,8,0.18);
+    background: var(--bg-light);
+    top: 0;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    text-decoration: none;
+    color: var(--primary);
+}
+
+/* ------------------------------
+   ACCOUNT SIDEBAR
+------------------------------ */
+.account-sidebar {
+    padding: 20px 16px;
+    background-color: var(--bg-light);
+    border-right: 1px solid rgba(16,12,8,0.2);
+    display: flex;
+    flex-direction: column;
+}
+
+.account-box {
+    margin-bottom: 20px;
+}
+
+.account-box .username {
+    font-size: var(--font-lg);
+    margin-bottom: 4px;
+}
+
+.account-box .credits {
+    font-size: var(--font-sm);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--text-dark);
+}
+
+.account-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.menu-link {
+    text-decoration: none;
+    padding: 10px 12px;
+    border-radius: 6px;
+    color: var(--text-dark);
+    display: block;
+    transition: background 0.15s ease;
+}
+
+.menu-link:hover {
+    background-color: var(--menu-bg-light);
+}
+
+.menu-link.active {
+    font-weight: 600;
+    background-color: rgba(204, 85, 0, 0.1);
+    color: var(--primary);
+}
+
+.menu-link.logout {
+    margin-top: 12px;
+    color: var(--gray-500);
+    transition: background-color 0.2s ease;
+}
+
+.menu-link.logout:hover {
+    color: var(--red-text);
+    background-color: var(--red-bg-hover);
+}
+
+
+/* ------------------------------
+   BUTTON
+------------------------------ */
+.btn {
+    border-radius: 8px;
+    border: none;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: var(--font-md);
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn:hover {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}   
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn.primary {
+    background-color: var(--primary);
+    color: var(--text-light);
+}
+
+.btn.secondary {
+    background-color: var(--text-light);
+    border: 1px solid var(--primary);
+    color: var(--primary);
+}
+
+/* ------------------------------
+   PAGE HEADING
+------------------------------ */
+.page-heading {
+    margin-bottom: 40px;
+}
+
+.page-heading h1 {
+    font-size: 32px;
+    margin-bottom: 24px;
+}
+
+.page-heading p {
+    margin: 8px;
+    font-size: var(--font-md);
+}
+
+/* ------------------------------
+   LAYOUT
+------------------------------ */
+.edit_account-main {
+    padding: 20px 30px;
+}
+
+.edit_account-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: calc(100vh - 120px);
+}
+
+.edit_account-section {
+    margin-bottom: 30px;
+}
+
+.settings-card {
+    border-radius: 18px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.username-row {
+    margin-top: 32px;
+    display: flex;
+    align-items: center;
+    gap: 64px;
+}
+
+.username-row label {
+    font-size: var(--font-lg);
+    font-weight: 500;
+}
+
+.username-form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.username-form input {
+    width: 220px;
+    font-size: 18px;
+}
+
+.stats-grid {
+    margin-top: 32px;
+    margin-left: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 60px;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0;
+}
+
+.stat-card h3 {
+    margin: 0;
+    font-size: var(--font-md);
+    font-weight: 500;
+}
+
+.stat-card .stat-value {
+    font-size: var(--font-lg);
+    font-weight: 700;
+    color: var(--primary);    
+}
+
+/* ------------------------------
+    ALLERGY GRID
+------------------------------ */
+.allergy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, max-content));
+    gap: 10px;
+    margin-bottom: 32px;
+}
+
+@media (max-width: 480px) {
+    .allergy-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.allergy-chip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 7px;
+    padding: 9px 12px;
+    border: 2px solid var(--menu-bg-light);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-dark);
+    background-color: var(--bg-light);
+    transition: border-color 0.18s, background-color 0.18s, color 0.18s;
+    user-select: none;
+}
+
+.allergy-chip input[type="checkbox"] {
+    display: none;
+}
+
+.allergy-chip:hover {
+    border-color: var(--primary);
+}
+
+.allergy-chip.selected {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: var(--bg-light);
+}
+
+/* ------------------------------
+   ADDRESSES
+------------------------------ */
+
+.address-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    border:  2px solid var(--primary);
+}
+
+.address-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.address-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.address-icon {
+    font-size: 24px;
+}
+
+.address-title {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.address-text {
+    color: var(--text-secondary);
+}
+
+.delete-address {
+    padding: 8px 16px;
+    border: 2px solid var(--red-text);
+    border-radius: 8px;
+    background: var(--red-bg);
+    color: var(--red-text);
+    cursor: pointer;
+    transition: .2s;
+}
+
+.delete-address:hover {
+    background: var(--red-bg-hover);
+}
+
+.show-address-panel {
+    margin-top: 10px;
+}
+
+.address-map-panel {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.address-map-panel[hidden] {
+    display: none;
+}
+
+.address-search-row {
+    margin-top: 24px;
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.address-input {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 2px solid var(--primary);
+    border-radius: 7px;
+    font-size: 14px;
+    box-sizing: border-box;
+    background-color: white;
+    color: var(--text-dark);
+    transition: box-shadow 0.2s;
+}
+
+.address-input:focus {
+    outline: none;
+    box-shadow: 0 0 6px rgba(204,85,0,.35);
+}
+
+.address-search-btn, .address-use-location-btn {
+    padding: 12px 20px;
+    background-color: var(--primary);
+    color: var(--text-light);
+    border: none;
+    border-radius: 7px;
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+}
+ 
+.address-search-btn:hover,
+.address-search-btn:focus-visible,
+.address-use-location-btn:hover,
+.address-use-location-btn:focus-visible {
+    background-color: var(--primary-light);
+}
+
+.address-search-btn:disabled, 
+.address-use-location-btn:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}
+
+.geo-error {
+    font-size: 13px;
+    color: var(--primary-dark);
+    margin: 0;
+}
+
+#addressMap {
+    width: 100%;
+    height: 400px;
+    border-radius: 10px;
+    border: 2px solid var(--primary);
+    box-sizing: border-box;
+    z-index: 0;
+}
+
+.address-map-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+}
+
+.add-address-btn {
+    display: block;
+    width: 70%;
+    padding: 11px;
+    background-color: transparent;
+    border: 2px dashed var(--primary);
+    border-radius: 7px;
+    color: var(--primary);
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.18s;
+}
+
+.add-address-btn:hover,
+.add-address-btn:focus-visible {
+    background-color: rgba(204, 85, 0, 0.08);
+}
+
+.address-cancel-btn {
+    display: block;
+    width: 30%;
+    padding: 11px;
+    background-color: transparent;
+    border: 2px solid var(--red-text);
+    border-radius: 7px;
+    color: var(--red-text);
+    background-color: var(--red-bg);
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.18s;  
+}
+
+.address-cancel-btn:hover,
+.address-cancel-btn:focus-visible {
+    background-color: var(--red-bg-hover);
+}
+
+@media (max-width: 600px) {
+    .username-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .username-row .btn {
+        width: 100%;
+    }
+}
