@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UniBite | Edit Account</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="edit_account.css">
+</head>
+
+<body>
+
+    <!-- TOP NAV -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <a class="logo" href="/">UniBite</a>
+        </div>
+    </header>
+
+    <!-- LAYOUT -->
+    <div class="layout edit_account-layout">
+        <!-- SIDEBAR -->
+        <aside class="account-sidebar">
+            <section class="account-box">
+                <h3 class="username"></h3>
+                <p class="credits"></p>
+                <a href="/edit_account" class="menu-link active">Edit Account</a>
+            </section>
+            <nav class="account-menu">
+                <a href="../deliveries/deliveries.html" class="menu-link">Deliveries</a>
+                <a href="../requests/requests.html" class="menu-link">Requests</a>
+                <a href="../user_orders/user_orders.html" class="menu-link">Orders</a>
+                <a href="../user_posts/user_posts.html" class="menu-link">Posts</a>
+                <a href="/logout" class="menu-link logout">Log Out</a>
+            </nav>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main edit_account-main">
+            <header class="page-heading">
+                <h1>Edit Account</h1>
+                <p>View and update your account settings</p>
+            </header>
+            
+            <section class="settings-card">
+                <h2>Profile</h2>
+                <!-- USERNAME -->
+                    <div class="username-row">
+                        <label for="username">Username</label>
+                        <div class="username-form">
+                            <input id="username" type="text" placeholder="Enter username">
+                            <button class="btn primary">Save</button>
+                        </div>
+                    </div>            
+                <!-- CREDITS + DELIVERED MEALS -->
+                <section class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Credits:</h3>
+                        <span class="stat-value">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Delivered Meals:</h3>
+                        <span class="stat-value">0</span>
+                    </div>
+                </section>
+            </section>
+
+            <!-- ALERGIES -->
+            <section class="settings-card">
+                <h2>Food Allergies</h2>
+                <p>Select the allergies that apply.</p>
+                <div class="allergy-grid">
+                    <label class="allergy-chip" data-allerg-id="1">
+                        <input type="checkbox" name="allergy" value="gluten" />
+                        <span data-i18n="allergyGluten">Gluten</span>
+                    </label>
+                    <label class="allergy-chip" data-allerg-id="2">
+                        <input type="checkbox" name="allergy" value="crustaceans" />
+                        <span data-i18n="allergyCrustaceans">Crustaceans</span>
+                    </label>
+                    <label class="allergy-chip" data-allerg-id="3">
+                        <input type="checkbox" name="allergy" value="eggs" />
+                        <span data-i18n="allergyEggs">Eggs</span>
+                    </label>
+                    <label class="allergy-chip" data-allerg-id="4">
+                        <input type="checkbox" name="allergy" value="fish" />
+                        <span data-i18n="allergyFish">Fish</span>
+                    </label>
+                    <label class="allergy-chip" data-allerg-id="5">
+                        <input type="checkbox" name="allergy" value="peanuts" />
+                        <span data-i18n="allergyPeanuts">Peanuts</span>
+                    </label>
+                    <label class="allergy-chip" data-allerg-id="6">
+                        <input type="checkbox" name="allergy" value="soybeans" />
+                        <span data-i18n="allergySoybeans">Soybeans</span>
+                    </label>
+                    <label class="allergy-chip" data-allerg-id="7">
+                        <input type="checkbox" name="allergy" value="milk" />
+                        <span data-i18n="allergyMilk">Milk</span>
+                    </label>
+                    <label class="allergy-chip" data-allerg-id="8">
+                        <input type="checkbox" name="allergy" value="nuts" />
+                        <span data-i18n="allergyNuts">Nuts</span>
+                    </label>
+                    <label class="allergy-chip" data-allerg-id="9">
+                        <input type="checkbox" name="allergy" value="celery" />
+                        <span data-i18n="allergyCelery">Celery</span>
+                    </label>
+                    <label class="allergy-chip" data-allerg-id="10">
+                        <input type="checkbox" name="allergy" value="mustard" />
+                        <span data-i18n="allergyMustard">Mustard</span>
+                    </label>
+                    <label class="allergy-chip" data-allerg-id="11">
+                        <input type="checkbox" name="allergy" value="sesame" />
+                        <span data-i18n="allergySesame">Sesame</span>
+                    </label>
+                    <label class="allergy-chip" data-allerg-id="12">
+                        <input type="checkbox" name="allergy" value="sulphites" />
+                        <span data-i18n="allergySulphites">Sulphites</span>
+                    </label>
+                    <label class="allergy-chip" data-allerg-id="13">
+                        <input type="checkbox" name="allergy" value="lupin" />
+                        <span data-i18n="allergyLupin">Lupin</span>
+                    </label>
+                    <label class="allergy-chip" data-allerg-id="14">
+                        <input type="checkbox" name="allergy" value="molluscs" />
+                        <span data-i18n="allergyMolluscs">Molluscs</span>
+                    </label>
+                </div>
+
+                <button class="btn primary" id="btnSaveAllergies">Save</button>
+            </section>
+
+            <!-- ADDRESSES -->
+            <section class="settings-card">
+                <h2>Saved Addresses</h2>
+                <p class="section-subtitle">Manage your addresses.</p>
+                <!-- Saved addresses -->
+                <div class="address-list" id="addressList"></div>
+
+                <!-- Add Address Button -->
+                <button class="btn primary" id="showAddAddress">+ Add New Address</button>
+                <div class="address-map-panel" id="addressMapPanel" hidden>
+                    <div class="address-search-row">
+                        <input
+                            type="text"
+                            class="address-input"
+                            id="addressInput"
+                            placeholder="Search address..."
+                            autocomplete="off">
+                        <button class="address-search-btn" id="btnSearchAddress" type="button">Search</button>
+                        <button class="address-use-location-btn" type="button">Use Current Location</button>
+                    </div>
+                    <p
+                        id="geoError"
+                        class="geo-error"
+                        hidden>
+                    </p>
+                    <div id="addressMap"></div>
+                    <div class="address-map-actions">
+                        <button class="add-address-btn" id="btnSaveAddress">+ Add This Address</button>
+                        <button class="address-cancel-btn" id="btn-address-cancel" type="button">✕ Cancel</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="edit_account.js"></script>
+
+</body>
+</html>
