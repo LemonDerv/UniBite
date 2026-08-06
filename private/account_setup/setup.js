@@ -28,7 +28,7 @@
     }
 
     /* STEP NAVIGATION */
-    btnNext.addEventListener('click', () => {
+    btnNext.addEventListener('click', async () => {
         stepAllergies.classList.remove('active');
         stepAddress.classList.add('active');
         pip1.classList.remove('active');
@@ -198,13 +198,13 @@
         ).map((cb) => cb.value);
 
         let location = [];
-        await Promise.all(
-            addresses.map(async (addr) =>{
-                const res = await geocodeAddress(addr);
-                location.push(res);
-            })
-        );
-        
+
+    
+        for(const addr of addresses){
+            const locText= await geocodeAddress(addr);
+            location.push(locText);
+        }
+
         await fetch('/api/user/addresses' , {
             method:'POST',
             headers: {
