@@ -130,6 +130,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let addressMap = null;
     let addressMarker = null;
     let currentLatLng = null;
+    let currentFullAddress = null; //for displaying the shortened version
 
     function shortenAddress(address) {
         const normalized = String(address || '').replace(/\s+/g, ' ').trim();
@@ -153,7 +154,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     btnAddAddress?.addEventListener('click', async () => {
         clearGeoError();
-        const addressText = addressInput.value; //save full address string to db
+        const addressText = currentFullAddress; //save full address string to db
         if (!addressText) return;
         //check if user selected a location
         if (!addressMarker) {
@@ -237,6 +238,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         addressMapPanel.hidden = false;
         initAddressMap();
         addressMap.invalidateSize();
+        currentFullAddress = null;
     });
 
     function showGeoError(message) {
@@ -281,9 +283,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             placeAddressMarker(lat, lng);
 
             try {
-                addressInput.value = await reverseGeocode(lat, lng);
+                currentFullAddress = await reverseGeocode(lat, lng); // save full address
+                addressInput.value = shortenAddress(currentFullAddress); //display shortened
             } catch {
                 addressInput.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                currentFullAddress = addressInput.value;
             }
         });
 
@@ -296,7 +300,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!res.ok) throw new Error('network');
         const data = await res.json();
         if (!data.length) throw new Error('not_found');
-        return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), display: shortenAddress(data[0].display_name) };
+        return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), display: data[0].display_name };
     }
 
     async function reverseGeocode(lat, lng) {
@@ -304,7 +308,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const res = await fetch(url);
         if (!res.ok) throw new Error('network');
         const data = await res.json();
-        return shortenAddress(data.display_name) || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        return data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
     }
 
     btnSearchAddress?.addEventListener('click', async () => {
@@ -315,8 +319,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         btnSearchAddress.disabled = true;
         try {
             const { lat, lng, display } = await geocodeAddress(query);
+            currentFullAddress = display; //store full address
             placeAddressMarker(lat, lng);
-            addressInput.value = display;
+            addressInput.value = shortenAddress(display); //display shortened
         } catch (err) {
             showGeoError(err.message === 'not_found' ? 'Address not found. Try a more specific address.' : 'Could not look up this address. Please try again.');
         } finally {
@@ -337,7 +342,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 addressMapPanel.hidden = true;
                 clearGeoError();
                 addressInput.value = "";
-
+                currentFullAddress = null;
                 if (addressMarker) {
                     addressMap.removeLayer(addressMarker);
                     addressMarker = null;
