@@ -107,8 +107,8 @@ body.theme-dark{
 }
 
 .donor-meta{
-    margin: 0;
-    font-size: var(--font-sm);
+    margin-top: 8px;
+    font-size: var(--font-md);
     color: var(--gray-500);
 }
 
@@ -128,7 +128,7 @@ body.theme-dark{
 .post-list{
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 8px;
 }
 
 .post-item{
@@ -164,15 +164,17 @@ body.theme-dark{
     justify-content: center;
     flex: 1;
     gap:2px;
+    padding: 12px 0;
+    font-size: var(--font-md);
 }
 
 .post-info h3{
-    margin: 4px 0 0px;
-    font-size: var(--font-md);
+    margin: 6px 0 0px;
 }
 
 .post-actions{
     display:flex;
+    margin-right: 24px;
     gap:10px;
 }
 
@@ -185,7 +187,7 @@ body.theme-dark{
     padding: 6px 12px;
     cursor: pointer;
     font-weight: 500;
-    font-size: var(--font-sm);
+    font-size: var(--font-md);
     transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
