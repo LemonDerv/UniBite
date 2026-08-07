@@ -28,6 +28,9 @@ app.use(session({
 const userRoutes = require("./api/user/userControllers");
 app.use('/api/user',userRoutes);
 
+const adminRoutes = require("./api/admin/adminControllers");
+app.use('/api/admin',adminRoutes);
+
 /*USE MIDDLEWARE ROUTER*/
 const middlewareRouter = require('./api/middleware');
 app.use('/private',middlewareRouter);
