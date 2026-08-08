@@ -33,12 +33,12 @@ appRouter.get('/activeMeals' , async (req,res)=>{
         
     ({success_status,status,message,status_code,body} = await getRequestsPerListing(lst_id));
     if(!success_status)
-        return res.status(status_code).json({status : status , message:message});
+        console.log("Status Code : " , status_code , "Message " , message);
     req_count= body;
         
     ({success_status,status,message,status_code,body} = await getRequestsInfoPerListing(lst_id));
     if(!success_status)
-        return res.status(status_code).json({status : status , message:message});
+        console.log("Status Code : " , status_code , "Message " , message);
     req_info= body;
 
     const requests  = Object.entries(req_info).reduce((acc,curr)=>{
@@ -56,7 +56,7 @@ appRouter.get('/activeMeals' , async (req,res)=>{
 
     ({success_status,status,message,status_code,body}= await getMealTags(lst_id));
     if(!success_status)
-        return res.status(status_code).json({status : status , message:message});
+        console.log("Status Code : " , status_code , "Message " , message);
     tags =body;
 
     ({success_status,status,message,status_code,body}= await getAllergens(lst_id));
@@ -316,4 +316,261 @@ appRouter.get('/requests', async (req,res)=>{
     });
 });
 
+appRouter.get('/deliveries' , async (req,res)=>{
+    let listings ;        
+    let finalDeliveries;
+    let success_status,status,message,status_code,body;
+
+    ({success_status,status,message,status_code,body} = await getActiveMeals(req.session.usr_id));
+    if(!success_status)
+        return res.status(status_code).json({status : status , message:message});
+
+    listings = body;
+
+    listings = listings.reduce((acc,curr)=>{
+        acc[curr.lst_id] = curr;
+        return acc;
+    } , {});
+
+    const lst_id= Object.values(listings).map(listing => listing.lst_id);
+
+    const requests = (await pool.query("SELECT status,requests.std_id,lst_id,usr_username ,created_at,rq_id FROM requests JOIN user ON requests.std_id = user.usr_id where lst_id in (?) and status in ('PENDING','ACCEPTED') ",[lst_id]))[0];
+
+    let accRequest = requests.filter(request => request.status==='ACCEPTED');
+    accRequest = accRequest.reduce((acc,curr)=>{
+        acc[curr.rq_id] = curr;
+        return acc;
+    } , {});
+
+    const pendRequest = requests.filter(request => request.status==='PENDING');
+
+    const accReqId = Object.keys(accRequest);
+
+    ({success_status,status,message,status_code,body} = await getPickupWindows(lst_id));
+    if(!success_status)
+        return res.status(status_code).json({status : status , message:message});
+    const pickupWindows  = body;
+
+    if(accReqId.length){
+        const deliveries = (await pool.query("SELECT * FROM deliveries WHERE status='PENDING' and req_id in (?)",[accReqId]))[0];
+
+        finalDeliveries = deliveries.map(delivery => ({
+                meal_info : {
+                    lst_id : accRequest[delivery.req_id].lst_id,
+                    meal_title : listings[accRequest[delivery.req_id].lst_id].title,
+                    location : listings[accRequest[delivery.req_id].lst_id].pickup_location,
+                    pickup_windows : pickupWindows[accRequest[delivery.req_id].lst_id]
+                },
+                del_info : {
+                    del_id : delivery.del_id,
+                    del_user : accRequest[delivery.req_id].usr_username,
+                    del_status : delivery.status
+                }
+            })
+        );
+    }
+
+    const finalRequests = pendRequest.map(request => ({
+            meal_info : {
+                lst_id : request.lst_id,
+                meal_title : listings[request.lst_id].title,
+                location : listings[request.lst_id].pickup_location,
+                pickup_windows : pickupWindows[request.lst_id]
+            },
+            req_info : {
+                req_id : request.rq_id,
+                req_user : request.usr_username,
+                req_status : request.status
+            }
+        })
+    );
+
+    res.status(200).json({body : {
+        deliveries : finalDeliveries || {} ,
+        requests : finalRequests || {}
+    }});
+})
+
+/*PENDING DELIVERIES*/ 
+appRouter.get('/pendingDeliveries' , async(req,res)=>{
+    let success_status,status,message,status_code,body;
+    let tags,pickup_windows,allergens,images;
+
+    try{
+        const deliveries = (await pool.query("SELECT * FROM deliveries JOIN requests on deliveries.req_id=requests.rq_id WHERE deliveries.status='PENDING' AND std_id=?" , [req.session.usr_id]))[0];
+        const lst = Object.values(deliveries).map(del=>del.del_id);
+        
+        if(!lst.length)
+            return;
+        const listings = (await pool.query("SELECT * FROM deliveries join requests on deliveries.req_id=requests.rq_id join listing on requests.lst_id=listing.lst_id join user on listing.poster=user.usr_id where deliveries.del_id in (?)" , [lst]))[0]
+        const lst_id = listings.map(lst => lst.lst_id);
+
+        ({success_status,status,message,status_code,body} = await getPickupWindows(lst_id));
+        if(!success_status)
+            return res.status(status_code).json({status : status , message:message});
+        pickup_windows = body;
+
+        ({success_status,status,message,status_code,body} = await getAllergens(lst_id));
+        if(!success_status)
+            console.log("Status Code : " , status_code , "Message " , message);
+        allergens = body;
+
+        ({success_status,status,message,status_code,body} = await getMealTags(lst_id));
+        if(!success_status)
+            console.log("Status Code : " , status_code , "Message " , message);
+        tags = body;
+
+        ({success_status,status,message,status_code,body}= await searchListingsImages(lst_id));
+        if(!success_status)
+            console.log("Status Code : " , status_code , "Message " , message);
+
+        images = body;
+
+        const final = deliveries.map(delivery=>{
+            const listing = listings.find(lst => lst.del_id=== delivery.del_id);
+            console.log(listing);
+            return {req_info : {
+                created_at : listing.created_at
+            },
+            del_info : {
+                del_id : delivery.del_id
+            },
+            meal_info: {
+                title : listing.title ,
+                description : listing.description ,
+                pickup_location : listing.pickup_location,
+                meal_tags : tags[listing.lst_id] || [] ,
+                allergens : allergens[listing.lst_id]  || [],
+                pickup_windows : pickup_windows[listing.lst_id] ,
+                expires_at : listing.expires_at ,
+                poster : listing.usr_username ,
+                image : images[listing.lst_id] || ""
+            }
+        }});
+
+        return res.status(200).json({body:final});
+    }
+    catch(err){
+        console.log('Server Error : ', err);
+        return res.status(500).json({status:"DB/SERVER-ERROR" , message : "Server Error"});
+    };
+    
+    
+});
+
+/*DELIVERIES TO BE RATED*/ 
+appRouter.get('/nonRatedDeliveries' , async(req,res)=>{
+    try{
+        const deliveries = (await pool.query("SELECT * FROM deliveries JOIN requests on deliveries.req_id=requests.rq_id WHERE deliveries.status='DELIVERED' AND std_id=?" , [req.session.usr_id]))[0];
+        const lst = Object.values(deliveries).map(del=>del.del_id);
+        const listings = (await pool.query("SELECT * FROM deliveries join requests on deliveries.req_id=requests.rq_id join listing on requests.lst_id=listing.lst_id join user on listing.poster=user.usr_id where deliveries.del_id in (?)" , [lst]))[0]
+        const lst_id = listings.map(lst => lst.lst_id);
+
+        ({success_status,status,message,status_code,body} = await getPickupWindows(lst_id));
+        if(!success_status)
+            return res.status(status_code).json({status : status , message:message});
+        pickup_windows = body;
+
+        ({success_status,status,message,status_code,body} = await getAllergens(lst_id));
+        if(!success_status)
+            console.log("Status Code : " , status_code , "Message " , message);
+        allergens = body;
+
+        ({success_status,status,message,status_code,body} = await getMealTags(lst_id));
+        if(!success_status)
+            console.log("Status Code : " , status_code , "Message " , message);
+        tags = body;
+
+        ({success_status,status,message,status_code,body}= await searchListingsImages(lst_id));
+        if(!success_status)
+            console.log("Status Code : " , status_code , "Message " , message);
+
+        images = body;
+        const final = deliveries.map(delivery=>{
+            const listing = listings.find(lst => lst.del_id=== delivery.del_id);
+            console.log(listing);
+            return {req_info : {
+                created_at : listing.created_at
+            },
+            del_info : {
+                del_id : delivery.del_id
+            },
+            meal_info: {
+                title : listing.title ,
+                description : listing.description ,
+                pickup_location : listing.pickup_location,
+                meal_tags : tags[listing.lst_id] || [] ,
+                allergens : allergens[listing.lst_id]  || [],
+                pickup_windows : pickup_windows[listing.lst_id] ,
+                expires_at : listing.expires_at ,
+                poster : listing.usr_username ,
+                image : images[listing.lst_id] || ""
+            }
+        }});
+
+        return res.status(200).json({body:final});
+    }
+    catch(err){        
+        console.log('Server Error : ', err);
+        return res.status(500).json({status:"DB/SERVER-ERROR" , message : "Server Error"});
+    }
+});
+
+/*PAST DELIVERIES*/ 
+appRouter.get('/completedDeliveries' , async(req,res)=>{
+    try{
+        const deliveries = (await pool.query("SELECT * FROM deliveries JOIN requests on deliveries.req_id=requests.rq_id WHERE deliveries.status='COMPLETED' AND std_id=?" , [req.session.usr_id]))[0];
+        const lst = Object.values(deliveries).map(del=>del.del_id);
+        const listings = (await pool.query("SELECT * FROM deliveries join requests on deliveries.req_id=requests.rq_id join listing on requests.lst_id=listing.lst_id join user on listing.poster=user.usr_id where deliveries.del_id in (?)" , [lst]))[0]
+        const lst_id = listings.map(lst => lst.lst_id);
+
+        ({success_status,status,message,status_code,body} = await getPickupWindows(lst_id));
+        if(!success_status)
+            return res.status(status_code).json({status : status , message:message});
+        pickup_windows = body;
+
+        ({success_status,status,message,status_code,body} = await getAllergens(lst_id));
+        if(!success_status)
+            console.log("Status Code : " , status_code , "Message " , message);
+        allergens = body;
+
+        ({success_status,status,message,status_code,body} = await getMealTags(lst_id));
+        if(!success_status)
+            console.log("Status Code : " , status_code , "Message " , message);
+        tags = body;
+
+        ({success_status,status,message,status_code,body}= await searchListingsImages(lst_id));
+        if(!success_status)
+            console.log("Status Code : " , status_code , "Message " , message);
+        images = body;
+
+        const final = deliveries.map(delivery=>{
+            const listing = listings.find(lst => lst.del_id=== delivery.del_id);
+            console.log(listing);
+            return {req_info : {
+                created_at : listing.created_at
+            },
+            del_info : {
+                del_id : delivery.del_id
+            },
+            meal_info: {
+                title : listing.title ,
+                description : listing.description ,
+                pickup_location : listing.pickup_location,
+                meal_tags : tags[listing.lst_id] || [] ,
+                allergens : allergens[listing.lst_id]  || [],
+                pickup_windows : pickup_windows[listing.lst_id] ,
+                expires_at : listing.expires_at ,
+                poster : listing.usr_username ,
+                image : images[listing.lst_id] || ""
+            }
+        }});
+
+        return res.status(200).json({body:final});
+    }
+    catch(err){
+        console.log('Server Error : ', err);
+        return res.status(500).json({status:"DB/SERVER-ERROR" , message : "Server Error"});
+    };
+});
 module.exports = appRouter;

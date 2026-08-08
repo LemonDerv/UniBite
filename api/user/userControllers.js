@@ -219,4 +219,60 @@ appRouter.post('/request',async (req,res)=>{
     finally{await connection.release();}
 })
 
+appRouter.post('/updateRequest' , async ( req,res)=>{
+    const data = req.body;
+    const status = data.action ==='confirm'? 'ACCEPTED' : 'REJECTED';
+    const connection = await pool.getConnection();
+
+    try{
+        connection.beginTransaction();
+        const result = (await pool.query("UPDATE requests SET status=? ,updated_at=CURRENT_TIMESTAMP() WHERE rq_id=?" , [status , data.req_id]));
+        await connection.commit();
+        return res.status(200).json({status: "REQUEST-UPDATED" , message:"Request ",status});
+    }
+    catch(err){
+        await connection.rollback();
+        console.log('Server Error : ', err);
+        return res.status(500).json({status:"DB/SERVER-ERROR" , message : "Server Error"});
+    }
+    finally{await connection.release();}
+})
+
+appRouter.post('/updateDelivery' , async ( req,res)=>{
+    const data = req.body;
+    const del_id = data.del_id;
+    const connection = await pool.getConnection();
+    
+    try{
+        await connection.beginTransaction();
+        const result = (await connection.query("UPDATE deliveries SET status='DELIVERED' ,del_time=CURRENT_TIMESTAMP() WHERE del_id=?" , [del_id]));
+        await connection.commit();
+        return res.status(200).json({status: "DELIVERY-UPDATED" , message:"Delivery Updated. "});
+    }
+    catch(err){
+        await connection.rollback();
+        console.log('Server Error : ', err);
+        return res.status(500).json({status:"DB/SERVER-ERROR" , message : "Server Error"});
+    }
+    finally{await connection.release();}
+})
+
+appRouter.post('/updateRating' , async(req,res)=>{
+    const {rating , del_id} = req.body;
+    const connection = await pool.getConnection();
+
+    try{
+        await connection.beginTransaction();
+        await connection.query("UPDATE deliveries SET rating=? , status='COMPLETED' WHERE del_id=?" , [rating, del_id]);
+        await connection.commit();
+        return res.status(200).json({status:"UPDATED-RATING" , message: "Rating passed."});
+    }
+    catch(err){
+        await connection.rollback();
+        console.log('Server Error : ', err);
+        return res.status(500).json({status:"DB/SERVER-ERROR" , message : "Server Error"});
+    }
+    finally{await connection.release();}
+});
+
 module.exports = appRouter;
