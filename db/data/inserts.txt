@@ -29,8 +29,8 @@ INSERT INTO meal_tag(mtag_type) VALUES
 ('Vegetables');
 
 INSERT INTO user (usr_id, usr_username, usr_email, usr_passw, usr_role) VALUES
-(1, 'gpapad_99', 'g.papadopoulos@mail.ntua.gr', ' $argon2id$v=19$m=65536,p=4,t=3$PxvGi4jWm6YCnnSdsbOpHw$4WSR7twBDek0bKK7eKtwuUpsiBdMtiBsRBfMDpZffYI', 'student'), /*password=1234567890*/
-(2, 'eleni_ant', 'eleni.antoniou@mail.ntua.gr', ' $argon2id$v=19$m=65536,p=4,t=3$WMJAWnXy6vYZJeov8qwbNg$lMMHsy36ZCyaZDK7gV8svaWCBs9Pw68TRFWUs216SVU', 'student'), /*password=2345678901*/
+(1, 'gpapad_99', 'g.papadopoulos@mail.ntua.gr', '$argon2id$v=19$m=65536,p=4,t=3$PxvGi4jWm6YCnnSdsbOpHw$4WSR7twBDek0bKK7eKtwuUpsiBdMtiBsRBfMDpZffYI', 'student'), /*password=1234567890*/
+(2, 'eleni_ant', 'eleni.antoniou@mail.ntua.gr', '$argon2id$v=19$m=65536,p=4,t=3$WMJAWnXy6vYZJeov8qwbNg$lMMHsy36ZCyaZDK7gV8svaWCBs9Pw68TRFWUs216SVU', 'student'), /*password=2345678901*/
 (3, 'jim_dim', 'd.dimitriou@mail.ntua.gr', '$argon2id$v=19$m=65536,p=4,t=3$Tl67epNvsqlMPw1ARwV7BA$EzgyQlVS+KwrVB6KihRVyfizp7bI3Y4/G48AmQ06AaY', 'student'), /*password=3456789012*/
 (4, 'maria_geo', 'maria.georgiou@mail.ntua.gr', '$argon2id$v=19$m=65536,p=4,t=3$esNd+xDKNLvhCBceO1vLWQ$CiesY8n2vBdmBaj97ZB3dIxRLqhEhRJquvcx6FwB8TA', 'student'), /*password=4567890123*/
 (5, 'admin', 'admin.unibites@ntua.gr', '$argon2id$v=19$m=65536,p=4,t=3$57g17tnqzq1p+OVkV8NWgA$W0bKL8BeqkV0TngdbCbLIBpSfGsTmQRA2Hhi/oai8Ss', 'admin'), /*password=5678901234*/

@@ -860,7 +860,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const data =await res.json();
         const list = document.querySelector(".post-list");
         expiredMeals = data.body;
-        console.log(expiredMeals);
+
         if(!expiredMeals)
             return;
 
