@@ -31,6 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
         	.then(async (response) => {
 				const data = await response.json();
 				localStorage.setItem('username', data.username);
+				if (data.usr_id) {
+					sessionStorage.setItem('session', JSON.stringify({ usr_id: data.usr_id }));
+				}
 				if(response.status === 409){
 					alert(data.message);
 					window.location.href = './login.html';

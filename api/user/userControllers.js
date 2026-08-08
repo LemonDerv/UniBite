@@ -19,13 +19,13 @@ const cloudstorage = new sdk.Storage(client);
 
 appRouter.post("/register",async (req,res)=>{
     const {username, email,password}= req.body;
-    const connection =await pool.getConnection();
+    const connection = await pool.getConnection();
 
     try {
         const emailValidation = (await connection.query("SELECT count(usr_email) from user WHERE usr_email = ?", [email]))[0][0]['count(usr_email)'] > 0 ? false : true;
 
         if(!emailValidation){
-            return res.status(409).json({status: "Email-Conflict" , message:"Email is already registered.Redirecting to Login."});
+            return res.status(409).json({status: "Email-Conflict" , message:"Email is already registered. Redirecting to Login."});
         }
         const hashedPassw = await hashPassword(password);
         await connection.beginTransaction();
@@ -47,7 +47,7 @@ appRouter.post("/register",async (req,res)=>{
                 console.log("Error saving session : ", err);
                 return res.status(403).json({status:"Session-Forbidden", message:"Error Saving Session"});
             }
-            return res.status(201).json({status: "User-Successful_Response", message: "User registered." , username: `${req.session.username}`});
+            return res.status(201).json({status: "User-Successful_Response", message: "User registered." , username: `${req.session.username}`, usr_id: req.session.usr_id});
         });
     }
     catch(err){
@@ -81,9 +81,9 @@ appRouter.post("/login",async (req,res)=>{
                     }
 
                     if(usr_role === 'admin') 
-                        return res.status(200).json({status:"ADMIN-Successful_Response",message:"Admin Logged-In.",username : `${req.session.username}`});
+                        return res.status(200).json({status:"ADMIN-Successful_Response",message:"Admin Logged-In.",username : `${req.session.username}`, usr_id: req.session.usr_id});
                     else if(usr_role === 'student')
-                        return res.status(200).json({status:"STUDENT-Successful_Response",message:"Student Logged-In",username : `${req.session.username}`});
+                        return res.status(200).json({status:"STUDENT-Successful_Response",message:"Student Logged-In",username : `${req.session.username}`, usr_id: req.session.usr_id});
                 });
             }
             else
@@ -273,6 +273,203 @@ appRouter.post('/updateRating' , async(req,res)=>{
         return res.status(500).json({status:"DB/SERVER-ERROR" , message : "Server Error"});
     }
     finally{await connection.release();}
+});
+
+//fetch student details (username, credits, given meals, allergies, addresses)
+appRouter.get("/:usr_id", async (req, res) => {
+    const {usr_id} = req.params;
+    const connection = await pool.getConnection();
+    try {
+        const [userRows] = await connection.query(
+            "SELECT usr_username, credits, given_meals FROM user JOIN student ON user.usr_id = student.std_id WHERE user.usr_id = ?", [usr_id]
+        );
+        if (!userRows.length) {
+            return res.status(404).json({ status: "NOT_FOUND", message: "User not found." });
+        }
+        const userData = userRows[0];
+
+        const [allergyRows] = await connection.query(
+            `SELECT a.allerg_id, a.allerg_type
+             FROM allergen a
+             JOIN std_allergy sa ON a.allerg_id = sa.allerg_id
+             WHERE sa.std_id = ?`,
+            [usr_id]
+        );
+        const allergies = allergyRows.map(row => row.allerg_id);
+
+        const [addressRows] = await connection.query(
+            "SELECT addr_id, address_text, latitude, longitude, is_default FROM usr_has_addr WHERE std_id = ?", [usr_id]
+        );
+        const addresses = addressRows.map(row => ({
+            addr_id: row.addr_id,
+            text: row.address_text,
+            lat: row.latitude,
+            lng: row.longitude,
+            isDefault: row.is_default
+        }));
+
+        res.status(200).json({
+            status: "SUCCESS",
+            user: {
+                username: userData.usr_username,
+                credits: userData.credits,
+                deliveredMeals: userData.given_meals,
+                allergies,
+                addresses
+            }
+        });
+    } catch (err) {
+        console.log("Error fetching user data:", err);
+        res.status(500).json({ status: "DB_ERROR", message: "Failed to fetch user data." });
+    } finally {
+        await connection.release();
+    }
+});
+
+//username update
+appRouter.patch("/username", async (req, res) => {
+    const {username} = req.body;
+    const usr_id = req.session.usr_id;
+    const connection = await pool.getConnection();
+    try {
+        await connection.query(
+            "UPDATE user SET usr_username = ? WHERE usr_id = ?",
+            [username, usr_id]
+        );
+        res.status(200).json({ status: "SUCCESS", message: "Username updated." });
+    } catch (err) {
+        console.log("Error updating username:", err);
+        res.status(500).json({ status: "DB_ERROR", message: "Failed to update username." });
+    } finally {
+        await connection.release();
+    }
+});
+
+//user allergens update
+appRouter.patch("/allergies", async (req, res) => {
+    const {allergies} = req.body;
+    const usr_id = req.session.usr_id;
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        //clear existing allergies
+        await connection.query("DELETE FROM std_allergy WHERE std_id = ?", [usr_id]);
+        //insert new allergies
+        if (allergies.length > 0) {
+            const allergyData = allergies.map(allerg_id => [usr_id, allerg_id]);
+            await connection.query(
+                "INSERT INTO std_allergy (std_id, allerg_id) VALUES ?",
+                [allergyData]
+            );
+        }
+        await connection.commit();
+        res.status(200).json({ status: "SUCCESS", message: "Allergies updated." });
+    } catch (err) {
+        await connection.rollback();
+        console.log("Error updating allergies:", err);
+        res.status(500).json({ status: "DB_ERROR", message: "Failed to update allergies." });
+    } finally {
+        await connection.release();
+    }
+});
+
+//add an address
+appRouter.post("/addresses/single", async (req, res) => {
+    const { address, lat, lng, isDefault = false } = req.body;
+    const usr_id = req.session.usr_id;
+    const connection = await pool.getConnection();
+    try {
+        await connection.query(
+            "INSERT INTO usr_has_addr (std_id, is_default, address_text, latitude, longitude) VALUES (?, ?, ?, ?, ?)",
+            [usr_id, isDefault, address, lat, lng]
+        );
+        res.status(201).json({ status: "SUCCESS", message: "Address added." });
+    } catch (err) {
+        console.log("Error adding address:", err);
+        res.status(500).json({ status: "DB_ERROR", message: "Failed to add address." });
+    } finally {
+        await connection.release();
+    }
+});
+
+//remove an address
+appRouter.delete("/addresses/:addr_id", async (req, res) => {
+    const { addr_id } = req.params;
+    const usr_id = req.session.usr_id;
+    const connection = await pool.getConnection();
+
+    try {
+        //check if this is the only address as to prevent deletion
+        const [addressCount] = await connection.query(
+            "SELECT COUNT(*) AS count FROM usr_has_addr WHERE std_id = ?",
+            [usr_id]
+        ); 
+        if (addressCount[0].count === 1) {
+            return res.status(400).json({
+                status: "ERROR",
+                message: "Cannot delete the only address. Add another address first."
+            });
+        }
+
+        //check if this is the default address
+        const [isDefault] = await connection.query(
+            "SELECT is_default FROM usr_has_addr WHERE addr_id = ? AND std_id = ?",
+            [addr_id, usr_id]
+        );
+
+        if (isDefault[0]?.is_default) {
+            //set another address (the first non-default) as default
+            await connection.query(
+                `UPDATE usr_has_addr
+                 SET is_default = true
+                 WHERE std_id = ? AND addr_id != ?
+                 LIMIT 1`,
+                [usr_id, addr_id]
+            );
+        }
+
+        //delete the address
+        await connection.query(
+            "DELETE FROM usr_has_addr WHERE addr_id = ? AND std_id = ?",
+            [addr_id, usr_id]
+        );
+
+        res.status(200).json({ status: "SUCCESS", message: "Address deleted." });
+    } catch (err) {
+        console.log("Error deleting address:", err);
+        res.status(500).json({ status: "DB_ERROR", message: "Failed to delete address." });
+    } finally {
+        await connection.release();
+    }
+});
+
+//set address as default
+appRouter.patch("/addresses/:addr_id/set-default", async (req, res) => {
+    const { addr_id } = req.params;
+    const usr_id = req.session.usr_id;
+    const connection = await pool.getConnection();
+
+    try {
+        await connection.beginTransaction();
+        //clear previous default for this user
+        await connection.query(
+            "UPDATE usr_has_addr SET is_default = false WHERE std_id = ?",
+            [usr_id]
+        );
+        //set the selected address as default
+        await connection.query(
+            "UPDATE usr_has_addr SET is_default = true WHERE addr_id = ? AND std_id = ?",
+            [addr_id, usr_id]
+        );
+        await connection.commit();
+        res.status(200).json({ status: "SUCCESS", message: "Default address updated." });
+    } catch (err) {
+        await connection.rollback();
+        console.log("Error setting default address:", err);
+        res.status(500).json({ status: "DB_ERROR", message: "Failed to set default address." });
+    } finally {
+        await connection.release();
+    }
 });
 
 module.exports = appRouter;
