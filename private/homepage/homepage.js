@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addressDropdown = document.querySelector('.address-dropdown');
     const addressInput = document.getElementById('homepage-address-input');
     const btnSearchAddress = document.getElementById('homepage-btn-search');
+    const btnUseLocationAddress = document.getElementById('homepage-btn-use-location');
     const btnAddAddress = document.getElementById('homepage-btn-add-address');
     const addressMapPanel = document.getElementById('homepage-address-map-panel');
     const geoErrorEl = document.getElementById('homepage-geo-error');
@@ -270,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addressMapPanel.hidden = true;
     }
 
-    function showGeoError(key) {
+    function showGeoError(message) {
         if (!geoErrorEl) return;
         geoErrorEl.textContent = message;
         geoErrorEl.hidden = false;
@@ -386,6 +387,34 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             btnSearchAddress.disabled = false;
         }
+    });
+
+    btnUseLocationAddress?.addEventListener('click', () => {
+        clearGeoError();
+        if (!navigator.geolocation) {
+            showGeoError('Geolocation is not supported by your browser.');
+            return;
+        }
+        btnUseLocationAddress.disabled = true;
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                placeHomepageMarker(lat, lng);
+                try {
+                    addressInput.value = await reverseGeocode(lat, lng);
+                } catch {
+                    addressInput.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                } finally {
+                    btnUseLocationAddress.disabled = false;
+                }
+            },
+            (err) => {
+                showGeoError('Could not retrieve your location. Please check browser permissions.');
+                btnUseLocationAddress.disabled = false;
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
     });
 
     addressInput?.addEventListener('keydown', (e) => {
@@ -885,6 +914,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addPickupWindowBtn = document.getElementById("addPickupWindow");
     const pickupWindowList = document.getElementById("pickupWindowList");
     const pickupAddressSearchBtn = document.getElementById("pickupAddressSearch");
+    const pickupUseLocationBtn = document.getElementById("pickupUseLocation");
     const pickupGeoError = document.getElementById("pickupGeoError");
     const pickupMapEl = document.getElementById("pickupMap");
     const tagButtons = document.querySelectorAll(".chip-option");
@@ -1286,6 +1316,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     pickupAddressSearchBtn?.addEventListener("click", locatePickupAddress);
+    pickupUseLocationBtn?.addEventListener("click", () => {
+        clearPickupGeoError();
+        if (!navigator.geolocation) {
+            showPickupGeoError("Geolocation is not supported by your browser.");
+            return;
+        }
+        pickupUseLocationBtn.disabled = true;
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                placePickupMarker(lat, lng);
+                meal_location = { lat, lng };
+                try {
+                    editAddress.value = await reverseGeocode(lat, lng);
+                } catch {
+                    editAddress.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                } finally {
+                    pickupUseLocationBtn.disabled = false;
+                }
+            },
+            (err) => {
+                showPickupGeoError("Could not retrieve your location. Please check browser permissions.");
+                pickupUseLocationBtn.disabled = false;
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    });
     editAddress?.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && currentEditPage === 2) {
             e.preventDefault();

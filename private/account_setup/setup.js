@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
      /* DOM REFERENCES */
     const stepAllergies = document.getElementById('step-allergies');
     const stepAddress   = document.getElementById('step-address');
@@ -10,6 +10,7 @@
     const geoErrorEl    = document.getElementById('geo-error');
     const addressInput  = document.getElementById('address-input');
     const btnSearch     = document.getElementById('btn-search');
+    const btnUseLocation = document.getElementById('btn-use-location');
     const addressList   = document.getElementById('address-list');
     const addressHint   = document.getElementById('address-hint');
     const btnAddAddr    = document.getElementById('btn-add-address');
@@ -107,7 +108,7 @@
     }
 
     /* GEOCODING  (Nominatim) */
-    function showGeoError(key) {
+    function showGeoError(message) {
         geoErrorEl.textContent = message;
         geoErrorEl.hidden = false;
     }
@@ -148,6 +149,34 @@
         } finally {
             btnSearch.disabled = false;
         }
+    });
+
+    btnUseLocation?.addEventListener('click', () => {
+        clearGeoError();
+        if (!navigator.geolocation) {
+            showGeoError('Geolocation is not supported by your browser.');
+            return;
+        }
+        btnUseLocation.disabled = true;
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                placeMarker(lat, lng);
+                try {
+                    addressInput.value = await reverseGeocode(lat, lng);
+                } catch {
+                    addressInput.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                } finally {
+                    btnUseLocation.disabled = false;
+                }
+            },
+            (err) => {
+                showGeoError('Could not retrieve your location. Please check your browser permissions.');
+                btnUseLocation.disabled = false;
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
     });
 
     addressInput.addEventListener('keydown', (e) => {

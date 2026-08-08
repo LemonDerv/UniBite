@@ -4,10 +4,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const btnAddAddress = document.getElementById("btnSaveAddress");
     const showAddAddress = document.getElementById("showAddAddress");
     const addressMapEl = document.getElementById("addressMap");
-    const geoErrorEl = document.getElementById("geo-error");
+    const geoErrorEl = document.getElementById("geoError") || document.getElementById("geo-error");
     const addressInput = document.getElementById("addressInput");
     const addressMapPanel = document.getElementById("addressMapPanel");
     const btnSearchAddress = document.getElementById("btnSearchAddress");
+    const btnUseLocationAddress = document.getElementById("btnUseLocationAddress") || document.querySelector(".address-use-location-btn");
 
     /* ------------------------------
        FETCH USER DATA
@@ -327,6 +328,36 @@ document.addEventListener("DOMContentLoaded", async () => {
         } finally {
             btnSearchAddress.disabled = false;
         }
+    });
+
+    btnUseLocationAddress?.addEventListener('click', () => {
+        clearGeoError();
+        if (!navigator.geolocation) {
+            showGeoError('Geolocation is not supported by your browser.');
+            return;
+        }
+        btnUseLocationAddress.disabled = true;
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                placeAddressMarker(lat, lng);
+                try {
+                    currentFullAddress = await reverseGeocode(lat, lng);
+                    addressInput.value = shortenAddress(currentFullAddress);
+                } catch {
+                    addressInput.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                    currentFullAddress = addressInput.value;
+                } finally {
+                    btnUseLocationAddress.disabled = false;
+                }
+            },
+            (err) => {
+                showGeoError('Could not retrieve your location. Please check browser permissions.');
+                btnUseLocationAddress.disabled = false;
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
     });
 
     addressInput?.addEventListener('keydown', (e) => {

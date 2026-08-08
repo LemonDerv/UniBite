@@ -239,6 +239,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const pickupMapEl = document.getElementById("pickupMap");
     const pickupWindowList = document.getElementById("pickupWindowList");
     const pickupAddressSearchBtn = document.getElementById("pickupAddressSearch");
+    const pickupUseLocationBtn = document.getElementById("pickupUseLocation");
     const pickupGeoError = document.getElementById("pickupGeoError");
 
     const addPickupWindowBtn = document.getElementById("addPickupWindow");
@@ -777,6 +778,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     cancelEditBtn.addEventListener("click", closeEditModal);
 
     pickupAddressSearchBtn?.addEventListener("click", locatePickupAddress);
+    pickupUseLocationBtn?.addEventListener("click", () => {
+        clearPickupGeoError();
+        if (!navigator.geolocation) {
+            showPickupGeoError("Geolocation is not supported by your browser.");
+            return;
+        }
+        pickupUseLocationBtn.disabled = true;
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                placePickupMarker(lat, lng);
+                meal_location = { lat, lng };
+                try {
+                    editAddress.value = await reverseGeocode(lat, lng);
+                } catch {
+                    editAddress.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                } finally {
+                    pickupUseLocationBtn.disabled = false;
+                }
+            },
+            (err) => {
+                showPickupGeoError("Could not retrieve your location. Please check browser permissions.");
+                pickupUseLocationBtn.disabled = false;
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    });
     editAddress?.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && currentEditPage === 2) {
             e.preventDefault();
