@@ -623,31 +623,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Filter post cards in the feed
         const postCards = document.querySelectorAll('.post-card');
-        postCards.forEach((card) => {
+        const feedGrid = document.querySelector('.feed-grid');
+
+        const cardsArray = Array.from(postCards).map((card) => {
             const lstId = card.dataset.id;
             const offer = liveOffers.find(o => String(o.lst_id) === String(lstId));
 
             if (!offer) {
-                card.style.display = 'block';
-                return;
+                return { card, offer, distance: Infinity };
             }
 
             const lat = parseFloat(offer.pickup_latitude);
             const lng = parseFloat(offer.pickup_longitude);
             const hasCoords = !isNaN(lat) && !isNaN(lng);
-            const distance = hasCoords ? calculateDistance(userLat, userLng, lat, lng) : 0;
+            const distance = hasCoords ? calculateDistance(userLat, userLng, lat, lng) : Infinity;
             const status = getOfferStatus(offer);
-
-            // Update distance text in card
-            const distEl = card.querySelector('.post-card-dist');
-            if (distEl) {
-                if (hasCoords) {
-                    const distKm = (distance / 1000).toFixed(1);
-                    distEl.textContent = `${distKm} km away`;
-                } else {
-                    distEl.textContent = 'Location on request';
-                }
-            }
 
             // Category match check
             let matchesCategory = true;
@@ -662,6 +652,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 matchesAllergy = false;
             }
 
+            return { card, offer, distance, hasCoords, status, matchesCategory, matchesAllergy };
+        });
+
+        // Sort by distance
+        cardsArray.sort((a, b) => a.distance - b.distance);
+
+        cardsArray.forEach((item) => {
+            const { card, offer, distance, hasCoords, status, matchesCategory, matchesAllergy } = item;
+
+            if (!offer) {
+                card.style.display = 'block';
+                if (feedGrid) feedGrid.appendChild(card);
+                return;
+            }
+
+            // Update distance text in card
+            const distEl = card.querySelector('.post-card-dist');
+            if (distEl) {
+                if (hasCoords) {
+                    const distKm = (distance / 1000).toFixed(1);
+                    distEl.textContent = `${distKm} km away`;
+                } else {
+                    distEl.textContent = 'Location on request';
+                }
+            }
+
             if ((!hasCoords || distance <= radiusMeters) && status !== 'deleted' && matchesCategory && matchesAllergy) {
                 card.style.display = 'block';
                 if (status === 'inactive') {
@@ -674,6 +690,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 card.style.display = 'none';
             }
+            
+            if (feedGrid) feedGrid.appendChild(card);
         });
     }
 
