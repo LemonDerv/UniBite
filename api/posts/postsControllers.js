@@ -225,6 +225,8 @@ appRouter.get('/meals', async (req,res)=>{
     let lst_id,pickup_windows,allergens,meal_tags ;
     let success_status,status,message,status_code,body;
 
+    const credits =(await pool.query('SELECT credits FROM student WHERE std_id=?',[req.session.usr_id]))[0][0].credits;
+    
     /*ACTIVE MEALS INFORMATION*/ 
     ({success_status,status,message,status_code,body} = await getAllActiveMeals(req.session.usr_id));
     if(!success_status)
@@ -262,7 +264,9 @@ appRouter.get('/meals', async (req,res)=>{
             pickup_windows :pickup_windows[meal.lst_id],
             allergens :allergens[meal.lst_id] || [],
             meal_tags : meal_tags[meal.lst_id] || [],
-            img: images[meal.lst_id] || ''
+            img: images[meal.lst_id] || '',
+            loggedUser :req.session.username,
+            userCredits : credits
         })
     )});
 })
