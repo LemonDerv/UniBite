@@ -92,7 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if(diff < 0){
             if(counter.dataset.timer) clearInterval(counter.dataset.timer);
             counter.dataset.timer = null;
-            counter.textContent = "Expired";
+            const postCard = counter.closest('.post-card');
+            if (postCard) {
+                postCard.style.display = 'none';
+            }
             return ;
         }
         else if(diff < 60 * 1000 * 60 * 2){

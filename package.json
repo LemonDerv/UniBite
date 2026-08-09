@@ -19,7 +19,8 @@
     "dotenv": "^17.4.2",
     "argon2": "^0.45.1",
     "node-appwrite": "^27.0.0",
-    "multer": "^2.2.0"
+    "multer": "^2.2.0",
+    "node-cron" : "^4.6.0"
   },
   "devDependencies": {}
 }

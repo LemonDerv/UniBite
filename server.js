@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const session = require("express-session");
+const cron = require('node-cron');
+const pool = require("./db.js");
 
 app.use(cors());
 
@@ -45,7 +47,26 @@ app.use('/api/posts',postRouter);
 /* FOR THE AUTH MIDDLEWARE*/
 app.use('/private',express.static('private'));
 
+//ACTIVE -> EXPIRED AFTER 48H 
+const task = cron.schedule('0 * * * *', async ()=>{
+    const connection = await pool.getConnection();
+    
+    try{
+        await connection.beginTransaction();
+        await connection.query("UPDATE listing SET status='EXPIRED' WHERE expires_at < NOW() AND status='ACTIVE'");
+        await connection.commit();
+    }
+    catch(err){
+        await connection.rollback();
+        console.log(err);
+    }
+    finally{await connection.release()};
+});
+
+task.on('execution:missed', () => {
+  task.execute();
+});
+
 app.listen(3000,()=>{
     console.log("Running ");
 });
-
