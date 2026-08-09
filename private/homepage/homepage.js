@@ -92,7 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if(diff < 0){
             if(counter.dataset.timer) clearInterval(counter.dataset.timer);
             counter.dataset.timer = null;
-            counter.textContent = "Expired";
+            const postCard = counter.closest('.post-card');
+            if (postCard) {
+                postCard.style.display = 'none';
+            }
             return ;
         }
         else if(diff < 60 * 1000 * 60 * 2){
@@ -119,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch('/api/posts/meals' ,{
         method : 'GET'
     })
-    .then(async (res)=>{
+    .then(async (res,req)=>{
         if(!res.ok){
             if (feedGrid) feedGrid.innerHTML = '<p class="no-meals-msg" style="text-align:center; padding: 2rem; color: #888;">No active meals found.</p>';
             return;
@@ -128,7 +131,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await res.json();
         const meals = data.body || [];
         liveOffers = meals;
-
+        
+        document.querySelector(".username").textContent=`${data.body[0].loggedUser}`;
+        document.querySelector(".credits").textContent=`Credits : ${data.body[0].userCredits}`;
+        
         if (feedGrid) {
             feedGrid.innerHTML = '';
             if (meals.length === 0) {
