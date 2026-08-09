@@ -25,6 +25,9 @@ app.use(session({
 }));
 
 /*USE PUBLIC ROUTER*/ 
+const publicRoutes = require("./api/public/publicControllers");
+app.use('/api/public',publicRoutes);
+
 const userRoutes = require("./api/user/userControllers");
 app.use('/api/user',userRoutes);
 
