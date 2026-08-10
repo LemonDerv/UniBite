@@ -70,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // send user allergies
             await fetch("/api/user/allergies", {
                 method: "POST",
+                credentials: 'include',
                 headers: {
                     "Content-Type": "application/json"
                 },
@@ -270,6 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         await fetch('/api/user/addresses' , {
             method:'POST',
+            credentials: 'include',
             headers: {
                 "Content-Type": "application/json"
             },

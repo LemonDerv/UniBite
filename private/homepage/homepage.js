@@ -142,7 +142,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     let liveOffers = [];
 
     fetch('/api/posts/meals' ,{
-        method : 'GET'
+        method: "GET",
+        credentials: 'include'
     })
     .then(async (res,req)=>{
         if(!res.ok){
@@ -475,6 +476,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 const response = await fetch("/api/user/addresses/single", {
                     method: "POST",
+                    credentials: 'include',
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         address: addressText,
@@ -962,6 +964,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
         fetch('/api/user/request', {
             method: 'POST',
+            credentials: 'include',
             headers: {'Content-Type': 'application/json'
             },
             body: JSON.stringify(request)
@@ -1349,6 +1352,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const res = await fetch('/api/user/createMeal' ,{
                 method : "POST",
+                credentials: 'include',
                 body: mealPost
             })
             .then(async (res)=>{

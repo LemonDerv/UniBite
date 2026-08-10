@@ -91,6 +91,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         try {
             const response = await fetch("/api/user/username", {
                 method: "PATCH",
+                credentials: 'include',
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username: newUsername })
             });
@@ -115,6 +116,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         try {
             const response = await fetch("/api/user/allergies", {
                 method: "PATCH",
+                credentials: 'include',
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ allergies: selectedAllergies })
             });
@@ -172,6 +174,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         try {9
             const response = await fetch("/api/user/addresses/single", {
                 method: "POST",
+                credentials: 'include',
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     address: addressText,
@@ -213,7 +216,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             const addr_id = e.target.dataset.addr_id;
             try {
                 const response = await fetch(`/api/user/addresses/${addr_id}/set-default`, {
-                    method: "PATCH"
+                    method: "PATCH",
+                    credentials: 'include'
                 });
                 if (!response.ok) throw new Error("Failed to set default address.");
                 await refreshAddresses();
@@ -229,7 +233,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         const addr_id = e.target.dataset.addr_id;
         try {
             const response = await fetch(`/api/user/addresses/${addr_id}`, {
-                method: "DELETE"
+                method: "DELETE",
+                credentials: 'include'
             });
             const data = await response.json();
             if (!response.ok) {
