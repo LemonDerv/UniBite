@@ -1,4 +1,29 @@
 document.addEventListener("DOMContentLoaded", async () => {
+
+    /* ------------------------------
+       FETCH USERNAME + CREDITS
+    ------------------------------ */
+    const usr_id = JSON.parse(localStorage.getItem('unibites-user-setup'))?.usr_id || JSON.parse(sessionStorage.getItem('session'))?.usr_id;
+    if (!usr_id) {
+        console.error("User ID not found in session.");
+        return;
+    }
+
+    fetch(`/api/user/${usr_id}`, { credentials: 'include' })
+    .then(response => {
+        if (!response.ok) throw new Error("Failed to fetch user data.");
+        return response.json();
+    })
+    .then(userData => {
+        document.querySelector(".account-box .username").textContent = userData.user.username;
+        document.querySelector(".account-box .credits").textContent = `Credits: ${userData.user.credits}`;
+    })
+    .catch(err => {
+        console.error("Error fetching user data:", err);
+    });
+
+
+    
     // 3 DOT MENU BEHAVIOR
     document.addEventListener("click", (e) => {
         const button = e.target.closest(".menu-trigger");
