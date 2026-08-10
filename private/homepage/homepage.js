@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         try {
-            const response = await fetch(`/api/user/${usr_id}`);
+            const response = await fetch(`/api/user/${usr_id}`, { cache: 'no-store' });
             if (!response.ok) throw new Error("Failed to fetch user data.");
             const userData = await response.json();
             addressObjects = userData.user.addresses || [];

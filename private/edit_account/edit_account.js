@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let userData;
     let addresses = [];
     try {
-        const response = await fetch(`/api/user/${usr_id}`, {credentials: 'include'});
+        const response = await fetch(`/api/user/${usr_id}`, {credentials: 'include', cache: 'no-store'});
         if (!response.ok) throw new Error("Failed to fetch user data.");
         userData = await response.json();
         addresses = userData.user.addresses;
@@ -197,8 +197,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function refreshAddresses() {
         try {
-            const response = await fetch(`/api/user/${usr_id}`);
-            if (!response.ok) throw new Error("Failed to fetch user data.");
+            const response = await fetch(`/api/user/${usr_id}`, { cache: 'no-store' });
+            if (!response.ok) throw new Error("Failed to refresh user data.");
             userData = await response.json();
             addresses = userData.user.addresses; //update the addresses array
             renderAddresses(); //re-render the list
