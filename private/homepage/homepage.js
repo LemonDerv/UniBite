@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     let file = null;
     let meal_location = null;
     const user  = localStorage.getItem('username') || 'User';
@@ -48,30 +48,52 @@ document.addEventListener('DOMContentLoaded', () => {
         const houseNumberPattern = /^\d+[^\d\s,]?$/;
         const postcode = parts.find((part) => /\b\d{3}\s?\d{2}\b/.test(part));
 
-        if (parts.length >= 3 && houseNumberPattern.test(parts[1])) {
-            const neighborhood = postcode
-                ? `${parts[2]} ${postcode.replace(/\s+/g, '')}`
-                : parts[2];
-            return `${parts[0]}, ${parts[1]}, ${neighborhood}`;
+        if (parts.length >= 2) {
+            if (houseNumberPattern.test(parts[1])) {
+                const streetNum = `${parts[0]} ${parts[1]}`;
+                const neighborhood = postcode && parts.length > 2 ? postcode : (parts.length > 2 ? parts[2] : '');
+                return neighborhood ? `${streetNum}, ${neighborhood}` : streetNum;
+            }
+            if (houseNumberPattern.test(parts[0])) {
+                const streetNum = `${parts[1]} ${parts[0]}`;
+                const neighborhood = postcode && parts.length > 2 ? postcode : (parts.length > 2 ? parts[2] : '');
+                return neighborhood ? `${streetNum}, ${neighborhood}` : streetNum;
+            }
         }
 
         return parts.slice(0, 2).join(', ');
     }
 
-    function getInitialAddresses() {
-        const setup = readUserSetup();
-        const storedAddresses = Array.isArray(setup.addresses) ? setup.addresses : [];
-        const source = storedAddresses.length ? storedAddresses : defaultAddresses;
-        return [...new Set(source.map(shortenAddress).filter(Boolean))];
+    let addresses = [];
+    let addressObjects = [];
+    let currentFullAddress = null;
+    const usr_id = JSON.parse(localStorage.getItem('unibites-user-setup'))?.usr_id || JSON.parse(sessionStorage.getItem('session'))?.usr_id;
+
+    async function loadAddresses() {
+        if (!usr_id) {
+            addresses = defaultAddresses.map(shortenAddress);
+            return;
+        }
+        try {
+            const response = await fetch(`/api/user/${usr_id}`);
+            if (!response.ok) throw new Error("Failed to fetch user data.");
+            const userData = await response.json();
+            addressObjects = userData.user.addresses || [];
+            
+            // Sort to put default address first
+            addressObjects.sort((a, b) => (b.isDefault === 1 || b.isDefault === true) ? 1 : -1);
+
+            addresses = [...new Set(addressObjects.map(a => shortenAddress(a.text)))];
+            if (addresses.length === 0) {
+                addresses = defaultAddresses.map(shortenAddress);
+            }
+        } catch (err) {
+            console.error("Error fetching user data:", err);
+            addresses = defaultAddresses.map(shortenAddress);
+        }
     }
 
-    const addresses = getInitialAddresses();
-
-    function saveAddresses() {
-        const setup = readUserSetup();
-        setup.addresses = addresses;
-        localStorage.setItem('unibites-user-setup', JSON.stringify(setup));
-    }
+    await loadAddresses();
 
     function setSelectedAddress(address) {
         selectedAddress = address || addresses[0] || '';
@@ -320,9 +342,11 @@ document.addEventListener('DOMContentLoaded', () => {
             placeHomepageMarker(lat, lng);
 
             try {
-                addressInput.value = await reverseGeocode(lat, lng);
+                currentFullAddress = await reverseGeocode(lat, lng);
+                addressInput.value = shortenAddress(currentFullAddress);
             } catch {
                 addressInput.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                currentFullAddress = addressInput.value;
             }
         });
 
@@ -343,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch(url);
         if (!res.ok) throw new Error('network');
         const data = await res.json();
-        return shortenAddress(data.display_name) || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        return data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
     }
 
     if (addressBtn && addressDropdown) {
@@ -387,7 +411,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const { lat, lng, display } = await geocodeAddress(query);
             placeHomepageMarker(lat, lng);
-            addressInput.value = display;
+            currentFullAddress = display;
+            addressInput.value = shortenAddress(display);
         } catch (err) {
             showGeoError(err.message === 'not_found' ? 'Address not found. Try a more specific address.' : 'Could not look up this address. Please try again.');
         } finally {
@@ -408,9 +433,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const lng = position.coords.longitude;
                 placeHomepageMarker(lat, lng);
                 try {
-                    addressInput.value = await reverseGeocode(lat, lng);
+                    currentFullAddress = await reverseGeocode(lat, lng);
+                    addressInput.value = shortenAddress(currentFullAddress);
                 } catch {
                     addressInput.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                    currentFullAddress = addressInput.value;
                 } finally {
                     btnUseLocationAddress.disabled = false;
                 }
@@ -430,17 +457,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    btnAddAddress?.addEventListener('click', () => {
+    btnAddAddress?.addEventListener('click', async () => {
         clearGeoError();
-        const val = shortenAddress(addressInput.value);
-        if (!val || addresses.includes(val)) return;
+        const addressText = currentFullAddress;
+        if (!addressText) return;
+        
+        const val = shortenAddress(addressText);
+        if (addresses.includes(val)) return;
 
-        addresses.push(val);
-        saveAddresses();
+        if (!homepageMarker) {
+            showGeoError("Please select a location on the map.");
+            return;
+        }
+
+        if (usr_id) {
+            const {lat, lng} = homepageMarker.getLatLng();
+            try {
+                const response = await fetch("/api/user/addresses/single", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        address: addressText,
+                        lat: lat,
+                        lng: lng,
+                        isDefault: false
+                    })
+                });
+                if (!response.ok) throw new Error("Failed to add address.");
+                await loadAddresses();
+            } catch (err) {
+                console.error("Error adding address:", err);
+                return;
+            }
+        } else {
+            addresses.push(val);
+        }
+
         renderAddressDropdown();
         setSelectedAddress(val);
         closeAddressMapPanel();
         updateInteractiveMapRadius();
+        currentFullAddress = null;
+        addressInput.value = '';
     });
 
     const cancelAddressBtn = document.getElementById('homepage-btn-address-cancel');
@@ -572,7 +630,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateInteractiveMapRadius() {
         if (!interactiveMap || !selectedAddress) return;
 
-        // Geocode the selected address to get coordinates
+        // Try to find the coordinates from the loaded addressObjects
+        const found = addressObjects.find(a => shortenAddress(a.text) === selectedAddress);
+        if (found && found.lat !== undefined && found.lng !== undefined) {
+            userLatLng = [parseFloat(found.lat), parseFloat(found.lng)];
+            if (userMarker) userMarker.setLatLng(userLatLng);
+            if (userCircle) userCircle.setLatLng(userLatLng);
+            interactiveMap.setView(userLatLng, 14);
+            filterOffersByRadius(parseFloat(radiusSlider?.value || 10));
+            return;
+        }
+
+        // Fallback: Geocode the selected address (for default addresses or unauthenticated users)
         geocodeAddress(selectedAddress).then(({ lat, lng }) => {
             userLatLng = [lat, lng];
             if (userMarker) userMarker.setLatLng(userLatLng);

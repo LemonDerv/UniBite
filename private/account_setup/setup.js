@@ -21,6 +21,33 @@ document.addEventListener('DOMContentLoaded', () => {
     let map         = null;
     let marker      = null;
     const addresses = [];
+    let currentFullAddress = null;
+
+    function shortenAddress(address) {
+        const normalized = String(address || '').replace(/\s+/g, ' ').trim();
+        if (!normalized.includes(',')) return normalized;
+        const parts = normalized
+            .split(',')
+            .map((part) => part.trim())
+            .filter(Boolean);
+        const houseNumberPattern = /^\d+[^\d\s,]?$/;
+        const postcode = parts.find((part) => /\b\d{3}\s?\d{2}\b/.test(part));
+
+        if (parts.length >= 2) {
+            if (houseNumberPattern.test(parts[1])) {
+                const streetNum = `${parts[0]} ${parts[1]}`;
+                const neighborhood = postcode && parts.length > 2 ? postcode : (parts.length > 2 ? parts[2] : '');
+                return neighborhood ? `${streetNum}, ${neighborhood}` : streetNum;
+            }
+            if (houseNumberPattern.test(parts[0])) {
+                const streetNum = `${parts[1]} ${parts[0]}`;
+                const neighborhood = postcode && parts.length > 2 ? postcode : (parts.length > 2 ? parts[2] : '');
+                return neighborhood ? `${streetNum}, ${neighborhood}` : streetNum;
+            }
+        }
+
+        return parts.slice(0, 2).join(', ');
+    }
 
     /* STEP INDICATOR */
     function updateStepLabel(step) {
@@ -91,9 +118,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const { lat, lng } = e.latlng;
             placeMarker(lat, lng);
             try {
-                addressInput.value = await reverseGeocode(lat, lng);
+                currentFullAddress = await reverseGeocode(lat, lng);
+                addressInput.value = shortenAddress(currentFullAddress);
             } catch {
                 addressInput.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                currentFullAddress = addressInput.value;
             }
         });
     }
@@ -143,7 +172,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const { lat, lng, display } = await geocodeAddress(query);
             placeMarker(lat, lng);
-            addressInput.value = display;
+            currentFullAddress = display;
+            addressInput.value = shortenAddress(display);
         } catch (err) { 
             showGeoError(err.message === 'not_found' ? 'Address not found. Try a different search.' : 'Could not reach the geocoding service. Check your connection.');
         } finally {
@@ -164,9 +194,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const lng = position.coords.longitude;
                 placeMarker(lat, lng);
                 try {
-                    addressInput.value = await reverseGeocode(lat, lng);
+                    currentFullAddress = await reverseGeocode(lat, lng);
+                    addressInput.value = shortenAddress(currentFullAddress);
                 } catch {
                     addressInput.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                    currentFullAddress = addressInput.value;
                 } finally {
                     btnUseLocation.disabled = false;
                 }
@@ -192,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const text = document.createElement('span');
             text.className = 'address-pill-text';
-            text.textContent = addr;
+            text.textContent = shortenAddress(addr);
 
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-pill-btn';
@@ -214,10 +246,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     btnAddAddr.addEventListener('click', () => {
-        const val = addressInput.value.trim();
+        const val = currentFullAddress || addressInput.value.trim();
         if (!val || addresses.includes(val)) return;
         addresses.push(val);
         renderAddresses();
+        addressInput.value = '';
+        currentFullAddress = null;
     });
 
     /* FINISH */

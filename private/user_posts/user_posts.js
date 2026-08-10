@@ -562,26 +562,31 @@ document.addEventListener("DOMContentLoaded", async () => {
         showEditPage(1);
     });
 
-
     function shortenAddress(address) {
-        const normalized = String(address || "").replace(/\s+/g, " ").trim();
-        if (!normalized.includes(",")) return normalized;
+        const normalized = String(address || '').replace(/\s+/g, ' ').trim();
+        if (!normalized.includes(',')) return normalized;
         const parts = normalized
-            .split(",")
+            .split(',')
             .map((part) => part.trim())
             .filter(Boolean);
         const houseNumberPattern = /^\d+[^\d\s,]?$/;
         const postcode = parts.find((part) => /\b\d{3}\s?\d{2}\b/.test(part));
 
-        if (parts.length >= 3 && houseNumberPattern.test(parts[1])) {
-            const neighborhood = postcode
-                ? `${parts[2]} ${postcode.replace(/\s+/g, "")}`
-                : parts[2];
-            return `${parts[0]}, ${parts[1]}, ${neighborhood}`;
+        if (parts.length >= 2) {
+            if (houseNumberPattern.test(parts[1])) {
+                const streetNum = `${parts[0]} ${parts[1]}`;
+                const neighborhood = postcode && parts.length > 2 ? postcode : (parts.length > 2 ? parts[2] : '');
+                return neighborhood ? `${streetNum}, ${neighborhood}` : streetNum;
+            }
+            if (houseNumberPattern.test(parts[0])) {
+                const streetNum = `${parts[1]} ${parts[0]}`;
+                const neighborhood = postcode && parts.length > 2 ? postcode : (parts.length > 2 ? parts[2] : '');
+                return neighborhood ? `${streetNum}, ${neighborhood}` : streetNum;
+            }
         }
 
-        return parts.slice(0, 2).join(", ");
-    }
+        return parts.slice(0, 2).join(', ');
+    };
 
     async function geocodeAddress(query) {
         const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
