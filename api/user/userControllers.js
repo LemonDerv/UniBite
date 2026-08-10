@@ -184,13 +184,21 @@ appRouter.post('/allergies' , async (req,res)=>{
 
 appRouter.post('/addresses' , async (req,res)=>{
     const [defaultAddr , ...data] = req.body;
-    const addr=data.map(addr=>[req.session.usr_id , addr.display, addr.lat , addr.lng]);
     const connection =await pool.getConnection();
     
     try{
         await connection.beginTransaction();
-        await connection.query("INSERT INTO usr_has_addr(std_id, address_text,latitude,longitude,is_default) VALUES (?)",[[req.session.usr_id,defaultAddr.display,defaultAddr.lat,defaultAddr.lng,true]]);
-        await connection.query("INSERT INTO usr_has_addr(std_id, address_text,latitude,longitude) VALUES ?",[addr]);
+        await connection.query(
+            "INSERT INTO usr_has_addr(std_id, address_text, latitude, longitude, is_default) VALUES (?)",
+            [[req.session.usr_id, defaultAddr.display, defaultAddr.lat, defaultAddr.lng, true]]
+        );
+        if (data.length > 0) {
+            const addr = data.map(addr => [req.session.usr_id, addr.display, addr.lat, addr.lng]);
+            await connection.query(
+                "INSERT INTO usr_has_addr(std_id, address_text, latitude, longitude) VALUES ?",
+                [addr]
+            );
+        }
         await connection.commit();
         return res.status(200).json({status: "ADRESSES-FOUND" , message: "Addresses found"});
     }
