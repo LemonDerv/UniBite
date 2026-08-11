@@ -278,7 +278,7 @@ async function getRequestsPerListing(listings){
 
 async function getRequestsInfoPerListing(listings){
     try{
-        let req_info=(await pool.query("SELECT * FROM mealRequests WHERE lst_id IN(?)",[listings]))[0]
+        let req_info=(await pool.query("SELECT * FROM mealRequests WHERE lst_id IN(?) AND status = 'PENDING'",[listings]))[0]
         
         if(!req_info.length)
             return {success_status : false ,
@@ -290,7 +290,11 @@ async function getRequestsInfoPerListing(listings){
 
         req_info = req_info.reduce((acc,curr)=>{
             if(!acc[curr.lst_id]) acc[curr.lst_id] =[];
-            acc[curr.lst_id].push([curr.usr_username , curr.created_at]);
+            acc[curr.lst_id].push({
+                rq_id: curr.rq_id,
+                username: curr.usr_username,
+                created_at: curr.created_at
+            });
             return acc;
         },{});
 
