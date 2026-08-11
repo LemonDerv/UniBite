@@ -233,29 +233,102 @@ appRouter.post('/updateRequest' , async ( req,res)=>{
     const connection = await pool.getConnection();
 
     try{
-        connection.beginTransaction();
-        const result = (await pool.query("UPDATE requests SET status=? ,updated_at=CURRENT_TIMESTAMP() WHERE rq_id=?" , [status , data.req_id]));
+        await connection.beginTransaction();
+        const [requestInfo] = await connection.query(
+            `SELECT lst_id
+             FROM requests
+             WHERE rq_id = ?`,
+            [data.req_id]
+        );
+        if (!requestInfo.length) {
+            await connection.rollback();
+            return res.status(404).json({
+                status: "REQUEST-NOT-FOUND",
+                message: "Request not found."
+            });
+        }
+        const lst_id = requestInfo[0].lst_id;
+        await connection.query(
+            `UPDATE requests
+             SET status = ?,
+                 updated_at = CURRENT_TIMESTAMP()
+             WHERE rq_id = ?`,
+            [status, data.req_id]
+        );
+        
+        if (status === 'ACCEPTED') {
+            // get the listing's current number of portions
+            const [listing] = await connection.query(
+                `SELECT portions
+                 FROM listing
+                 WHERE lst_id = ?`,
+                [lst_id]
+            );
+            if (listing.length && listing[0].portions === 0) {
+                // last portion was accepted -> reject all remaining pending requests
+                await connection.query(
+                    `UPDATE requests
+                     SET status = 'REJECTED',
+                         updated_at = CURRENT_TIMESTAMP()
+                     WHERE lst_id = ?
+                     AND status = 'PENDING'`,
+                    [lst_id]
+                );
+            }
+        }
         await connection.commit();
-        return res.status(200).json({status: "REQUEST-UPDATED" , message:"Request ",status});
+        return res.status(200).json({
+            status: "REQUEST-UPDATED",
+            message: "Request updated.",
+            request_status: status
+        });
     }
-    catch(err){
+    catch (err) {
         await connection.rollback();
         console.log('Server Error : ', err);
-        return res.status(500).json({status:"DB/SERVER-ERROR" , message : "Server Error"});
+        return res.status(500).json({
+            status: "DB/SERVER-ERROR",
+            message: "Server Error"
+        });
     }
-    finally{await connection.release();}
+    finally {
+        connection.release();
+    }
 })
 
 appRouter.post('/updateDelivery' , async ( req,res)=>{
     const data = req.body;
     const del_id = data.del_id;
+    const action = data.action;
     const connection = await pool.getConnection();
     
     try{
         await connection.beginTransaction();
-        const result = (await connection.query("UPDATE deliveries SET status='DELIVERED' ,del_time=CURRENT_TIMESTAMP() WHERE del_id=?" , [del_id]));
+        if (action === "DELIVERED") {
+            await connection.query(
+                `UPDATE deliveries SET status = 'DELIVERED', del_time = CURRENT_TIMESTAMP()
+                 WHERE del_id = ?`, [del_id]
+            );
+        }
+        else if (action === "REJECTED") {
+            await connection.query(
+                `UPDATE deliveries SET status = 'REJECTED'
+                 WHERE del_id = ?`, [del_id]
+            );
+        }
+        else {
+            await connection.rollback();
+            return res.status(400).json({
+                status: "INVALID-ACTION",
+                message: "Invalid delivery action."
+            });
+        }
+
         await connection.commit();
-        return res.status(200).json({status: "DELIVERY-UPDATED" , message:"Delivery Updated. "});
+        return res.status(200).json({
+            status: "DELIVERY-UPDATED",
+            message: "Delivery Updated."
+        });
     }
     catch(err){
         await connection.rollback();
