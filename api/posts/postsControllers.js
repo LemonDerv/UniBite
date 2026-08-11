@@ -21,7 +21,7 @@ const {getExpiredMeals ,
 
 /*ACTIVE MEALS PER USER*/ 
 appRouter.get('/activeMeals' , async (req,res)=>{
-    let activeMeals,tags,pickup_windows,allergens,images,req_count,req_info;
+    let activeMeals,tags,pickup_windows,allergens,images,req_info;
     let success_status,status,message,status_code,body;
 
     ({success_status,status,message,status_code,body}= await getActiveMeals(req.session.usr_id));
@@ -31,23 +31,18 @@ appRouter.get('/activeMeals' , async (req,res)=>{
  
     const lst_id = activeMeals.map(meal=> meal.lst_id);
         
-    ({success_status,status,message,status_code,body} = await getRequestsPerListing(lst_id));
-    if(!success_status)
-        console.log("Status Code : " , status_code , "Message " , message);
-    req_count= body;
-        
     ({success_status,status,message,status_code,body} = await getRequestsInfoPerListing(lst_id));
     if(!success_status)
         console.log("Status Code : " , status_code , "Message " , message);
     req_info= body;
 
-    const requests  = Object.entries(req_info).reduce((acc,curr)=>{
-        acc[curr[0]] ={
-            count : req_count[curr[0]],
+    const requests = Object.entries(req_info).reduce((acc, curr) => {
+        acc[curr[0]] = {
+            count: curr[1].length,
             info: curr[1]
         };
         return acc;
-    },{});
+    }, {});
 
     ({success_status,status,message,status_code,body}= await getPickupWindows(lst_id));
     if(!success_status)
@@ -321,8 +316,8 @@ appRouter.get('/requests', async (req,res)=>{
 });
 
 appRouter.get('/deliveries' , async (req,res)=>{
-    let listings ;        
-    let finalDeliveries;
+    let listings ;
+    let finalDeliveries = [];
     let success_status,status,message,status_code,body;
 
     ({success_status,status,message,status_code,body} = await getActiveMeals(req.session.usr_id));
@@ -390,8 +385,8 @@ appRouter.get('/deliveries' , async (req,res)=>{
     );
 
     res.status(200).json({body : {
-        deliveries : finalDeliveries || {} ,
-        requests : finalRequests || {}
+        deliveries: finalDeliveries || [],
+        requests: finalRequests || []
     }});
 })
 
