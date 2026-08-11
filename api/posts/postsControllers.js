@@ -220,14 +220,20 @@ appRouter.get('/meals', async (req,res)=>{
     let lst_id,pickup_windows,allergens,meal_tags ;
     let success_status,status,message,status_code,body;
 
-    const credits =(await pool.query('SELECT credits FROM student WHERE std_id=?',[req.session.usr_id]))[0][0].credits;
+    let reqListings = (await pool.query("SELECT * FROM requests WHERE std_id=?",[req.session.usr_id]))[0];
+    
+    /*SELECT ONLY NON REQUESTED LISTINGS*/ 
+    if(reqListings.length){
+        reqListings = reqListings.map(req=>req.lst_id);
+        activeMeals = (await pool.query('SELECT * FROM activeMeals WHERE poster!=? AND lst_id NOT IN (?)',[req.session.usr_id,reqListings]))[0];
+    }
+    else
+        activeMeals = (await pool.query('SELECT * FROM activeMeals WHERE poster NOT IN ?'),[req.session.usr_id]);
+
+    const credits = (await pool.query('SELECT credits FROM student WHERE std_id=?',[req.session.usr_id,]))[0][0].credits;
     
     /*ACTIVE MEALS INFORMATION*/ 
-    ({success_status,status,message,status_code,body} = await getAllActiveMeals(req.session.usr_id));
-    if(!success_status)
-        return res.status(status_code).json({status : status , message:message});
-    activeMeals=body;
-
+    
     lst_id = activeMeals.map(meal=>meal.lst_id);
 
     /*PICKUP WINDOWS*/ 

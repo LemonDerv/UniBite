@@ -154,6 +154,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const data = await res.json();
         const meals = data.body || [];
         liveOffers = meals;
+
+        console.log(meals);
+
         
         document.querySelector(".username").textContent=`${data.body[0].loggedUser}`;
         document.querySelector(".credits").textContent=`Credits : ${data.body[0].userCredits}`;
