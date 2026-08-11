@@ -188,7 +188,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                             </div>
                             <div class="post-meta">
                                 <span class="post-time">Posted on • ${meal.created_at.slice(5,10).replace('-','/')} @ ${meal.created_at.slice(11,16).replace('-','/')}</span>
-                                <span class="post-time-remaining">24h remaining</span>
+                                <span class="post-time-remaining" data-timer> remaining</span>
                             </div>
                             <div class="post-meta">
                                 <span class="post-address">${meal.pickup_location}</span>
@@ -197,7 +197,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         </div>
                     </article>
 
-                    <div class="requests-modal hidden" id="requestsModal_${idx}">
+                    <div class="requests-modal hidden" id="requestsModal_${idx}" data-listing-id="${meal.lst_id}">
                         <div class="modal-overlay"></div>
                             <div class="requests-modal-content">
                                 <h2>Requests</h2>
@@ -209,7 +209,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                         </div>
                     </div>`;
 
+
             document.querySelector(".posts-grid").insertAdjacentHTML('beforeend',postHtml);
+            if (meal.expires_at) {
+                const timerEl = document.querySelector(".posts-grid").querySelector(`.post-card[data-id="${meal.lst_id}"] .post-time-remaining`);
+                if (timerEl) startTimer(meal.expires_at, timerEl);
+            }
+
             const reqModal = document.getElementById(`requestsModal_${idx}`);
 
             const card = document.getElementById(`post-card_${idx}`);
@@ -217,17 +223,33 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             const requests = meal.requests===0 ? [] : meal.requests.info;
 
-            requests.forEach(([username,date])=>{
-                reqlist.insertAdjacentHTML( 'beforeend',`<div class="request-item">
+            requests.forEach(request=>{
+                reqlist.insertAdjacentHTML( 'beforeend',`<div class="request-item" data-id="${request.rq_id}">
                                         <div class="request-info">
-                                            <strong>${username}</strong>
-                                            <p class="request-time">${date.replace('T',' ').slice(0,16)}</p>
+                                            <strong>${request.username}</strong>
+                                            <p class="request-time">${request.created_at.replace('T',' ').slice(0,16)}</p>
                                         </div>
                                         <div class="request-actions">
                                             <button class="request-btn accept" title="Accept">✓</button>
                                             <button class="request-btn decline" title="Decline">✕</button>
                                         </div>
                                     </div>`);
+            });
+
+            reqlist.querySelectorAll(".accept").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const reqId = btn.closest(".request-item").dataset.id;
+
+                    updateRequest(reqId, "confirm");
+                });
+            });
+
+            reqlist.querySelectorAll(".decline").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const reqId = btn.closest(".request-item").dataset.id;
+
+                    updateRequest(reqId, "fail");
+                });
             });
 
             reqModal?.querySelector(".modal-overlay").addEventListener('click',()=> closeModal(reqModal));
@@ -259,6 +281,153 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     })
     .catch((err)=>{console.log(err)});
+
+
+/* REQUEST ACCEPTING/REJECTING LOGIC */
+    async function updateRequest(reqId, action) {
+        const res = await fetch('/api/user/updateRequest', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                req_id: reqId,
+                action: action
+            })
+        });
+
+        const data = await res.json();
+        if (res.status !== 200) {
+            alert(data.message);
+            return;
+        }
+        const requestItem = document.querySelector(
+            `.request-item[data-id="${reqId}"]`
+        );
+        if (!requestItem) {
+            return;
+        }
+        const modal = requestItem.closest(".requests-modal");
+        const listingId = modal.dataset.listingId;
+        
+        const card = document.querySelector(
+            `.post-card[data-id="${listingId}"]`
+        );
+
+        //decrease displayed portions when request was accepted to avoid reloading entire post
+        if (action === "confirm") {
+            const portionsElement = card.querySelector(".post-portions");
+            if (portionsElement) {
+                let portions = parseInt(portionsElement.textContent, 10);
+
+                if (!isNaN(portions) && portions > 0) {
+                    portionsElement.textContent = portions - 1;
+                }
+            }
+        }
+        await reloadRequests(listingId, modal, card);
+    }
+
+    async function reloadRequests(listingId, modal, card) {
+        const res = await fetch('/api/posts/activeMeals', {
+            method: 'GET'
+        });
+        const data = await res.json();
+
+        if (res.status !== 200) {
+            console.log(data.message);
+            return;
+        }
+
+        const meal = data.body.find(
+            meal => meal.lst_id == listingId
+        );
+
+        const requests = meal?.requests?.info ?? [];
+        const requestsList = modal.querySelector(".requests-list");
+
+        requestsList.innerHTML = "";
+        requests.forEach(request => {
+            requestsList.insertAdjacentHTML(
+                'beforeend',
+                `<div class="request-item" data-id="${request.rq_id}">
+                    <div class="request-info">
+                        <strong>${request.username}</strong>
+                        <p class="request-time">
+                            ${request.created_at.replace('T', ' ').slice(0, 16)}
+                        </p>
+                    </div>
+                    <div class="request-actions">
+                        <button class="request-btn accept" title="Accept">✓</button>
+                        <button class="request-btn decline" title="Decline">✕</button>
+                    </div>
+                </div>`
+            );
+        });
+
+        requestsList.querySelectorAll(".accept").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const reqId = btn.closest(".request-item").dataset.id;
+                updateRequest(reqId, "confirm");
+            });
+        });
+
+        requestsList.querySelectorAll(".decline").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const reqId = btn.closest(".request-item").dataset.id;
+                updateRequest(reqId, "fail");
+            });
+        });
+
+        const statusBar = card.querySelector(".post-status-bar");
+
+        if (requests.length === 0) {
+            statusBar.textContent = "No new requests!";
+            statusBar.classList.remove("yes-requests");
+        } else {
+            statusBar.textContent =
+                `${requests.length} new request${requests.length === 1 ? "" : "s"}!`;
+
+            statusBar.classList.add("yes-requests");
+        }
+    }
+
+/* POST TIMER LOGIC */
+    function updateTime(expires_at, counter) {
+        let now = new Date();
+        const diff = expires_at - now;
+
+        const hours  = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        counter.textContent = `${hours}h : ${minutes}m : ${seconds}s `;
+
+        if(diff < 0){
+            if(counter.dataset.timer) clearInterval(counter.dataset.timer);
+            counter.dataset.timer = null;
+            const postCard = counter.closest('.post-card');
+            if (postCard) {
+                postCard.style.display = 'none';
+            }
+            return ;
+        }
+        else if(diff < 60 * 1000 * 60 * 2){
+            counter.classList.add("blink");
+            counter.style.color = "red";
+        }
+    }
+
+    function startTimer(expires , counter){
+        const expires_at = new Date(expires);
+        expires_at.setHours(expires_at.getHours() - 3);
+
+        if(counter.timer){
+            clearInterval(counter.dataset.timer);
+            counter.dataset.timer = null;
+        }
+        updateTime(expires_at,counter);
+        counter.dataset.timer = setInterval(()=>{updateTime(expires_at,counter)},1000);
+    }
 
     
     const pickupMapEl = document.getElementById("pickupMap");
@@ -562,6 +731,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         showEditPage(1);
     });
 
+
     function shortenAddress(address) {
         const normalized = String(address || '').replace(/\s+/g, ' ').trim();
         if (!normalized.includes(',')) return normalized;
@@ -584,7 +754,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return neighborhood ? `${streetNum}, ${neighborhood}` : streetNum;
             }
         }
-
         return parts.slice(0, 2).join(', ');
     };
 
