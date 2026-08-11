@@ -44,25 +44,38 @@ BEGIN
 END$
 DELIMITER ;
 
+/* decrease credits when user's request is accepted */
+DROP TRIGGER IF EXISTS trg_reduce_credits_on_accept;
+DELIMITER $
+CREATE TRIGGER trg_reduce_credits_on_accept
+AFTER UPDATE ON requests
+FOR EACH ROW
+BEGIN
+	IF OLD.status <> 'ACCEPTED'
+		AND NEW.status='ACCEPTED' THEN
+		UPDATE student
+		SET credits = credits - 1
+		WHERE student.std_id = NEW.std_id;
+	END IF;
+END$
+DELIMITER ;
 
 /* when listing portions become 0, change status */
 DROP TRIGGER IF EXISTS trg_listing_full;
 DELIMITER $
 CREATE TRIGGER trg_listing_full
-AFTER UPDATE ON listing
+BEFORE UPDATE ON listing
 FOR EACH ROW
 BEGIN
-	IF NEW.portions = 0 THEN
-		UPDATE listing
-		SET status='FULL'
-		WHERE lst_id=NEW.lst_id;
-	END IF;
+    IF NEW.portions = 0 THEN
+        SET NEW.status = 'FULL';
+    END IF;
 END$
 DELIMITER ;
 
-
+/* THIS CAUSES A SERVER ERROR (code: 'ER_CANT_UPDATE_USED_TABLE_IN_SF_OR_TRG', errno: 1442 )*/
 /* when listing status becomes full, automatically reject remaining pending requests */
-DROP TRIGGER IF EXISTS trg_reject_remaining_requests;
+/*DROP TRIGGER IF EXISTS trg_reject_remaining_requests;
 DELIMITER $
 CREATE TRIGGER trg_reject_remaining_requests
 AFTER UPDATE ON listing
@@ -77,7 +90,7 @@ BEGIN
 	END IF;
 END$
 DELIMITER ;
-
+*/
 
 /* once rated, delivery status becomes completed */
 DROP TRIGGER IF EXISTS trg_rating_completes_delivery;
@@ -196,7 +209,9 @@ END $$
 
 DELIMITER ;
 
-DROP TRIGGER IF EXISTS listing_expired;
+
+/* THIS CAUSES A SERVER ERROR (code: 'ER_CANT_UPDATE_USED_TABLE_IN_SF_OR_TRG', errno: 1442 )*/
+/*DROP TRIGGER IF EXISTS listing_expired;
 DELIMITER $$
 CREATE TRIGGER listing_expired
 AFTER UPDATE ON listing
@@ -209,7 +224,7 @@ BEGIN
 END $$
 
 DELIMITER ;
-
+*/
 
 /*update poster's given_meals upon delivery (only from pending to delivered)*/
 DROP TRIGGER IF EXISTS increment_student_given_meals;
