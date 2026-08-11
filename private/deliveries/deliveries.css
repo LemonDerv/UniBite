@@ -268,18 +268,18 @@ body {
     background: var(--red-bg-hover);
 }
 
-.btn.confirm-request {
+.btn.confirm-delivery {
     background: var(--green-bg);
     color: var(--green-text);
     border: 1px solid var(--green-text);
 }
 
-.btn.confirm-delivery{
+/*.btn.confirm-delivery{
     background: var(--primary);
     color: var(--text-light);
-}
+}*/
 
-.btn.confirm-request:hover {
+.btn.confirm-delivery:hover {
     background: var(--green-bg-hover);
 }
 

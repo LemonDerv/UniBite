@@ -25,13 +25,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     
     const deliveriesList = document.querySelector(".delivery-list");
-    let selectedRequest,del_id;
+    let del_id;
     let currentAction = null;
     const modal = document.getElementById("confirmModal");
     const title = document.getElementById("confirmTitle");
     const text = document.getElementById("confirmText");
     const yesBtn = document.getElementById("confirmYes");
     const noBtn = document.getElementById("confirmNo");
+
     /* ------------------------------
     DISABLE SCROLL WHEN MODALS APPEAR
     ------------------------------ */
@@ -41,33 +42,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function enablePageScroll() {
         document.body.style.overflow = "";
-    }
-
-    function renderRequests( requests){
-        if(requests.length){
-            requests.forEach(delivery=>{
-
-            const pickupWindows = delivery.meal_info.pickup_windows.map(window =>{
-                return `${window[0].slice(0,16).replace('T',' ').replaceAll('-','/')} - ${window[1].slice(0,16).replace('T',' ').replaceAll('-','/')}`;
-            }).join(' , ');
-
-            deliveriesList.insertAdjacentHTML('beforeend',  `<article class="delivery-list-item highlight" data-id="${delivery.req_info.req_id}">
-                                <div class="delivery-list-info">
-                                    <div class="delivery-title-row">
-                                        <h3 class="delivery-list-title">${delivery.meal_info.meal_title}</h3>
-                                        <span class="delivery-user">${delivery.req_info.req_user}.</span>
-                                        <span class="delivery-status">${delivery.req_info.req_status}</span>
-                                    </div>
-                                    <p class="delivery-list-meta">${delivery.meal_info.location} • ${pickupWindows}</p>
-                                </div>
-                                <div class="delivery-actions">
-                                    <button class="btn confirm-request">Confirmed</button>
-                                    <button class="btn danger fail-request">Failed</button>
-                                </div>
-                            </article>`
-                        );
-            });
-        }
     }
 
     function renderDeliveries(deliveries){
@@ -86,7 +60,8 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <p class="delivery-list-meta">${delivery.meal_info.location} • ${pickupWindows}</p>
                             </div>
                             <div class="delivery-actions">
-                                <button class="btn confirm-delivery">Delivered.</button>
+                                <button class="btn confirm-delivery">Confirm</button>
+                                <button class="btn danger fail-delivery">Fail</button>
                             </div>
                         </article>`
                         );
@@ -94,59 +69,53 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function attachEvents(){
-        document.querySelectorAll(".confirm-request").forEach(btn => {
+    function attachEvents() {
+        document.querySelectorAll(".confirm-delivery").forEach(btn => {
             btn.addEventListener("click", () => {
-                currentAction = "confirm";
+                currentAction = "DELIVERED";
                 title.textContent = "Confirm Delivery";
-                text.textContent = "Mark this delivery as completed?";
+                text.textContent = "Mark this delivery as delivered?";
+                del_id = btn.closest(".delivery-list-item").dataset.id;
+
                 modal.classList.remove("hidden");
-                selectedRequest = btn.closest(".delivery-list-item").dataset.id;
                 disablePageScroll();
             });
         });
 
-        document.querySelectorAll(".fail-request").forEach(btn => {
+        document.querySelectorAll(".fail-delivery").forEach(btn => {
             btn.addEventListener("click", () => {
-                currentAction = "fail";
+                currentAction = "REJECTED";
                 title.textContent = "Fail Delivery";
                 text.textContent = "Mark this delivery as failed?";
-                modal.classList.remove("hidden");
-                selectedRequest = btn.closest(".delivery-list-item").dataset.id;
-                disablePageScroll();
-            });
-        });
-
-        document.querySelectorAll(".confirm-delivery").forEach(btn=>{
-            btn.addEventListener('click',()=>{
-                currentAction='updateDelivery';
-                title.textContent = "Delivery.";
-                text.textContent = "Mark this delivery as delivered?";
-                modal.classList.remove("hidden");
-                disablePageScroll();
                 del_id = btn.closest(".delivery-list-item").dataset.id;
+
+                modal.classList.remove("hidden");
+                disablePageScroll();
             });
         });
     }
 
-    fetch('/api/posts/deliveries',{
-        method: "GET"
-    })
-    .then(async (res)=>{
-        const data = await res.json();
-        const deliveries = data.body.deliveries || [];
-        const requests = data.body.requests || [];
-        if(!deliveries)
-            alert("No pending deliveries found.")
+    async function loadDeliveries() { 
+        await fetch('/api/posts/deliveries', { 
+            method: "GET"
+        })
+        .then(async (res) => {
+            const data = await res.json();
+            const deliveries = data.body.deliveries || [];
 
-        if(!requests)
-            alert("No pending requests found.")
+            if (!deliveries.length) {
+                alert("No pending deliveries found.");
+            }
+            deliveriesList.innerHTML = '';
+            renderDeliveries(deliveries);
+            attachEvents();
+        }) 
+        .catch((err) => {
+        console.log(err);
+        });
+    }
+    loadDeliveries();
 
-        renderDeliveries(deliveries);
-        renderRequests(requests);
-        attachEvents();
-    })
-    .catch((err)=>{console.log(err)});
 
     /* -----------------------------
         CONFIRM MODAL
@@ -158,88 +127,35 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     yesBtn.addEventListener("click", async () => {
-        if (currentAction === "confirm" || currentAction === "fail") {
-            await fetch('/api/user/updateRequest' , {
-                method : "POST",
-                headers : {
-                    'Content-Type': 'application/json'
-                },
-                body : JSON.stringify({
-                    req_id : selectedRequest,
-                    action : currentAction
-                })
-            })
-            .then(async (res)=>{
-                const data = await res.json();
-
-                if(res.status !== 200){
-                    alert(data.message);
-                    return ;
-                }
-
-                await fetch('/api/posts/deliveries',{
-                    method: "GET"
-                })
-                .then(async (res)=>{
-                    const data = await res.json();
-                    const deliveries = data.body.deliveries || [];
-                    const requests = data.body.requests || [];
-                    if(!deliveries)
-                        alert("No pending deliveries found.")
-
-                    if(!requests)
-                        alert("No pending requests found.")
-                    deliveriesList.innerHTML='';
-                    renderDeliveries(deliveries);
-                    renderRequests(requests);
-                    attachEvents();
-                })
-                .catch((err)=>{console.log(err)});
-            })
-            .catch((err)=>console.log(err));
+        if (!del_id || !currentAction) {
+            return;
         }
-        else if(currentAction === 'updateDelivery' && del_id){
-            await fetch('/api/user/updateDelivery', {
-                method : "POST",
-                headers : {
-                    'Content-Type': 'application/json'
-                },
-                body : JSON.stringify({
-                    del_id : del_id ,
-                    action : "UPDATE"
-                })
+        await fetch('/api/user/updateDelivery', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                del_id: del_id,
+                action: currentAction
             })
-            .then(async (res)=>{
-                const data = await res.json();
-                if(res.status === 500){
-                    alert("Couldnt update delivery");
-                    return ;
-                }
+        })
+        .then(async (res)=>{
+            const data = await res.json();
+            if (res.status !== 200) {
+                alert(data.message);
+                return;
+            }
 
-                await fetch('/api/posts/deliveries',{
-                    method: "GET"
-                })
-                .then(async (res)=>{
-                    const data = await res.json();
-                    const deliveries = data.body.deliveries || [];
-                    const requests = data.body.requests || [];
-                    if(!deliveries)
-                        alert("No pending deliveries found.")
-
-                    if(!requests)
-                        alert("No pending requests found.")
-
-                    deliveriesList.innerHTML='';
-                    renderDeliveries(deliveries);
-                    renderRequests(requests);
-                    attachEvents();
-                })
-                .catch((err)=>{console.log(err)});
-            })
-            .catch((err)=>console.log(err));
-        }
-
+            await loadDeliveries();
+        })
+        .catch((err) => {
+            console.log(err);
+        });
         modal.classList.add("hidden");
         enablePageScroll();
+
+        currentAction = null;
+        del_id = null;
     });
 });
