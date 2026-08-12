@@ -53,19 +53,7 @@ const task = cron.schedule('0 * * * *', async ()=>{
     
     try{
         await connection.beginTransaction();
-        let lst_id = (await connection.query("SELECT lst_id FROM listing WHERE expires_at < NOW() AND status='ACTIVE'"))[0];
-        lst_id = lst_id.map(lst=>lst.lst_id);
-        
-        if(lst_id.length){
-            let req_id = (await connection.query("SELECT rq_id FROM requests WHERE status='PENDING' AND lst_id IN (?)",[lst_id]))[0];
-            req_id = req_id.map(request => request.rq_id);
-            await connection.query("UPDATE listing SET status='EXPIRED' WHERE lst_id IN (?)",[lst_id]);
-
-            if(req_id.length){
-                await connection.query("UPDATE requests SET status='REJECTED' WHERE rq_id IN (?)", [req_id]);
-                await connection.query("UPDATE deliveries SET status='REJECTED' WHERE status='PENDING' AND req_id IN (?)", [req_id]);
-            }
-        }
+        await connection.query("UPDATE listing SET status='EXPIRED' WHERE expires_at < NOW() AND status IN ('ACTIVE', 'FULL')");
         await connection.commit();
     }
     catch(err){
@@ -78,6 +66,33 @@ const task = cron.schedule('0 * * * *', async ()=>{
 task.on('execution:missed', () => {
   task.execute();
 });
+
+// FOR DELIVERIES, DELIVERED -> REJECTED AFTER 48H SINCE del_time
+const deliveryTask = cron.schedule('0 * * * *', async () => {
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        await connection.query(`
+            UPDATE deliveries
+            SET status = 'REJECTED'
+            WHERE del_time < DATE_SUB(NOW(), INTERVAL 48 HOUR)
+              AND status = 'DELIVERED'
+        `);
+        await connection.commit();
+    }
+    catch (err) {
+        await connection.rollback();
+        console.log(err);
+    }
+    finally {
+        await connection.release();
+    }
+});
+
+deliveryTask.on('execution:missed', () => {
+    deliveryTask.execute();
+});
+
 
 app.listen(3000,()=>{
     console.log("Running ");

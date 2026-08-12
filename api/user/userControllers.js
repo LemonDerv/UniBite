@@ -377,6 +377,9 @@ appRouter.get("/:usr_id", async (req, res) => {
             [usr_id]
         );
         const allergies = allergyRows.map(row => row.allerg_id);
+        const allergyTypes = allergyRows.map(row =>
+            String(row.allerg_type).trim().toLowerCase()
+        );
 
         const [addressRows] = await connection.query(
             "SELECT addr_id, address_text, latitude, longitude, is_default FROM usr_has_addr WHERE std_id = ?", [usr_id]
@@ -396,7 +399,8 @@ appRouter.get("/:usr_id", async (req, res) => {
                 credits: userData.credits,
                 deliveredMeals: userData.given_meals,
                 allergies,
-                addresses
+                addresses,
+                allergyTypes
             }
         });
     } catch (err) {

@@ -227,8 +227,10 @@ appRouter.get('/meals', async (req,res)=>{
         reqListings = reqListings.map(req=>req.lst_id);
         activeMeals = (await pool.query('SELECT * FROM activeMeals WHERE poster!=? AND lst_id NOT IN (?)',[req.session.usr_id,reqListings]))[0];
     }
-    else
-        activeMeals = (await pool.query('SELECT * FROM activeMeals WHERE poster NOT IN ?'),[req.session.usr_id]);
+    else {
+        activeMeals = (
+        await pool.query('SELECT * FROM activeMeals WHERE poster != ?',[req.session.usr_id]))[0];
+    }
 
     const credits = (await pool.query('SELECT credits FROM student WHERE std_id=?',[req.session.usr_id,]))[0][0].credits;
     

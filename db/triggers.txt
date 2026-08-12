@@ -60,37 +60,18 @@ BEGIN
 END$
 DELIMITER ;
 
-/* when listing portions become 0, change status */
+/* when listing portions become 0, change status (as long as it is not expired)*/
 DROP TRIGGER IF EXISTS trg_listing_full;
 DELIMITER $
 CREATE TRIGGER trg_listing_full
 BEFORE UPDATE ON listing
 FOR EACH ROW
 BEGIN
-    IF NEW.portions = 0 THEN
+    IF NEW.portions = 0 AND NEW.status <> 'EXPIRED' THEN
         SET NEW.status = 'FULL';
     END IF;
 END$
 DELIMITER ;
-
-/* THIS CAUSES A SERVER ERROR (code: 'ER_CANT_UPDATE_USED_TABLE_IN_SF_OR_TRG', errno: 1442 )*/
-/* when listing status becomes full, automatically reject remaining pending requests */
-/*DROP TRIGGER IF EXISTS trg_reject_remaining_requests;
-DELIMITER $
-CREATE TRIGGER trg_reject_remaining_requests
-AFTER UPDATE ON listing
-FOR EACH ROW
-BEGIN
-	IF OLD.status <> 'FULL'
-		AND NEW.status='FULL' THEN
-		UPDATE requests
-		SET status='REJECTED'
-		WHERE lst_id=NEW.lst_id
-		AND status='PENDING';
-	END IF;
-END$
-DELIMITER ;
-*/
 
 /* once rated, delivery status becomes completed */
 DROP TRIGGER IF EXISTS trg_rating_completes_delivery;
@@ -163,20 +144,6 @@ END$
 DELIMITER ;
 
 
-/* change listing status to expired automatically */
-DROP TRIGGER IF EXISTS trg_expire_listing;
-DELIMITER $
-CREATE TRIGGER trg_expire_listing
-BEFORE UPDATE ON listing
-FOR EACH ROW
-BEGIN
-	IF NEW.expires_at < CURRENT_TIMESTAMP THEN
-		SET NEW.status='EXPIRED';
-	END IF;
-END$
-DELIMITER ;
-
-
 /* add 48 hours active time to new listings */
 DROP TRIGGER IF EXISTS set_expires_at;
 DELIMITER $
@@ -209,23 +176,6 @@ END $$
 
 DELIMITER ;
 
-
-/* THIS CAUSES A SERVER ERROR (code: 'ER_CANT_UPDATE_USED_TABLE_IN_SF_OR_TRG', errno: 1442 )*/
-/*DROP TRIGGER IF EXISTS listing_expired;
-DELIMITER $$
-CREATE TRIGGER listing_expired
-AFTER UPDATE ON listing
-FOR EACH ROW
-BEGIN
-	IF(NEW.status IN ('EXPIRED','FULL') AND OLD.status='ACTIVE') OR (NEW.portions<=0 AND OLD.portions > 0) THEN
-		UPDATE deliveries SET status='REJECTED' WHERE req_id IN (SELECT req_id FROM requests WHERE lst_id=NEW.lst_id) AND status='PENDING';
-		UPDATE requests SET status='REJECTED' WHERE lst_id=NEW.lst_id AND status='PENDING';
-	END IF ;
-END $$
-
-DELIMITER ;
-*/
-
 /*update poster's given_meals upon delivery (only from pending to delivered)*/
 DROP TRIGGER IF EXISTS increment_student_given_meals;
 DELIMITER $$
@@ -241,4 +191,34 @@ BEGIN
 		);
 	END IF;
 END $$
+DELIMITER ;
+
+/*penalty for user who did not pick up or rate a delivery*/
+DROP TRIGGER IF EXISTS credit_penalty;
+DELIMITER $$
+CREATE TRIGGER credit_penalty
+AFTER UPDATE ON deliveries
+FOR EACH ROW
+BEGIN
+	IF NEW.status = 'REJECTED' AND OLD.status IN ('PENDING', 'DELIVERED') THEN
+		UPDATE student SET credits = credits - 1 WHERE std_id = (
+			SELECT requests.std_id FROM requests
+			WHERE requests.rq_id = NEW.req_id
+		);
+	END IF;
+END $$
+DELIMITER ;
+
+
+DROP TRIGGER IF EXISTS trg_reject_req_del_on_listing_expiry;
+DELIMITER $
+CREATE TRIGGER trg_reject_req_del_on_listing_expiry
+AFTER UPDATE ON listing
+FOR EACH ROW
+BEGIN
+    IF (NEW.status='EXPIRED' AND OLD.status IN ('ACTIVE', 'FULL')) THEN
+        UPDATE deliveries SET status='REJECTED' WHERE req_id IN (SELECT req_id FROM requests WHERE lst_id=NEW.lst_id) AND status='PENDING';
+        UPDATE requests SET status='REJECTED', updated_at=CURRENT_TIMESTAMP() WHERE lst_id=NEW.lst_id AND status='PENDING';
+    END IF ;
+END$
 DELIMITER ;

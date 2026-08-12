@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return parts.slice(0, 2).join(', ');
     }
 
+    let allergies = [];
     let addresses = [];
     let addressObjects = [];
     let currentFullAddress = null;
@@ -80,6 +81,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!response.ok) throw new Error("Failed to fetch user data.");
             const userData = await response.json();
             addressObjects = userData.user.addresses || [];
+            allergies = userData.user.allergyTypes || [];
             
             // Sort to put default address first
             addressObjects.sort((a, b) => (b.isDefault === 1 || b.isDefault === true) ? 1 : -1);
@@ -681,8 +683,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Allergy check
             let matchesAllergy = true;
-            if (allergyChecked && offer.allergens && offer.allergens.length > 0) {
-                matchesAllergy = false;
+            if (allergyChecked && allergies.length > 0) {
+                const offerAllergens = (offer.allergens || []).map(allergen =>
+                    String(allergen).trim().toLowerCase()
+                );
+                matchesAllergy = !offerAllergens.some(allergen =>
+                    allergies.includes(allergen)
+                );
             }
 
             if (distance <= radiusMeters && status !== 'deleted' && matchesCategory && matchesAllergy) {
@@ -724,8 +731,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Allergy check
             let matchesAllergy = true;
-            if (allergyChecked && offer.allergens && offer.allergens.length > 0) {
-                matchesAllergy = false;
+            if (allergyChecked && allergies.length > 0) {
+                const offerAllergens = (offer.allergens || []).map(allergen =>
+                    String(allergen).trim().toLowerCase()
+                );
+                matchesAllergy = !offerAllergens.some(allergen =>
+                    allergies.includes(allergen)
+                );
             }
 
             return { card, offer, distance, hasCoords, status, matchesCategory, matchesAllergy };
@@ -1502,59 +1514,4 @@ document.addEventListener('DOMContentLoaded', async () => {
             menu.style.display = "none";
         }
     });
-
-    /* ------------------------------
-       PAGINATION
-    ------------------------------ */
-    const posts = document.querySelectorAll('.post-card');
-    const prevBtn = document.querySelector('.page-btn.prev');
-    const nextBtn = document.querySelector('.page-btn.next');
-
-    let currentPage = 0;
-    const postsPerPage = 12;
-
-    function showPage(page) {
-        posts.forEach((post, index) => {
-            post.style.display = 
-                index >= page * postsPerPage &&
-                index < (page + 1) * postsPerPage
-                    ? 'block'
-                    : 'none';
-        });
-
-        if (prevBtn) prevBtn.disabled = page === 0;
-        if (nextBtn) nextBtn.disabled = (page + 1) * postsPerPage >= posts.length;
-    }
-
-    if (prevBtn && nextBtn) {
-        showPage(currentPage);
-
-        nextBtn.addEventListener('click', () => {
-            if ((currentPage + 1) * postsPerPage < posts.length) {
-                currentPage++;
-                showPage(currentPage);
-
-                setTimeout(() => {
-                    window.scrollTo({
-                        top: 0,
-                        behavior: "smooth"
-                    });
-                }, 0);
-            }
-        });
-
-        prevBtn.addEventListener('click', () => {
-            if (currentPage > 0) {
-                currentPage--;
-                showPage(currentPage);
-
-                setTimeout(() => {
-                    window.scrollTo({
-                        top: 0,
-                        behavior: "smooth"
-                    });
-                }, 0);
-            }
-        });
-    }
 });
