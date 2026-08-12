@@ -53,7 +53,19 @@ const task = cron.schedule('0 * * * *', async ()=>{
     
     try{
         await connection.beginTransaction();
-        await connection.query("UPDATE listing SET status='EXPIRED' WHERE expires_at < NOW() AND status='ACTIVE'");
+        let lst_id = (await connection.query("SELECT lst_id FROM listing WHERE expires_at < NOW() AND status='ACTIVE'"))[0];
+        lst_id = lst_id.map(lst=>lst.lst_id);
+        
+        if(lst_id.length){
+            let req_id = (await connection.query("SELECT rq_id FROM requests WHERE status='PENDING' AND lst_id IN (?)",[lst_id]))[0];
+            req_id = req_id.map(request => request.rq_id);
+            await connection.query("UPDATE listing SET status='EXPIRED' WHERE lst_id IN (?)",[lst_id]);
+
+            if(req_id.length){
+                await connection.query("UPDATE requests SET status='REJECTED' WHERE rq_id IN (?)", [req_id]);
+                await connection.query("UPDATE deliveries SET status='REJECTED' WHERE status='PENDING' AND req_id IN (?)", [req_id]);
+            }
+        }
         await connection.commit();
     }
     catch(err){
