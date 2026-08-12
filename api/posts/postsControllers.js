@@ -408,7 +408,8 @@ appRouter.get('/pendingDeliveries' , async(req,res)=>{
         const lst = Object.values(deliveries).map(del=>del.del_id);
         
         if(!lst.length)
-            return;
+            return res.status(404).json({status:'DELIVERIES_NOT-FOUND', message: 'Post not found'});
+
         const listings = (await pool.query("SELECT * FROM deliveries join requests on deliveries.req_id=requests.rq_id join listing on requests.lst_id=listing.lst_id join user on listing.poster=user.usr_id where deliveries.del_id in (?)" , [lst]))[0]
         const lst_id = listings.map(lst => lst.lst_id);
 
@@ -470,6 +471,9 @@ appRouter.get('/nonRatedDeliveries' , async(req,res)=>{
     try{
         const deliveries = (await pool.query("SELECT * FROM deliveries JOIN requests on deliveries.req_id=requests.rq_id WHERE deliveries.status='DELIVERED' AND std_id=?" , [req.session.usr_id]))[0];
         const lst = Object.values(deliveries).map(del=>del.del_id);
+        if(!lst.length)
+            return res.status(404).json({status:'DELIVERIES_NOT-FOUND', message: 'Post not found'});
+
         const listings = (await pool.query("SELECT * FROM deliveries join requests on deliveries.req_id=requests.rq_id join listing on requests.lst_id=listing.lst_id join user on listing.poster=user.usr_id where deliveries.del_id in (?)" , [lst]))[0]
         const lst_id = listings.map(lst => lst.lst_id);
 
@@ -493,9 +497,11 @@ appRouter.get('/nonRatedDeliveries' , async(req,res)=>{
             console.log("Status Code : " , status_code , "Message " , message);
 
         images = body;
+        console.log("pickup_windows for non rated",pickup_windows);
+
         const final = deliveries.map(delivery=>{
             const listing = listings.find(lst => lst.del_id=== delivery.del_id);
-            console.log(listing);
+            
             return {req_info : {
                 created_at : listing.created_at
             },
@@ -525,6 +531,7 @@ appRouter.get('/nonRatedDeliveries' , async(req,res)=>{
 
 /*PAST DELIVERIES*/ 
 appRouter.get('/completedDeliveries' , async(req,res)=>{
+    let success_status, status, message, status_code, body;
     try{
         const deliveries = (await pool.query("SELECT * FROM deliveries JOIN requests on deliveries.req_id=requests.rq_id WHERE deliveries.status='COMPLETED' AND std_id=?" , [req.session.usr_id]))[0];
         const lst = Object.values(deliveries).map(del=>del.del_id);
@@ -551,9 +558,11 @@ appRouter.get('/completedDeliveries' , async(req,res)=>{
             console.log("Status Code : " , status_code , "Message " , message);
         images = body;
 
+        console.log("pickup_windows for completed ",pickup_windows);
+
         const final = deliveries.map(delivery=>{
             const listing = listings.find(lst => lst.del_id=== delivery.del_id);
-            console.log(listing);
+            
             return {req_info : {
                 created_at : listing.created_at
             },
@@ -566,7 +575,7 @@ appRouter.get('/completedDeliveries' , async(req,res)=>{
                 pickup_location : listing.pickup_location,
                 meal_tags : tags[listing.lst_id] || [] ,
                 allergens : allergens[listing.lst_id]  || [],
-                pickup_windows : pickup_windows[listing.lst_id] ,
+                pickup_windows : pickup_windows[listing.lst_id],
                 expires_at : listing.expires_at ,
                 poster : listing.usr_username ,
                 image : images[listing.lst_id] || ""

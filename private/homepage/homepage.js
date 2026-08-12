@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const user  = localStorage.getItem('username') || 'User';
     const heading = document.querySelector('.page-heading h1');
     const subtitle = document.querySelector('.page-heading p');
+    let credits;
 
     if (heading) {
         heading.textContent = `Welcome back, ${user}`;
@@ -156,12 +157,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const data = await res.json();
         const meals = data.body || [];
         liveOffers = meals;
-
-        console.log(meals);
-
+        credits = data.body[0].userCredits;
         
         document.querySelector(".username").textContent=`${data.body[0].loggedUser}`;
-        document.querySelector(".credits").textContent=`Credits : ${data.body[0].userCredits}`;
+        document.querySelector(".credits").textContent=`Credits : ${credits}`;
         
         if (feedGrid) {
             feedGrid.innerHTML = '';
@@ -974,26 +973,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const requestBtn = document.querySelector(".request-btn");
     requestBtn?.addEventListener("click", () => {
-        const request = {
-            lst_id : viewModal.dataset.id
-        };
-        fetch('/api/user/request', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(request)
-        })
-        .then(async (res)=>{
-            const data = await res.json();
-            if(res.status === 500 ){
-                alert(data.message);
-                return ;
-            }
-            alert("Serving request submitted!");
+        if(credits){
+            const request = {
+                lst_id : viewModal.dataset.id
+            };
+            fetch('/api/user/request', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(request)
+            })
+            .then(async (res)=>{
+                const data = await res.json();
+                if(res.status === 500 ){
+                    alert(data.message);
+                    return ;
+                }
+                alert("Serving request submitted!");
+                closeViewModal();
+            })
+            .catch((err)=>{console.log(err)});
+        }
+        else{
+            alert("No Credits found.");
             closeViewModal();
-        })
-        .catch((err)=>{console.log(err)});
+        }
     });
 
     /* close modal when clicking outside */
