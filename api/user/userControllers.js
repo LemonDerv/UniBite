@@ -344,7 +344,7 @@ appRouter.post('/updateRating' , async(req,res)=>{
 
     try{
         await connection.beginTransaction();
-        await connection.query("UPDATE deliveries SET rating=? , status='COMPLETED' WHERE del_id=?" , [rating, del_id]);
+        await connection.query("UPDATE deliveries SET rating=? ,rating_timestamp=CURRENT_TIMESTAMP(),status='COMPLETED' WHERE del_id=?" , [rating, del_id]);
         await connection.commit();
         return res.status(200).json({status:"UPDATED-RATING" , message: "Rating passed."});
     }
