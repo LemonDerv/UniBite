@@ -53,7 +53,7 @@ const task = cron.schedule('0 * * * *', async ()=>{
     
     try{
         await connection.beginTransaction();
-        await connection.query("UPDATE listing SET status='EXPIRED' WHERE expires_at < NOW() AND status='ACTIVE'");
+        await connection.query("UPDATE listing SET status='EXPIRED' WHERE expires_at < NOW() AND status IN ('ACTIVE', 'FULL')");
         await connection.commit();
     }
     catch(err){
@@ -66,6 +66,33 @@ const task = cron.schedule('0 * * * *', async ()=>{
 task.on('execution:missed', () => {
   task.execute();
 });
+
+// FOR DELIVERIES, DELIVERED -> REJECTED AFTER 48H SINCE del_time
+const deliveryTask = cron.schedule('0 * * * *', async () => {
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        await connection.query(`
+            UPDATE deliveries
+            SET status = 'REJECTED'
+            WHERE del_time < DATE_SUB(NOW(), INTERVAL 48 HOUR)
+              AND status = 'DELIVERED'
+        `);
+        await connection.commit();
+    }
+    catch (err) {
+        await connection.rollback();
+        console.log(err);
+    }
+    finally {
+        await connection.release();
+    }
+});
+
+deliveryTask.on('execution:missed', () => {
+    deliveryTask.execute();
+});
+
 
 app.listen(3000,()=>{
     console.log("Running ");
