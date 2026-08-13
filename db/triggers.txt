@@ -60,7 +60,7 @@ BEGIN
 END$
 DELIMITER ;
 
-/* when listing portions become 0, change status (as long as it is not expired)*/
+/* when listing portions become 0, change to FULL (as long as it is not expired) and when portions are added change to ACTIVE*/
 DROP TRIGGER IF EXISTS trg_listing_full;
 DELIMITER $
 CREATE TRIGGER trg_listing_full
@@ -69,6 +69,9 @@ FOR EACH ROW
 BEGIN
     IF NEW.portions = 0 AND NEW.status <> 'EXPIRED' THEN
         SET NEW.status = 'FULL';
+    
+    ELSEIF NEW.portions > 0 AND OLD.status = 'FULL' AND NEW.status <> 'EXPIRED' AND NEW.expires_at > NOW() THEN
+        SET NEW.status = 'ACTIVE';
     END IF;
 END$
 DELIMITER ;
