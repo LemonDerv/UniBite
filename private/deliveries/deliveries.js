@@ -44,6 +44,43 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.style.overflow = "";
     }
 
+        function updateTime(expires_at, counter) {
+        let now = new Date();
+        const diff = expires_at - now;
+
+        const hours  = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        counter.textContent = `${hours}h : ${minutes}m : ${seconds}s `;
+
+        if(diff < 0){
+            if(counter.dataset.timer) clearInterval(counter.dataset.timer);
+            counter.dataset.timer = null;
+            const deliveryCard = counter.closest('.delivery-list-item');
+            if (deliveryCard) {
+                deliveryCard.style.display = 'none';
+            }
+            return ;
+        }
+        else if(diff < 60 * 1000 * 60 * 2){
+            counter.classList.add("blink");
+            counter.style.color = "red";
+        }
+    }
+
+    function startTimer(expires , counter){
+        const expires_at = new Date(expires);
+        expires_at.setHours(expires_at.getHours() - 3);
+
+        if(counter.timer){
+            clearInterval(counter.dataset.timer);
+            counter.dataset.timer = null;
+        }
+        updateTime(expires_at,counter);
+        counter.dataset.timer = setInterval(()=>{updateTime(expires_at,counter)},1000);
+    }
+
+
     function renderDeliveries(deliveries){
         if(deliveries.length){
             deliveries.forEach(delivery=>{
@@ -56,6 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <div class="delivery-title-row">
                                     <h3 class="delivery-list-title">${delivery.meal_info.meal_title}</h3>
                                     <span class="delivery-status">${delivery.del_info.del_user}</span>
+                                    <span class="delivery-time-inline active-time" data-timer></span>
                                 </div>
                                 <p class="delivery-list-meta">${delivery.meal_info.location} • ${pickupWindows}</p>
                             </div>
@@ -65,6 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             </div>
                         </article>`
                         );
+                    startTimer(delivery.meal_info.lst_expiry, deliveriesList.querySelector(`.delivery-list-item[data-id="${delivery.del_info.del_id}"] .delivery-time-inline`));
             });
         }
     }
