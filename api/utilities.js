@@ -358,13 +358,6 @@ async function updatePostImg(lst_id,img,filename,buffer){
         const fileIdRegex =new RegExp(`^${lst_id}_.*`);
         images = images.files.filter((img)=> fileIdRegex.test(img.$id));
 
-        if(!images.length)
-            return {success_status : false ,
-                     status:"IMAGES-NOT_FOUND" , 
-                     message : 'Image(for the specified listing) not found.' , 
-                     status_code: 404 ,
-                };
-
         if(images.length > 0){
             await cloudstorage.deleteFile(process.env.BUCKET_ID, images[0].$id);    
         }
