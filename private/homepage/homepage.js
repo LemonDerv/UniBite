@@ -973,7 +973,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const requestBtn = document.querySelector(".request-btn");
     requestBtn?.addEventListener("click", () => {
-        if(credits){
+        if(credits > 0){
             const request = {
                 lst_id : viewModal.dataset.id
             };
@@ -992,11 +992,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 alert("Serving request submitted!");
                 closeViewModal();
+                window.location.reload();
             })
             .catch((err)=>{console.log(err)});
         }
         else{
-            alert("No Credits found.");
+            alert("Not enough credits to make request.");
             closeViewModal();
         }
     });

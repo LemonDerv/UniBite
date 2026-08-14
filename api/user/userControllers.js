@@ -344,7 +344,27 @@ appRouter.post('/updateRating' , async(req,res)=>{
 
     try{
         await connection.beginTransaction();
+        //update delivery
         await connection.query("UPDATE deliveries SET rating=? ,rating_timestamp=CURRENT_TIMESTAMP(),status='COMPLETED' WHERE del_id=?" , [rating, del_id]);
+        
+        //give credits to the original poster
+        const [rows] = await connection.query(`SELECT listing.poster FROM deliveries JOIN requests ON deliveries.req_id=requests.rq_id JOIN listing ON requests.lst_id=listing.lst_id WHERE deliveries.del_id=?`, [del_id]);
+        if (!rows.length) throw new Error("Could not find listing poster");
+        const posterId = rows[0].poster;
+        //determine reward
+        let creditReward;
+        if (rating <=3) {
+            creditReward = 1;
+        }
+        else if (rating === 4) {
+            creditReward = 2;
+        }
+        else {
+            creditReward = 3;
+        }
+        //add the reward to poster
+        await connection.query(`UPDATE student SET credits=credits+? WHERE std_id=?`, [creditReward, posterId]);
+
         await connection.commit();
         return res.status(200).json({status:"UPDATED-RATING" , message: "Rating passed."});
     }

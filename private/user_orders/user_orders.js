@@ -40,6 +40,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if(counter.dataset.timer) clearInterval(counter.dataset.timer);
             counter.dataset.timer = null;
             counter.textContent = "Expired";
+            const orderCard = counter.closest('.order-list-item');
+            if (orderCard) {
+                orderCard.style.display = 'none';
+            }
             return ;
         }
         else if(diff < 60 * 1000 * 60 * 2){
@@ -165,8 +169,8 @@ document.addEventListener("DOMContentLoaded", () => {
             return 
         }
         data.body.forEach(delivery =>{
-            const ratingLimit = new Date(delivery.meal_info.expires_at);
-            ratingLimit.setTime(ratingLimit.getTime() + (24*60*60*1000));
+            const ratingLimit = new Date(delivery.del_info.del_time);
+            ratingLimit.setTime(ratingLimit.getTime() + (48 * 60 * 60 * 1000));
 
             deliveredDeliveriesList.insertAdjacentHTML('beforeend',`<article class="order-list-item highlight"
                 data-id="${delivery.del_info.del_id}"
@@ -460,10 +464,17 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .then(async (res)=>{
             const data = await res.json();
+             if (!res.ok) {
+                throw new Error(data.message || "Failed to submit rating");
+            }
+            alert(`Thanks! You rated ${selectedRating}/5`);
+            closeRateModal();
+            window.location.reload();
         })
-        .catch((err)=>console.log(err));
-        alert(`Thanks! You rated ${selectedRating}/5`);
-        closeRateModal();
+        .catch((err)=>{
+            console.log(err);
+            alert("There was a problem submitting your rating.");
+        });
     });
     
 });

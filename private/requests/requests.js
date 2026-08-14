@@ -131,22 +131,21 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div class="request-list-info">
                             <div class="request-title-row">
                                 <h3 class="request-list-title">${meal.title}</h3>
-                                <span class="request-time-inline active-time" data-timer>remaining</span>
                                 <span class="request-status"></span>
+                                <span class="request-time-inline active-time" data-timer></span>
                             </div>
-                            <p class="request-list-meta">Requested • ${meal.requests[0].created_at.slice(5,10).replace('-','/')} @ ${meal.requests[0].created_at.slice(11,16)}</p>
+                            <p class="request-list-meta">Requested • ${meal.requests.created_at.slice(5,10).replace('-','/')} @ ${meal.requests.created_at.slice(11,16)}</p>
                         </div>
                         <div class="request-actions">
                              <button class="btn secondary view-details-btn">View Details</button>
                         </div>
                     </article>`);
 
-            startTimer(meal.expires_at, requestSection.querySelector(`.request-list-item[data-id="${meal.lst_id}"] .request-time-inline`));
-
             const reqStatus = document.querySelector(`.request-list-item[data-id="${meal.lst_id}"] .request-status`);
 
-            switch(meal.requests[0].status){
+            switch(meal.requests.status){
                 case "PENDING":
+                    startTimer(meal.expires_at, requestSection.querySelector(`.request-list-item[data-id="${meal.lst_id}"] .request-time-inline`));
                     reqStatus.classList.add("pending");
                     reqStatus.textContent = "Pending";
                     break ; 

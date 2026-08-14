@@ -243,6 +243,12 @@ body {
     gap: 10px;
 }
 
+.delivery-time-inline {
+    font-size: var(--font-md);
+    font-weight: 500;
+    color: var(--gray-500);
+}
+
 /* ------------------------------
    STATUS BADGE
 ------------------------------ */
