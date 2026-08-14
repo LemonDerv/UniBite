@@ -76,7 +76,7 @@ const deliveryTask = cron.schedule('0 * * * *', async () => {
             UPDATE deliveries
             SET status = 'REJECTED'
             WHERE del_time < DATE_SUB(NOW(), INTERVAL 48 HOUR)
-              AND status = 'DELIVERED'
+            AND status = 'DELIVERED'
         `);
         await connection.commit();
     }
