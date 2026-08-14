@@ -318,7 +318,7 @@ async function getRequestsInfoPerListing(listings){
 
 async function getRequestPerUsr(usr_id){
     try{
-        let requests = (await pool.query("SELECT lst_id,status,created_at FROM userRequests WHERE std_id=?" , [usr_id]))[0];
+        let requests = (await pool.query("SELECT lst_id,status,created_at FROM userRequests WHERE std_id=? ORDER BY CASE WHEN status = 'PENDING' THEN 0 ELSE 1 END, created_at DESC" , [usr_id]))[0];
         if(!requests.length)
             return {success_status : false ,
                      status:"REQUEST-NOT_FOUND" , 
