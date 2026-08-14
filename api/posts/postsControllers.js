@@ -274,7 +274,7 @@ appRouter.get('/meals', async (req,res)=>{
     )});
 })
 
-/*USER REQUESTS(HE CREATED)*/ 
+/*USER REQUESTS (THAT THEY MADE)*/ 
 appRouter.get('/requests', async (req,res)=>{
     let lst_id,mealInfo,pickup_windows,allergens,meal_tags,images,requests;
     let success_status,status,message,status_code,body;
@@ -312,14 +312,19 @@ appRouter.get('/requests', async (req,res)=>{
     images = body;
     
     res.status(200).json({
-        body: mealInfo.map(meal=>({
-            ...meal, 
-            pickup_windows :pickup_windows[meal.lst_id],
-            allergens :allergens[meal.lst_id] || [],
-            meal_tags : meal_tags[meal.lst_id] || [],
-            img: images[meal.lst_id] || '',
-            requests : requests.filter(req => req.lst_id === meal.lst_id)
-        }))
+        body: requests.map(request => {
+            const meal = mealInfo.find(
+                meal=> meal.lst_id === request.lst_id
+            );
+            return {
+                ...meal, 
+                pickup_windows :pickup_windows[meal.lst_id],
+                allergens :allergens[meal.lst_id] || [],
+                meal_tags : meal_tags[meal.lst_id] || [],
+                img: images[meal.lst_id] || '',
+                requests : request
+            };
+        })
     });
 });
 
@@ -364,6 +369,7 @@ appRouter.get('/deliveries' , async (req,res)=>{
         finalDeliveries = deliveries.map(delivery => ({
                 meal_info : {
                     lst_id : accRequest[delivery.req_id].lst_id,
+                    lst_expiry : listings[accRequest[delivery.req_id].lst_id].expires_at,
                     meal_title : listings[accRequest[delivery.req_id].lst_id].title,
                     location : listings[accRequest[delivery.req_id].lst_id].pickup_location,
                     pickup_windows : pickupWindows[accRequest[delivery.req_id].lst_id]
@@ -506,7 +512,8 @@ appRouter.get('/nonRatedDeliveries' , async(req,res)=>{
                 created_at : listing.created_at
             },
             del_info : {
-                del_id : delivery.del_id
+                del_id : delivery.del_id,
+                del_time: delivery.del_time
             },
             meal_info: {
                 title : listing.title ,
@@ -532,8 +539,9 @@ appRouter.get('/nonRatedDeliveries' , async(req,res)=>{
 /*PAST DELIVERIES*/ 
 appRouter.get('/completedDeliveries' , async(req,res)=>{
     let success_status, status, message, status_code, body;
+    let tags,pickup_windows,allergens,images;
     try{
-        const deliveries = (await pool.query("SELECT * FROM deliveries JOIN requests on deliveries.req_id=requests.rq_id WHERE deliveries.status='COMPLETED' AND std_id=?" , [req.session.usr_id]))[0];
+        const deliveries = (await pool.query("SELECT * FROM deliveries JOIN requests on deliveries.req_id=requests.rq_id WHERE ((deliveries.status= 'REJECTED' AND deliveries.del_time IS NOT NULL) OR deliveries.status='COMPLETED') AND std_id=?" , [req.session.usr_id]))[0];
         const lst = Object.values(deliveries).map(del=>del.del_id);
         const listings = (await pool.query("SELECT * FROM deliveries join requests on deliveries.req_id=requests.rq_id join listing on requests.lst_id=listing.lst_id join user on listing.poster=user.usr_id where deliveries.del_id in (?)" , [lst]))[0]
         const lst_id = listings.map(lst => lst.lst_id);

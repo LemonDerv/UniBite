@@ -220,7 +220,7 @@ AFTER UPDATE ON listing
 FOR EACH ROW
 BEGIN
     IF (NEW.status='EXPIRED' AND OLD.status IN ('ACTIVE', 'FULL')) THEN
-        UPDATE deliveries SET status='REJECTED' WHERE req_id IN (SELECT req_id FROM requests WHERE lst_id=NEW.lst_id) AND status='PENDING';
+        UPDATE deliveries SET status='REJECTED' WHERE req_id IN (SELECT rq_id FROM requests WHERE lst_id=NEW.lst_id) AND status='PENDING';
         UPDATE requests SET status='REJECTED', updated_at=CURRENT_TIMESTAMP() WHERE lst_id=NEW.lst_id AND status='PENDING';
     END IF ;
 END$
