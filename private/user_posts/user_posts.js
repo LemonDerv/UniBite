@@ -188,10 +188,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                             </div>
                             <div class="post-meta">
                                 <span class="post-time">Posted on • ${meal.created_at.slice(5,10).replace('-','/')} @ ${meal.created_at.slice(11,16).replace('-','/')}</span>
-                                <span class="post-time-remaining" data-timer> remaining</span>
+                                <span class="post-time-remaining" data-timer></span>
                             </div>
                             <div class="post-meta">
-                                <span class="post-address">${meal.pickup_location}</span>
+                                <span class="post-address">${shortenAddress(meal.pickup_location)}</span>
                             </div>
                             <div class="post-allergens ${meal.allergens.length ===0 ? 'no-allergens': 'yes-allergens'} ">${meal.allergens.length ===0? "This meal has no allergens noted." :"This meal has allergens."}</div>
                         </div>
@@ -400,7 +400,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const hours  = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        counter.textContent = `${hours}h : ${minutes}m : ${seconds}s `;
+        counter.textContent = `${hours}h : ${minutes}m : ${seconds}s remaining`;
 
         if(diff < 0){
             if(counter.dataset.timer) clearInterval(counter.dataset.timer);

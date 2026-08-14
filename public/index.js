@@ -19,6 +19,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (data?.body) {
         let listings = data.body;
+        
+        if(!listings.length){
+            document.querySelector(".carousel-section").innerHTML = "";
+            return ;
+        }
 
         // put listings with images first
         listings.sort((a, b) => {
