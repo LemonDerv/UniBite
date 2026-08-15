@@ -925,7 +925,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         viewPortions.textContent = portions;
         viewDescription.textContent = postItem.querySelector(".post-description")?.textContent;
-        viewAddress.textContent = postItem.dataset.location;
+        viewAddress.textContent = shortenAddress(postItem.dataset.location);
         viewPickupTimes.textContent = JSON.parse(postItem.dataset.pickup_windows).map(window => `${window[0].replace('T',' ').replaceAll('-','/').slice(0,16)} - ${window[1].replace('T',' ').replaceAll('-','/').slice(0,16)}`).join(' , ');
 
         if(postItem.dataset.img !== ''){
