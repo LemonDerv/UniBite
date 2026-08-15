@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <div class="post-tags" data-tags="${!meal.meal_tags?.length? '' : meal.meal_tags.join(',')}">
                         </div>
                         <div class="post-meta">
-                            <span>By ${meal.usr_username || 'User'} • <span class="post-card-dist">Distance calculating...</span></span>
+                            <span>By ${meal.posterUsername || 'User'} • <span class="post-card-dist">Distance calculating...</span></span>
                             <span class="post-time-remaining" data-timer> remaining</span>
                         </div>
                         <div class="post-allergens" data-allergens="${!meal.allergens?.length ? '': meal.allergens.join(',')}"></div>
@@ -626,8 +626,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const statusText = status === 'inactive' ? ' (Inactive)' : '';
             marker.bindPopup(`
                 <b>${offer.title}${statusText}</b><br>
-                <span>By ${offer.usr_username || 'User'} • Portions: ${offer.portions}</span><br>
-                <small>${offer.pickup_location || ''}</small>
+                <span>By ${offer.posterUsername || 'User'} • Portions: ${offer.portions}</span><br>
+                <small>${shortenAddress(offer.pickup_location) || ''}</small>
             `);
             offerMarkers.push({ marker, offer, lat, lng });
         });
@@ -925,7 +925,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         viewPortions.textContent = portions;
         viewDescription.textContent = postItem.querySelector(".post-description")?.textContent;
-        viewAddress.textContent = postItem.dataset.location;
+        viewAddress.textContent = shortenAddress(postItem.dataset.location);
         viewPickupTimes.textContent = JSON.parse(postItem.dataset.pickup_windows).map(window => `${window[0].replace('T',' ').replaceAll('-','/').slice(0,16)} - ${window[1].replace('T',' ').replaceAll('-','/').slice(0,16)}`).join(' , ');
 
         if(postItem.dataset.img !== ''){
@@ -1161,8 +1161,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             meal_location = {lat,lng};
 
             try {
-                editAddress.value = await reverseGeocode(lat, lng);
+                editAddress.dataset.location = await reverseGeocode(lat, lng);
+                editAddress.value = shortenAddress(editAddress.dataset.location);
             } catch {
+                editAddress.dataset.location = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
                 editAddress.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
             }
         });
@@ -1175,7 +1177,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function locatePickupAddress() {
         clearPickupGeoError();
-        const query = editAddress.value.trim();
+        const query = editAddress.dataset.location.trim();
         if (!query) return;
 
         pickupAddressSearchBtn.disabled = true;
@@ -1358,7 +1360,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 description: editDescription.value.trim() || null,
                 portions: editPortions.value,
                 address: {
-                    address : editAddress.value,
+                    address : editAddress.dataset.location,
                     latlong : meal_location
                 },
                 pickupWindows: pickupWindows,
@@ -1448,9 +1450,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 placePickupMarker(lat, lng);
                 meal_location = { lat, lng };
                 try {
-                    editAddress.value = await reverseGeocode(lat, lng);
+                    editAddress.dataset.location = await reverseGeocode(lat, lng);
+                    editAddress.value = shortenAddress(editAddress.dataset.location);
                 } catch {
-                    editAddress.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                    editAddress.dataset.location=`${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                    editAddress.value =  editAddress.dataset.location;
                 } finally {
                     pickupUseLocationBtn.disabled = false;
                 }

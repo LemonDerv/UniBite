@@ -225,19 +225,21 @@ appRouter.get('/meals', async (req,res)=>{
     /*SELECT ONLY NON REQUESTED LISTINGS*/ 
     if(reqListings.length){
         reqListings = reqListings.map(req=>req.lst_id);
-        activeMeals = (await pool.query('SELECT * FROM activeMeals WHERE poster!=? AND lst_id NOT IN (?)',[req.session.usr_id,reqListings]))[0];
+        activeMeals = (await pool.query('SELECT * FROM activeMeals JOIN user ON usr_id=poster WHERE poster!=? AND lst_id NOT IN (?)',[req.session.usr_id,reqListings]))[0];
     }
     else {
-        activeMeals = (
-        await pool.query('SELECT * FROM activeMeals WHERE poster != ?',[req.session.usr_id]))[0];
+        activeMeals = (await pool.query('SELECT * FROM activeMeals JOIN user ON usr_id=poster WHERE poster != ?',[req.session.usr_id]))[0];
     }
 
     const credits = (await pool.query('SELECT credits FROM student WHERE std_id=?',[req.session.usr_id,]))[0][0].credits;
     
     /*ACTIVE MEALS INFORMATION*/ 
-    
-    lst_id = activeMeals.map(meal=>meal.lst_id);
+    if(activeMeals)
+        lst_id = activeMeals.map(meal=>meal.lst_id);
 
+    if(!lst_id.length)
+           return res.status(404).json({status : "MEALS-NOT_FOUND" , message:"No available meals."});
+    
     /*PICKUP WINDOWS*/ 
     ({success_status,status,message,status_code,body} = await getPickupWindows(lst_id));
     if(!success_status)
@@ -260,6 +262,7 @@ appRouter.get('/meals', async (req,res)=>{
     if(!success_status)
         console.log("Status Code : " , status_code , "Message " , message);
     images = body;
+    console.log(activeMeals);
 
     res.status(200).json({body: activeMeals.map(meal=>
         ({
@@ -269,7 +272,8 @@ appRouter.get('/meals', async (req,res)=>{
             meal_tags : meal_tags[meal.lst_id] || [],
             img: images[meal.lst_id] || '',
             loggedUser :req.session.username,
-            userCredits : credits
+            userCredits : credits,
+            posterUsername : meal.usr_username
         })
     )});
 })

@@ -189,9 +189,10 @@ appRouter.post('/addresses' , async (req,res)=>{
     try{
         await connection.beginTransaction();
         await connection.query(
-            "INSERT INTO usr_has_addr(std_id, address_text, latitude, longitude, is_default) VALUES (?)",
-            [[req.session.usr_id, defaultAddr.display, defaultAddr.lat, defaultAddr.lng, true]]
+            "INSERT INTO usr_has_addr(std_id, address_text, latitude, longitude, is_default) VALUES (?,?,?,?,?)",
+            [req.session.usr_id, defaultAddr.display, defaultAddr.lat, defaultAddr.lng, true]
         );
+        
         if (data.length > 0) {
             const addr = data.map(addr => [req.session.usr_id, addr.display, addr.lat, addr.lng]);
             await connection.query(
