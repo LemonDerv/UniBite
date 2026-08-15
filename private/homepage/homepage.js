@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <div class="post-tags" data-tags="${!meal.meal_tags?.length? '' : meal.meal_tags.join(',')}">
                         </div>
                         <div class="post-meta">
-                            <span>By ${meal.usr_username || 'User'} • <span class="post-card-dist">Distance calculating...</span></span>
+                            <span>By ${meal.posterUsername || 'User'} • <span class="post-card-dist">Distance calculating...</span></span>
                             <span class="post-time-remaining" data-timer> remaining</span>
                         </div>
                         <div class="post-allergens" data-allergens="${!meal.allergens?.length ? '': meal.allergens.join(',')}"></div>
@@ -626,7 +626,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const statusText = status === 'inactive' ? ' (Inactive)' : '';
             marker.bindPopup(`
                 <b>${offer.title}${statusText}</b><br>
-                <span>By ${offer.usr_username || 'User'} • Portions: ${offer.portions}</span><br>
+                <span>By ${offer.posterUsername || 'User'} • Portions: ${offer.portions}</span><br>
                 <small>${offer.pickup_location || ''}</small>
             `);
             offerMarkers.push({ marker, offer, lat, lng });
