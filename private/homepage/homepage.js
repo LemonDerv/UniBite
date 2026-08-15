@@ -627,7 +627,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             marker.bindPopup(`
                 <b>${offer.title}${statusText}</b><br>
                 <span>By ${offer.posterUsername || 'User'} • Portions: ${offer.portions}</span><br>
-                <small>${offer.pickup_location || ''}</small>
+                <small>${shortenAddress(offer.pickup_location) || ''}</small>
             `);
             offerMarkers.push({ marker, offer, lat, lng });
         });
