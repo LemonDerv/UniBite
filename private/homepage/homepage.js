@@ -1161,8 +1161,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             meal_location = {lat,lng};
 
             try {
-                editAddress.value = await reverseGeocode(lat, lng);
+                editAddress.dataset.location = await reverseGeocode(lat, lng);
+                editAddress.value = shortenAddress(editAddress.dataset.location);
             } catch {
+                editAddress.dataset.location = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
                 editAddress.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
             }
         });
@@ -1175,7 +1177,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function locatePickupAddress() {
         clearPickupGeoError();
-        const query = editAddress.value.trim();
+        const query = editAddress.dataset.location.trim();
         if (!query) return;
 
         pickupAddressSearchBtn.disabled = true;
@@ -1358,7 +1360,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 description: editDescription.value.trim() || null,
                 portions: editPortions.value,
                 address: {
-                    address : editAddress.value,
+                    address : editAddress.dataset.location,
                     latlong : meal_location
                 },
                 pickupWindows: pickupWindows,
@@ -1448,9 +1450,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 placePickupMarker(lat, lng);
                 meal_location = { lat, lng };
                 try {
-                    editAddress.value = await reverseGeocode(lat, lng);
+                    editAddress.dataset.location = await reverseGeocode(lat, lng);
+                    editAddress.value = shortenAddress(editAddress.dataset.location);
                 } catch {
-                    editAddress.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                    editAddress.dataset.location=`${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                    editAddress.value =  editAddress.dataset.location;
                 } finally {
                     pickupUseLocationBtn.disabled = false;
                 }
