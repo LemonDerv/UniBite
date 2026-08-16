@@ -418,7 +418,7 @@ appRouter.get('/pendingDeliveries' , async(req,res)=>{
         const lst = Object.values(deliveries).map(del=>del.del_id);
         
         if(!lst.length)
-            return res.status(404).json({status:'DELIVERIES_NOT-FOUND', message: 'Post not found'});
+            return res.status(404).json({status:'DELIVERIES_NOT-FOUND', message: 'Pending Deliveries not found'});
 
         const listings = (await pool.query("SELECT * FROM deliveries join requests on deliveries.req_id=requests.rq_id join listing on requests.lst_id=listing.lst_id join user on listing.poster=user.usr_id where deliveries.del_id in (?)" , [lst]))[0]
         const lst_id = listings.map(lst => lst.lst_id);
@@ -482,7 +482,7 @@ appRouter.get('/nonRatedDeliveries' , async(req,res)=>{
         const deliveries = (await pool.query("SELECT * FROM deliveries JOIN requests on deliveries.req_id=requests.rq_id WHERE deliveries.status='DELIVERED' AND std_id=?" , [req.session.usr_id]))[0];
         const lst = Object.values(deliveries).map(del=>del.del_id);
         if(!lst.length)
-            return res.status(404).json({status:'DELIVERIES_NOT-FOUND', message: 'Post not found'});
+            return res.status(404).json({status:'DELIVERIES_NOT-FOUND', message: 'Non rated Deliveries not found'});
 
         const listings = (await pool.query("SELECT * FROM deliveries join requests on deliveries.req_id=requests.rq_id join listing on requests.lst_id=listing.lst_id join user on listing.poster=user.usr_id where deliveries.del_id in (?)" , [lst]))[0]
         const lst_id = listings.map(lst => lst.lst_id);
@@ -507,7 +507,6 @@ appRouter.get('/nonRatedDeliveries' , async(req,res)=>{
             console.log("Status Code : " , status_code , "Message " , message);
 
         images = body;
-        console.log("pickup_windows for non rated",pickup_windows);
 
         const final = deliveries.map(delivery=>{
             const listing = listings.find(lst => lst.del_id=== delivery.del_id);
@@ -546,6 +545,9 @@ appRouter.get('/completedDeliveries' , async(req,res)=>{
     let tags,pickup_windows,allergens,images;
     try{
         const deliveries = (await pool.query("SELECT * FROM deliveries JOIN requests on deliveries.req_id=requests.rq_id WHERE ((deliveries.status= 'REJECTED' AND deliveries.del_time IS NOT NULL) OR deliveries.status='COMPLETED') AND std_id=?" , [req.session.usr_id]))[0];
+        if(!deliveries.length)
+            return res.status(404).json({status:"Deliveries-NOT_FOUND" , message : "Completed Deliveries not found."});
+        
         const lst = Object.values(deliveries).map(del=>del.del_id);
         const listings = (await pool.query("SELECT * FROM deliveries join requests on deliveries.req_id=requests.rq_id join listing on requests.lst_id=listing.lst_id join user on listing.poster=user.usr_id where deliveries.del_id in (?)" , [lst]))[0]
         const lst_id = listings.map(lst => lst.lst_id);
@@ -569,8 +571,6 @@ appRouter.get('/completedDeliveries' , async(req,res)=>{
         if(!success_status)
             console.log("Status Code : " , status_code , "Message " , message);
         images = body;
-
-        console.log("pickup_windows for completed ",pickup_windows);
 
         const final = deliveries.map(delivery=>{
             const listing = listings.find(lst => lst.del_id=== delivery.del_id);

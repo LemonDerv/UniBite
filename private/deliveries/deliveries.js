@@ -141,12 +141,12 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(async (res) => {
             const data = await res.json();
             const deliveries = data.body.deliveries || [];
-            console.log(deliveries);
-            console.log(data.body.requests);
 
             if (!deliveries.length) {
-                alert("No pending deliveries found.");
+                console.log("No pending deliveries found.");
+                return ;
             }
+            
             deliveriesList.innerHTML = '';
             renderDeliveries(deliveries);
             attachEvents();

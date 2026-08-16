@@ -123,6 +123,11 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(async (res) =>{
         const data = await res.json();
 
+        if(!data?.body){
+            console.log(data.message);
+            return ;
+        }
+
         data.body.forEach(delivery =>{
             console.log(delivery.meal_info);
             pendingDeliveriesList.insertAdjacentHTML('beforeend',`<article class="order-list-item highlight"
@@ -165,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await res.json();
         
         if(!data.body){
-            alert("No Meals");
+            console.log(data.message);
             return 
         }
         data.body.forEach(delivery =>{
@@ -222,8 +227,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await res.json();
         
         if(!data.body){
-            alert("No Meals");
-            return 
+            console.log(data.message);
+            return ;
         }
         data.body.forEach(delivery =>{
             completeDeliveriesList.insertAdjacentHTML('beforeend',`<article class="order-list-item"
