@@ -116,8 +116,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const data  = await res.json();
         const meals = data.body;
         const requestSection = document.querySelector(".request-list");
-        if(!meals)
+        
+        if(!meals){
+            console.log(data.message);
             return;
+        }
         meals.forEach(meal=>{
             requestSection.insertAdjacentHTML('beforeend' ,`<article class="request-list-item highlight" 
                 data-id="${meal.lst_id}" 
