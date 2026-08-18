@@ -157,7 +157,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         meals.forEach((meal,idx)=>{
             orders = meal.requests.count ?? 0 ;
             
-            const postHtml =  `<article class="post-card" id="post-card_${idx}" data-id="${meal.lst_id}">
+            const postHtml =  `<article class="post-card" id="post-card_${idx}" data-id="${meal.lst_id}" data-expires-at="${meal.expires_at}">
                         <div class="post-status-bar ${orders === 0 ? '' : 'yes-requests'}">${orders === 0 ? 'No' : orders} new requests!</div>
                         <div class="post-thumb">
                             <canvas id="post-canvas_${idx}" data-id="${meal.lst_id}"></canvas>
@@ -462,20 +462,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     let pickupMarker = null;
 
     let currentEditPage = 1;
+    let selectedCard;
 
     const page1 = document.getElementById("editPage1");
     const page2 = document.getElementById("editPage2");
 
     const nextBtn = document.querySelector(".next-edit-page");
     const prevBtn = document.querySelector(".prev-edit-page");
-
-    const now = new Date();
-    const max = new Date();
-    max.setHours(now.getHours() + 48);
-    startPickupDate.min = now.toISOString().split("T")[0];
-    startPickupDate.max = max.toISOString().split("T")[0];
-    endPickupDate.min = now.toISOString().split("T")[0];
-    endPickupDate.max = max.toISOString().split("T")[0];
 
     function formatTimeInput(input) {
         input.dataset.raw = "";
@@ -533,15 +526,81 @@ document.addEventListener("DOMContentLoaded", async () => {
         input.value = formatted;
     }
 
+     function getLocalDateString(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+
+    function getDateTimeFromInputs(dateInput, timeInput) {
+        const date = dateInput.value;
+        let rawTime = timeInput.dataset.raw || "";
+
+        rawTime = rawTime.padStart(4, "0");
+        if (!date || rawTime.length !== 4) {
+            return null;
+        }
+
+        const hours = Number(rawTime.slice(0, 2));
+        const minutes = Number(rawTime.slice(2, 4));
+        if (hours > 23 || minutes > 59) {
+            return null;
+        }
+
+        const result = new Date(date + "T00:00:00");
+        result.setHours(hours, minutes, 0, 0);
+
+        return result;
+    }
+
+    function validatePickupWindow() {
+        const start = getDateTimeFromInputs(startPickupDate, pickupStart);
+        const end = getDateTimeFromInputs(endPickupDate, pickupEnd);
+
+        if (!start || !end) {
+            alert("Please enter valid start and end dates and times.");
+            return false;
+        }
+        const now = new Date();
+        const max = new Date(selectedCard.dataset.expiresAt);
+        max.setHours(max.getHours() - 3);
+
+        if(start < now){
+            alert("The pickup start time cannot be in the past.");
+            return false;
+        }
+        if(end <= start){
+            alert("The pickup end time must be after the pickup start time.");
+            return false;
+        }
+        if(start > max){
+            alert("The pickup start time must be before the listing expires.");
+            return false;
+        }
+        if(end > max){
+            alert("The pickup end time must be before the listing expires.");
+            return false;
+        }
+        return true;
+    }
+
     formatTimeInput(pickupStart);
     formatTimeInput(pickupEnd);
 
-    let selectedCard;
     const editBtn = document.querySelectorAll(".menu-dropdown .edit-post").forEach((btn,idx) => {
         btn.addEventListener("click", (e) => {
             e.preventDefault();
             selectedCard =btn.closest(".post-card");
             tagButtons.forEach(btn => btn.classList.remove('selected'));
+            const now = new Date();
+            const max = new Date(selectedCard.dataset.expiresAt);
+            max.setHours(max.getHours() - 3);
+            
+            startPickupDate.min = getLocalDateString(now);
+            startPickupDate.max = getLocalDateString(max);
+            endPickupDate.min = getLocalDateString(now);
+            endPickupDate.max = getLocalDateString(max);
 
             openEditModal(selectedCard); 
             /* close dropdown */
@@ -620,10 +679,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         const endDate = endPickupDate.value;
         const startTime = pickupStart.value;
         const endTime = pickupEnd.value;
-        
-        let start = new Date(`${startDate}T${startTime}`);
-        let end = new Date(`${endDate}T${endTime}`); 
-        const now = new Date();
 
         const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
@@ -637,28 +692,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        if(start < now){
-            alert(`Start date must be after : ${now}`);
-            return ;
-        }
-
-        if ((end-start) > 48 * 60 * 60 * 1000) {
-            alert("Pickup must be within 48 hours.");
+       if (!validatePickupWindow()){
             return;
         }
 
-        if(startDate > endDate){
-            alert("Start date must be after end date.");
-            return;
-        }
-
-        if(startDate === endDate && startTime > endTime){
-            alert("Start time must be after end time");
-            return ;
-        }
-        
-        start = `${startDate}T${startTime}:00.000Z`;
-        end = `${endDate}T${endTime}:00.000Z`;
+        const start = `${startDate}T${startTime}`;
+        const end = `${endDate}T${endTime}`;
 
         pickup_windows[Number(selectedCard.dataset.id)].push({
             start,
