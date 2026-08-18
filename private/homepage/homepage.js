@@ -1045,8 +1045,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const max = new Date();
     max.setHours(now.getHours() + 48);
 
-    startPickupDate.min = now.toISOString().split("T")[0];
-    startPickupDate.max = max.toISOString().split("T")[0];
+    function getLocalDateString(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+
+    startPickupDate.min = getLocalDateString(now);
+    startPickupDate.max = getLocalDateString(max)
 
     endPickupDate.min = startPickupDate.min;
     endPickupDate.max = startPickupDate.max;
@@ -1100,6 +1107,58 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         input.value = formatted;
+    }
+
+    function getDateTimeFromInputs(dateInput, timeInput) {
+        const date = dateInput.value;
+        let rawTime = timeInput.dataset.raw || "";
+
+        rawTime = rawTime.padStart(4, "0");
+        if (!date || rawTime.length !== 4) {
+            return null;
+        }
+
+        const hours = Number(rawTime.slice(0, 2));
+        const minutes = Number(rawTime.slice(2, 4));
+        if (hours > 23 || minutes > 59) {
+            return null;
+        }
+
+        const result = new Date(date + "T00:00:00");
+        result.setHours(hours, minutes, 0, 0);
+
+        return result;
+    }
+
+    function validatePickupWindow() {
+        const start = getDateTimeFromInputs(startPickupDate, pickupStartTime);
+        const end = getDateTimeFromInputs(endPickupDate, pickupEndTime);
+
+        if (!start || !end) {
+            alert("Please enter valid start and end dates and times.");
+            return false;
+        }
+        const now = new Date();
+        const max = new Date(now);
+        max.setHours(max.getHours() + 48);
+
+        if(start < now){
+            alert("The pickup start time cannot be in the past.");
+            return false;
+        }
+        if(end <= start){
+            alert("The pickup end time must be after the pickup start time.");
+            return false;
+        }
+        if(start > max){
+            alert("The pickup start time must be within the next 48 hours.");
+            return false;
+        }
+        if(end > max){
+            alert("The pickup end time must be within the next 48 hours.");
+            return false;
+        }
+        return true;
     }
 
     formatTimeInput(pickupStartTime);
@@ -1280,9 +1339,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const endDate = endPickupDate.value;
         const startTime = pickupStartTime.value;
         const endTime = pickupEndTime.value;
-        const start = new Date(`${startDate}T${startTime}`);
-        const end = new Date(`${endDate}T${endTime}`); 
-        const now = new Date();
 
         const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
@@ -1296,24 +1352,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        if(start < now){
-            alert(`Start date must be after : ${now}`);
-            return ;
-        }
-
-        if ((end-start) > 48 * 60 * 60 * 1000) {
-            alert("Pickup must be within 48 hours.");
+        if (!validatePickupWindow()){
             return;
-        }
-
-        if(startDate > endDate){
-            alert("Start date must be after end date.");
-            return;
-        }
-
-        if(startDate === endDate && startTime > endTime){
-            alert("Start time must be after end time");
-            return ;
         }
 
         pickupWindows.push({
