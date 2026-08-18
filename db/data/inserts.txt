@@ -291,3 +291,25 @@ INSERT INTO deliveries (del_time, rating, rating_timestamp, req_id, status) VALU
 (DATE_SUB(NOW(), INTERVAL 9 HOUR), 4.6, DATE_SUB(NOW(), INTERVAL 8 HOUR), 29, 'COMPLETED'),
 (DATE_SUB(NOW(), INTERVAL 7 HOUR), 4.4, DATE_SUB(NOW(), INTERVAL 6 HOUR), 32, 'COMPLETED'),
 (DATE_SUB(NOW(), INTERVAL 5 HOUR), NULL, NULL, 37, 'DELIVERED');
+
+
+
+INSERT INTO listing (poster, title, description, portions, pickup_location, pickup_latitude, pickup_longitude, created_at, expires_at, status, lst_rating) VALUES 
+(2, 'Beef Pastitsio', 'Homemade baked pasta with minced beef and béchamel sauce.', 2, 'Ανοιχτό Εμπορικό Κέντρο Πάτρας, Υψηλά Αλώνια', 38.246363, 21.735574, DATE_SUB(NOW(), INTERVAL 4 DAY), DATE_ADD(DATE_SUB(NOW(), INTERVAL 4 DAY), INTERVAL 48 HOUR), 'EXPIRED', NULL),
+(2, 'Vegan Cereal Bars', 'Homemade oats, tahini, and dark chocolate bars.', 0, 'Ανοιχτό Εμπορικό Κέντρο Πάτρας, Υψηλά Αλώνια', 38.246363, 21.735574, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_ADD(DATE_SUB(NOW(), INTERVAL 5 DAY), INTERVAL 48 HOUR), 'EXPIRED', 2.50);
+
+INSERT INTO pickup_window (lst_id, pickup_start, pickup_end) VALUES
+(23, DATE_SUB(NOW(), INTERVAL 90 HOUR), DATE_SUB(NOW(), INTERVAL 89 HOUR)),
+(23, DATE_SUB(NOW(), INTERVAL 60 HOUR), DATE_SUB(NOW(), INTERVAL 59 HOUR)),
+(23, DATE_SUB(NOW(), INTERVAL 65 HOUR), DATE_SUB(NOW(), INTERVAL 64 HOUR)),
+(24, DATE_SUB(NOW(), INTERVAL 90 HOUR), DATE_SUB(NOW(), INTERVAL 89 HOUR)),
+(24, DATE_SUB(NOW(), INTERVAL 105 HOUR), DATE_SUB(NOW(), INTERVAL 104 HOUR));
+
+
+INSERT INTO lst_has_allergens(allerg_id,lst_id) VALUES
+(1, 23), (7, 23), (3, 23),
+(1, 24), (8, 24), (11, 24);
+
+INSERT INTO lst_has_meal_tag (mtag_id, lst_id) VALUES 
+(7, 23), (9, 23), (2, 23),
+(6, 24), (5, 24);
