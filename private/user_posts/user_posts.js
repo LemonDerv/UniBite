@@ -126,36 +126,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     let tags = [];
     let allergies = [];
 
-    /* GET POSTS FROM DB */ 
-    await fetch('/api/posts/activeMeals' , {
-        method: 'GET'
-    })
-    .then(async (res)=>{
-        const data = await res.json();
-        const meals = data.body;
-
-        if(res.status === 404){
-            console.log(data.message);
-            return ;
-        }
-
-        pickup_windows = meals.reduce((acc,curr)=>{
-            if(!acc[curr.lst_id]) acc[curr.lst_id]=[];
-            acc[curr.lst_id].push(...curr.pickup_windows);
-            return acc;
-        }, {});
-
-        allergies = meals.reduce((acc,curr)=>{
-            if(!acc[curr.lst_id]) acc[curr.lst_id] = [];
-            acc[curr.lst_id].push(...curr.allergens);
-            return acc;
-        },{});
-
-        let orders;
-        // update portion after each request
-
+    function renderActiveMeals(meals){
         meals.forEach((meal,idx)=>{
-            orders = meal.requests.count ?? 0 ;
+            const orders = meal.requests.count ?? 0 ;
             
             const postHtml =  `<article class="post-card" id="post-card_${idx}" data-id="${meal.lst_id}" data-expires-at="${meal.expires_at}">
                         <div class="post-status-bar ${orders === 0 ? '' : 'yes-requests'}">${orders === 0 ? 'No' : orders} new requests!</div>
@@ -211,6 +184,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             document.querySelector(".posts-grid").insertAdjacentHTML('beforeend',postHtml);
+
             if (meal.expires_at) {
                 const timerEl = document.querySelector(".posts-grid").querySelector(`.post-card[data-id="${meal.lst_id}"] .post-time-remaining`);
                 if (timerEl) startTimer(meal.expires_at, timerEl);
@@ -279,6 +253,36 @@ document.addEventListener("DOMContentLoaded", async () => {
                 renderMealImg(img,document.querySelector(".post-thumb").clientWidth , 0.5, document.querySelector(`#post-canvas_${idx}`));
             });
         });
+    }
+
+    /* GET POSTS FROM DB */ 
+    await fetch('/api/posts/activeMeals' , {
+        method: 'GET'
+    })
+    .then(async (res)=>{
+        const data = await res.json();
+
+        if(res.status === 404){
+            console.log(data.message);
+            return ;
+        }
+        
+        const meals = data.body;
+
+        pickup_windows = meals.reduce((acc,curr)=>{
+            if(!acc[curr.lst_id]) acc[curr.lst_id]=[];
+            acc[curr.lst_id].push(...curr.pickup_windows);
+            return acc;
+        }, {});
+
+        allergies = meals.reduce((acc,curr)=>{
+            if(!acc[curr.lst_id]) acc[curr.lst_id] = [];
+            acc[curr.lst_id].push(...curr.allergens);
+            return acc;
+        },{});
+
+        renderActiveMeals(meals);
+        
     })
     .catch((err)=>{console.log(err)});
 
@@ -1055,7 +1059,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         btn.addEventListener('click', ()=>{
             const cardId = btn.closest('article').dataset.id;
             if(confirm("Are you sure.")){
-                console.log("you are going to delete a post");
                 fetch('/api/posts/delete',{
                     method: 'DELETE',
                     headers:{'Content-Type': 'application/json'},
@@ -1063,19 +1066,20 @@ document.addEventListener("DOMContentLoaded", async () => {
                 })
                 .then(async (res)=>{
                     const data = await res.json();
-                    if(res.status === 200 )
+                    if(res.status === 200 ){
                         alert(data.message);
+                        document.querySelector(`article[data-id="${cardId}"]`).remove();
+                    }
                     else if ([400,404,500].includes(res.status)){
                         alert(data.message);
                         return ;
                     }
+                    
                 })
                 .catch((err)=>{
                     console.log('Error deleting post.',err)
                     return;
                 });
-
-                window.location.reload();
             }
         });
     });
