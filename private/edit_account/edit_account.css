@@ -473,6 +473,16 @@ body {
     background-color: var(--red-bg-hover);
 }
 
+/* ------------------------------
+   RESPONSIVE
+------------------------------ */
+@media (max-width: 900px) {
+    .edit_account-layout {
+        grid-template-columns: 1fr;
+    }
+
+}
+
 @media (max-width: 600px) {
     .username-row {
         flex-direction: column;

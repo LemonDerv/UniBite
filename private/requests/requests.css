@@ -488,18 +488,24 @@ body {
    RESPONSIVE
 ------------------------------ */
 @media (max-width: 900px) {
-    .deliveries-layout {
+    .requests-layout {
         grid-template-columns: 1fr;
     }
 
-    .delivery-list-item {
+    .request-list-item {
         flex-direction: column;
         align-items: flex-start;
         gap: 16px;
     }
+}
 
-    .delivery-actions {
-        width: 100%;
-        flex-wrap: wrap;
+@media (max-width: 700px) {
+
+    .view-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .view-modal-content {
+        padding: 20px;
     }
 }
