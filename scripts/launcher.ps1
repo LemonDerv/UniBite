@@ -197,30 +197,58 @@ if (Test-Path -LiteralPath "$MariaDbDir\bin\mysql.exe") {
 }
 
 if ($mysqlExe) {
-    # Check if we can connect with password '1422005'
-    $canConnect1422005 = $false
-    try {
-        & $mysqlExe -u root -p1422005 -e "SELECT 1;" 2>$null | Out-Null
-        if ($LASTEXITCODE -eq 0) { $canConnect1422005 = $true }
-    } catch {}
-
-    # If not, check if root connects with empty password
-    if (-not $canConnect1422005) {
-        $canConnectEmpty = $false
-        try {
-            & $mysqlExe -u root -e "SELECT 1;" 2>$null | Out-Null
-            if ($LASTEXITCODE -eq 0) { $canConnectEmpty = $true }
-        } catch {}
-
-        if ($canConnectEmpty) {
-            Write-Host "      Configuring database user credentials..." -ForegroundColor Gray
-            # Set password to 1422005 so db.js connects without code changes
-            & $mysqlExe -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '1422005'; FLUSH PRIVILEGES;" 2>$null | Out-Null
-            $canConnect1422005 = $true
+    # Read whatever password db.js is configured with
+    $expectedPassword = ""
+    if (Test-Path -LiteralPath "$ProjectDir\db.js") {
+        $dbContent = Get-Content -LiteralPath "$ProjectDir\db.js" -Raw
+        if ($dbContent -match 'password\s*:\s*["''](.*?)["'']') {
+            $expectedPassword = $Matches[1]
         }
     }
 
-    $passArg = if ($canConnect1422005) { "-p1422005" } else { "" }
+    # Test how root can connect currently
+    $currentPassArg = ""
+    $rootWorks = $false
+
+    if ($expectedPassword -ne "") {
+        try {
+            & $mysqlExe -u root "-p$expectedPassword" -e "SELECT 1;" 2>$null | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+                $currentPassArg = "-p$expectedPassword"
+                $rootWorks = $true
+            }
+        } catch {}
+    }
+
+    if (-not $rootWorks) {
+        try {
+            & $mysqlExe -u root -e "SELECT 1;" 2>$null | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+                $currentPassArg = ""
+                $rootWorks = $true
+            }
+        } catch {}
+    }
+
+    if (-not $rootWorks) {
+        try {
+            & $mysqlExe -u root -p1422005 -e "SELECT 1;" 2>$null | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+                $currentPassArg = "-p1422005"
+                $rootWorks = $true
+            }
+        } catch {}
+    }
+
+    # Synchronize MariaDB root password to whatever db.js expects
+    if ($rootWorks) {
+        try {
+            & $mysqlExe -u root $currentPassArg -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$expectedPassword'; FLUSH PRIVILEGES;" 2>$null | Out-Null
+            $currentPassArg = if ($expectedPassword -ne "") { "-p$expectedPassword" } else { "" }
+        } catch {}
+    }
+
+    $passArg = $currentPassArg
 
     # Check if UNIBITES_DB exists
     $dbExists = $false
