@@ -144,7 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!deliveries.length) {
                 console.log("No pending deliveries found.");
-                return ;
+                //return ;
             }
             
             deliveriesList.innerHTML = '';
